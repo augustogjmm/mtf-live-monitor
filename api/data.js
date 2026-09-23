@@ -174,11 +174,19 @@ async function latestCedearServerSnapshot(){
  return j||{};
 }
 async function runtimeSnapshot(market='crypto'){
- const [opens,decisions]=await Promise.all([
+ const [opens,decisions,liveRows]=await Promise.all([
    supaAll(`/rest/v1/mtf_signals?strategy_version=eq.OB-LADDER-v3.3&source=in.(FORWARD,MIGRATED_STRICT)&status=in.(OPEN,TP1,TP2)&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,context&order=signal_time.desc`),
-   supa('/rest/v1/rpc/mtf_latest_decisions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({p_market:market})})
+   supa('/rest/v1/rpc/mtf_latest_decisions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({p_market:market})}),
+   market==='crypto'?Promise.resolve([]):supa('/rest/v1/mtf_state?market=eq.regulated_live&select=meta,last_run_at&limit=1')
  ]);
- return{opens:(opens||[]).filter(x=>!market||x.market===market),decisions:Array.isArray(decisions)?decisions:[],generatedAt:new Date().toISOString()};
+ const snap=liveRows?.[0]?.meta?.snapshot||[];
+ return{
+   opens:(opens||[]).filter(x=>!market||x.market===market),
+   decisions:Array.isArray(decisions)?decisions:[],
+   liveStates:Array.isArray(snap)?snap.filter(x=>!market||x.market===market):[],
+   liveGeneratedAt:liveRows?.[0]?.meta?.generated_at||liveRows?.[0]?.last_run_at||null,
+   generatedAt:new Date().toISOString()
+ };
 }
 async function statusSnapshot(){const [j,httpErrors,audit]=await Promise.all([supa('/rest/v1/rpc/mtf_system_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_http_error_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_audit_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})]);return{...j,audit:audit||{},errors:{...(j.errors||{}),...(httpErrors||{})},ui_version:'3.3.3',build_id:'MTF-Live-Monitor-3.3.3-LIVE-PRICE-SYNC',api_generated_at:new Date().toISOString()}}
 async function telegramCanary(){const r=await fetch(SB_URL+'/functions/v1/mtf-alert-watcher',{method:'POST',headers:{apikey:SB_ANON,Authorization:'Bearer '+SB_ANON,'content-type':'application/json',accept:'application/json'},body:JSON.stringify({test:true})});const t=await r.text();let j;try{j=JSON.parse(t)}catch{j={raw:t}}if(!r.ok)throw Error('Canary '+r.status+' '+t);return j}
