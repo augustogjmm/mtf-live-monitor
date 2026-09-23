@@ -219,7 +219,7 @@ function movePct(entry,level,dir='LONG'){entry=+entry;level=+level;if(!(Number.i
 function signedPct(v){return Number.isFinite(v)?(v>0?'+':'')+v.toFixed(2)+'%':'—'}
 function levelPct(entry,level,dir){const p=movePct(entry,level,dir);return `<span class="level-pct ${p>0?'g':p<0?'r':''}">${signedPct(p)}</span>`}
 function levelText(entry,level,dir){return `${F(level)} · ${signedPct(movePct(entry,level,dir))}`}
-function outcomePct(x){if(!x)return NaN;if(x.status==='TP1'||x.status==='TP1_STOP')return movePct(x.entry,x.tp1,x.dir);if(x.status==='TP2')return movePct(x.entry,x.tp2,x.dir);if(x.status==='SL')return movePct(x.entry,x.stop,x.dir);return NaN}
+function outcomePct(x){if(!x)return NaN;if(x.status==='TP1')return movePct(x.entry,x.tp1,x.dir);if(x.status==='TP2')return movePct(x.entry,x.tp2,x.dir);if(x.status==='TP3')return movePct(x.entry,x.tp3,x.dir);if(x.status==='SL')return movePct(x.entry,x.stop,x.dir);return NaN}
 function outcomePctHtml(x){const p=outcomePct(x);return Number.isFinite(p)?`<span class="level-pct ${p>=0?'g':'r'}">Resultado nivel: ${signedPct(p)}</span>`:''}
 function statLevel(x,key){return `${F(x[key])}${levelPct(x.entry,x[key],x.dir)}`}
 const ASSET_NAMES={
@@ -384,7 +384,7 @@ function zc(x,d){
   const current=D.at(-1),price=current.c,ladder=uiLadder(D,price),context=uiContext(D),s=ladder.complete?'NEAR':'WAIT';
   return{version:STRATEGY_VERSION,price,time:current.t,s,dir:'LONG',complete:ladder.complete,ladder,context,blocks:ladder.raw}
 }
-function track(sym,market,bars){let changed=false;for(const s of sig.filter(x=>x.m===market&&x.sym===sym&&!['TP3','SL','AMBIGUOUS'].includes(x.status))){const R=Math.abs(s.entry-s.stop);if(!(R>0))continue;for(const c of bars.filter(c=>(c.t??c.closeTime)>s.time)){const hi=c.h??c.high,lo=c.l??c.low,tm=c.t??c.closeTime,f=s.dir==='LONG'?(hi-s.entry)/R:(s.entry-lo)/R,a=s.dir==='LONG'?(lo-s.entry)/R:(s.entry-hi)/R;s.bestR=Math.max(Number(s.bestR)||0,f);s.worstR=Math.min(Number(s.worstR)||0,a);const had1=!!s.hit1,hard=s.dir==='LONG'?lo<=s.stop:hi>=s.stop,tp1=s.dir==='LONG'?hi>=s.tp1:lo<=s.tp1,tp2=s.dir==='LONG'?hi>=s.tp2:lo<=s.tp2,protect=had1&&(s.dir==='LONG'?lo<=s.tp1:hi>=s.tp1);if(!had1&&hard&&(tp1||tp2)){s.status='AMBIGUOUS';s.closedAt=tm;changed=true;break}if(had1&&protect&&tp2){s.status='AMBIGUOUS';s.closedAt=tm;changed=true;break}if(tp2){s.hit1=true;s.hit2=true;s.hit1At=s.hit1At||tm;s.hit2At=tm;s.status='TP2';s.closedAt=tm;changed=true;break}if(had1&&protect){s.status='TP1_STOP';s.closedAt=tm;changed=true;break}if(!had1&&hard){s.status='SL';s.closedAt=tm;changed=true;break}if(!had1&&tp1){s.hit1=true;s.hit1At=tm;s.status='TP1';changed=true}}}if(changed)save()}
+function track(sym,market,bars){return false}
 const chartCfg={c:{tf:'1h',range:120,sym:''},z:{tf:'1d',range:120,sym:''}};
 function NB(a){return(a||[]).map(x=>({t:+(x.t??x.closeTime),o:+(x.o??x.open??x.c??x.close),h:+(x.h??x.high),l:+(x.l??x.low),c:+(x.c??x.close),v:+(x.v??x.volume??0)})).filter(x=>[x.t,x.o,x.h,x.l,x.c].every(Number.isFinite))}
 function pc(canvas){const dpr=Math.max(1,window.devicePixelRatio||1),r=canvas.getBoundingClientRect(),w=Math.max(320,Math.floor(r.width)),h=Math.max(120,Math.floor(r.height));if(canvas.width!==Math.floor(w*dpr)||canvas.height!==Math.floor(h*dpr)){canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr)}const c=canvas.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return{c,w,h}}
