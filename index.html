@@ -265,6 +265,18 @@ function runtimeOpenFor(market,sym,dir=null){return runtimeOpensFor(market,sym,d
 function runtimeDecisionFor(market,sym){return runtimeDecisions.find(x=>x.market===market&&x.symbol===sym)||null}
 function decisionMatchesCurrentBar(d,q){if(!d||!q||!d.signal_time||!Number.isFinite(+q.time))return false;const t=new Date(d.signal_time).getTime();return Number.isFinite(t)&&Math.abs(t-(+q.time))<=120000}
 function currentRuntimeDecision(market,sym,q){const d=runtimeDecisionFor(market,sym);return decisionMatchesCurrentBar(d,q)?d:null}
+function serverizeCryptoQ(sym,q){
+  const d=runtimeDecisionFor('crypto',sym),dg=d?.context?.diagnostic;
+  if(!q||!dg?.ladder)return q;
+  const bulls=Array.isArray(dg.ladder.below)?dg.ladder.below:[],bears=Array.isArray(dg.ladder.above)?dg.ladder.above:[];
+  if(bulls.length)q.ladder={...dg.ladder,below:bulls,above:bears,complete:bulls.length===3&&bears.length===3,exactAnalyzer:true};
+  if(dg.macroContext)q.macroContext=dg.macroContext;
+  if(q.macroContext?.h1)q.context=q.macroContext.h1;
+  if(dg.stops)q.stops=dg.stops;
+  q.proximity=uiProximity(q.ladder,q.price,q.context?.atr14,false);
+  q.s=q.proximity.state;q.dir=q.proximity.nearest?.direction||'';
+  return q
+}
 function cOperationalLabel(q,sym){
   const d=currentRuntimeDecision('crypto',sym,q),ops=runtimeOpensFor('crypto',sym),p=q?.proximity||{},n=p.nearest;
   if(d?.decision==='ENTRY')return '<span class="signal-pill signal-'+(d.direction==='SHORT'?'short':'long')+'">NUEVA ENTRADA '+(d.direction||'')+'</span>';
@@ -482,12 +494,12 @@ function nextCryptoFullRefresh(now=Date.now()){
 }
 function cryptoTime(t){return t?new Date(t).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'—'}
 function updateCryptoAutoText(){const el=$('cauto');if(!el)return;const next=nextCryptoFullRefresh();el.textContent=`· 1H · ATR14 · ${cryptoLastFullRefresh?'última '+cryptoTime(cryptoLastFullRefresh)+' · ':''}próxima ~${cryptoTime(next)}`}
-async function refreshCryptoRuntime(){if(cryptoRuntimeRefreshing)return;cryptoRuntimeRefreshing=true;try{const rt=await J('/api/data?op=runtime&market=crypto&_='+Date.now(),12000);runtimeOpen=Array.isArray(rt?.opens)?rt.opens:[];runtimeDecisions=Array.isArray(rt?.decisions)?rt.decisions:[];if(C.length&&CM.size){renderC();if(selC&&CM.has(selC))detailC(selC)}}catch{}finally{cryptoRuntimeRefreshing=false}}
+async function refreshCryptoRuntime(){if(cryptoRuntimeRefreshing)return;cryptoRuntimeRefreshing=true;try{const rt=await J('/api/data?op=runtime&market=crypto&_='+Date.now(),12000);runtimeOpen=Array.isArray(rt?.opens)?rt.opens:[];runtimeDecisions=Array.isArray(rt?.decisions)?rt.decisions:[];if(C.length&&CM.size){for(const x of C)if(CM.has(x.s))CM.set(x.s,serverizeCryptoQ(x.s,CM.get(x.s)));renderC();if(selC&&CM.has(selC))detailC(selC)}}catch{}finally{cryptoRuntimeRefreshing=false}}
 async function loadC(force=false){
   if(cryptoLoading)return;if(!force&&C.length&&CM.size){await refreshCryptoRuntime();updateCryptoAutoText();return renderC()}cryptoLoading=true;$('cstat').textContent='Cargando universo…';$('cdot').className='dot';$('cbar').style.width='0%';
   try{if(force){C=[];CM.clear()}const rtP=J('/api/data?op=runtime&market=crypto&_='+Date.now(),12000).catch(()=>({opens:[],decisions:[]}));C=await uni();const rt=await rtP;runtimeOpen=Array.isArray(rt?.opens)?rt.opens:[];runtimeDecisions=Array.isArray(rt?.decisions)?rt.decisions:[];const currentSet=new Set(C.map(x=>x.s));
     for(const op of runtimeOpen.filter(x=>x.market==='crypto')){const sym=String(op.symbol||'').toUpperCase();if(sym&&!currentSet.has(sym)){C.push({s:sym,p:sym+'USDT',name:assetName('CRYPTO',sym),outside:true});currentSet.add(sym)}}
-    let n=0;for(const x of C){try{const[h1,h4,d1,m15]=await Promise.all([K(x.p,'1h',1000),K(x.p,'4h',1000),K(x.p,'1d',1000),K(x.p,'15m',1000)]);x.hist={h1,'1h':h1,h4,'4h':h4,d1,'1d':d1,m15,'15m':m15};CM.set(x.s,cc({h1,h4,d1,m15}))}catch(e){x.err=e.message}n++;$('cbar').style.width=n/C.length*100+'%';$('cstat').textContent=`Analizando contexto + zonas 1H ${n}/${C.length}`;renderC()}
+    let n=0;for(const x of C){try{const[h1,h4,d1,m15]=await Promise.all([K(x.p,'1h',1000),K(x.p,'4h',1000),K(x.p,'1d',1000),K(x.p,'15m',1000)]);x.hist={h1,'1h':h1,h4,'4h':h4,d1,'1d':d1,m15,'15m':m15};CM.set(x.s,serverizeCryptoQ(x.s,cc({h1,h4,d1,m15})))}catch(e){x.err=e.message}n++;$('cbar').style.width=n/C.length*100+'%';$('cstat').textContent=`Analizando contexto + zonas 1H ${n}/${C.length}`;renderC()}
     cryptoLastFullRefresh=Date.now();$('cstat').textContent='Activo · 1H · proximidad ATR + zonas del detector';$('cdot').className='dot live';updateCryptoAutoText()
   }catch(e){$('cstat').textContent='Error: '+e.message;$('cdot').className='dot'}finally{cryptoLoading=false}
 }
