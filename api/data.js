@@ -68,16 +68,16 @@ async function bootstrapCedearServer(){
  const t=await r.text();let j;try{j=JSON.parse(t)}catch{j={raw:t}}if(!r.ok)throw Error('Bootstrap CEDEAR '+r.status+' '+t);return j;
 }
 async function cedearPanelSnapshot(){
- try{const snap=await latestCedearServerSnapshot(),items=Array.isArray(snap?.items)?snap.items:[];if(items.length)return{rawCount:items.length,normalizedCount:items.length,total:items.length,items,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico ADTV20`,snapshot:true,snapshotDate:snap.run_date,universeRule:snap.universe_rule,updatedAt:snap.updated_at||null};}catch(_){ }
+ try{const snap=await latestCedearServerSnapshot(),items=Array.isArray(snap?.items)?snap.items:[];if(items.length)return{rawCount:items.length,normalizedCount:items.length,total:items.length,items,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico por monto BYMA`,snapshot:true,snapshotDate:snap.run_date,universeRule:snap.universe_rule,updatedAt:snap.updated_at||null};}catch(_){ }
  let bootstrapStatus=null;try{bootstrapStatus=await bootstrapCedearServer()}catch(e){return{rawCount:0,normalizedCount:0,total:0,items:[],snapshot:false,bootstrap:true,bootstrapInProgress:true,bootstrapError:String(e?.message||e),source:'Bootstrap CEDEAR servidor'}}
- try{const snap=await latestCedearServerSnapshot(),items=Array.isArray(snap?.items)?snap.items:[];if(items.length)return{rawCount:items.length,normalizedCount:items.length,total:items.length,items,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico ADTV20`,snapshot:true,snapshotDate:snap.run_date,universeRule:snap.universe_rule,updatedAt:snap.updated_at||null,bootstrapCompleted:true};}catch(_){ }
+ try{const snap=await latestCedearServerSnapshot(),items=Array.isArray(snap?.items)?snap.items:[];if(items.length)return{rawCount:items.length,normalizedCount:items.length,total:items.length,items,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico por monto BYMA`,snapshot:true,snapshotDate:snap.run_date,universeRule:snap.universe_rule,updatedAt:snap.updated_at||null,bootstrapCompleted:true};}catch(_){ }
  return{rawCount:bootstrapStatus?.total||0,normalizedCount:0,total:0,items:[],snapshot:false,bootstrap:true,bootstrapInProgress:true,bootstrapStatus,source:'Reconstruyendo universo CEDEAR en servidor'};
 }
 async function cedearBatch(offset=0,limit=8){
  offset=Math.max(0,Math.floor(+offset||0));limit=Math.max(1,Math.min(25,Math.floor(+limit||8)));
  const snap=await latestCedearServerSnapshot(),all=Array.isArray(snap?.items)?snap.items:[],total=all.length;
  if(!total)return{items:[],total:0,rawCount:0,normalizedCount:0,offset,limit,historyOk:0,historyFailed:0,failureSample:[],done:false,snapshot:false,bootstrap:true,bootstrapInProgress:true,source:'Snapshot todavía no disponible'};
- const items=all.slice(offset,offset+limit);return{items,total,rawCount:total,normalizedCount:total,offset,limit,historyOk:items.length,historyFailed:0,failureSample:[],done:offset+limit>=total,snapshot:true,snapshotDate:snap.run_date,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico ADTV20`};
+ const items=all.slice(offset,offset+limit);return{items,total,rawCount:total,normalizedCount:total,offset,limit,historyOk:items.length,historyFailed:0,failureSample:[],done:offset+limit>=total,snapshot:true,snapshotDate:snap.run_date,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico por monto BYMA`};
 }
 async function bymaEquityRows(endpoint){
  const body={T1:true,page_size:5000};
