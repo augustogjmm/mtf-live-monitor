@@ -314,10 +314,10 @@ function serverizeCryptoQ(sym,q){
 }
 function cOperationalLabel(q,sym){
   const d=currentRuntimeDecision('crypto',sym,q),ops=runtimeOpensFor('crypto',sym),p=q?.proximity||{},n=p.nearest;
-  if(d?.decision==='ENTRY')return '<span class="signal-pill signal-'+(d.direction==='SHORT'?'short':'long')+'">NUEVA ENTRADA '+(d.direction||'')+'</span>';
-  if(ops.length){const dirs=[...new Set(ops.map(x=>x.direction))].join('/');return '<span class="signal-pill signal-near">'+ops.length+' ABIERTA'+(ops.length>1?'S':'')+' · '+dirs+'</span>'}
-  if(p.state==='IN_ZONE'&&n)return '<span class="signal-pill signal-'+(n.direction==='SHORT'?'short':'long')+'">NUEVA ENTRADA '+n.direction+' '+n.rank+'</span>';
-  if(p.state==='NEAR'&&n)return '<span class="signal-pill signal-near">CERCA · '+n.direction+' '+n.rank+' · '+Number(n.distanceAtr).toFixed(2)+' ATR</span>';
+  if(d?.decision==='ENTRY'){const dc=d.direction==='SHORT'?'short':'long';return '<span class="signal-pill signal-'+dc+'">NUEVA ENTRADA <span class="dir-'+dc+'">'+(d.direction||'')+'</span></span>'}
+  if(ops.length){const dirs=[...new Set(ops.map(x=>x.direction))].map(v=>'<span class="dir-'+(v==='SHORT'?'short':'long')+'">'+v+'</span>').join('/');return '<span class="signal-pill signal-near">'+ops.length+' ABIERTA'+(ops.length>1?'S':'')+' · '+dirs+'</span>'}
+  if(p.state==='IN_ZONE'&&n){const dc=n.direction==='SHORT'?'short':'long';return '<span class="signal-pill signal-'+dc+'">NUEVA ENTRADA <span class="dir-'+dc+'">'+n.direction+'</span> '+n.rank+'</span>'}
+  if(p.state==='NEAR'&&n){const dc=n.direction==='SHORT'?'short':'long';return '<span class="signal-pill signal-near">CERCA · <span class="dir-'+dc+'">'+n.direction+'</span> '+n.rank+' · '+Number(n.distanceAtr).toFixed(2)+' ATR</span>'}
   return '<span class="signal-pill signal-wait">ESPERAR'+(n&&Number.isFinite(+n.distanceAtr)?' · '+Number(n.distanceAtr).toFixed(2)+' ATR':'')+'</span>'
 }
 function cIsNewEntry(q,sym,dir){const d=currentRuntimeDecision('crypto',sym,q);return !!(d?.decision==='ENTRY'&&d.direction===dir)||(q?.proximity?.state==='IN_ZONE'&&q?.proximity?.nearest?.direction===dir)}
