@@ -230,7 +230,7 @@ function assetName(market,sym,provided='',underlying=''){const n=String(provided
 function assetCell(market,sym,provided='',underlying=''){const n=assetName(market,sym,provided,underlying);return `<b>${sym}</b>${n?`<span class=\"small\" style=\"display:block;margin-top:2px\">${n}</span>`:''}`;}
 function loadLocalSignals(){return []}
 let tab='c',C=[],Z=[],CM=new Map,ZM=new Map,selC='',selZ='',cFilter='all',zFilter='all',statsQuick='ALL',sig=[];
-let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null;const ZCACHE='mtf_usd_market_snapshot_v310_atr',STRATEGY_VERSION='OB-LADDER-v3.2',STATS_UI_BUILD='3.2.0';
+let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null;const ZCACHE='mtf_usd_market_snapshot_v320_exact',STRATEGY_VERSION='OB-LADDER-v3.2',STATS_UI_BUILD='3.2.0';
 try{localStorage.removeItem('mtf_usd_market_snapshot_v118');}catch{}
 const STATUS_SB_URL='https://swhfftkhqmbtmbnoskoj.supabase.co';
 const STATUS_SB_KEY='sb_publishable_EbjOQ0SprPfdKLTQ6zER0w_DGsf128M';
@@ -281,8 +281,8 @@ function cOperationalLabel(q,sym){
   const d=currentRuntimeDecision('crypto',sym,q),ops=runtimeOpensFor('crypto',sym),p=q?.proximity||{},n=p.nearest;
   if(d?.decision==='ENTRY')return '<span class="signal-pill signal-'+(d.direction==='SHORT'?'short':'long')+'">NUEVA ENTRADA '+(d.direction||'')+'</span>';
   if(ops.length){const dirs=[...new Set(ops.map(x=>x.direction))].join('/');return '<span class="signal-pill signal-near">'+ops.length+' ABIERTA'+(ops.length>1?'S':'')+' · '+dirs+'</span>'}
-  if(p.state==='IN_ZONE'&&n)return '<span class="signal-pill signal-'+(n.direction==='SHORT'?'short':'long')+'">NUEVA ENTRADA '+n.direction+' · Z'+n.rank+'</span>';
-  if(p.state==='NEAR'&&n)return '<span class="signal-pill signal-near">CERCA · '+n.direction+' Z'+n.rank+' · '+Number(n.distanceAtr).toFixed(2)+' ATR</span>';
+  if(p.state==='IN_ZONE'&&n)return '<span class="signal-pill signal-'+(n.direction==='SHORT'?'short':'long')+'">NUEVA ENTRADA '+n.direction+' '+n.rank+'</span>';
+  if(p.state==='NEAR'&&n)return '<span class="signal-pill signal-near">CERCA · '+n.direction+' '+n.rank+' · '+Number(n.distanceAtr).toFixed(2)+' ATR</span>';
   return '<span class="signal-pill signal-wait">ESPERAR'+(n&&Number.isFinite(+n.distanceAtr)?' · '+Number(n.distanceAtr).toFixed(2)+' ATR':'')+'</span>'
 }
 function cIsNewEntry(q,sym,dir){const d=currentRuntimeDecision('crypto',sym,q);return !!(d?.decision==='ENTRY'&&d.direction===dir)||(q?.proximity?.state==='IN_ZONE'&&q?.proximity?.nearest?.direction===dir)}
@@ -385,12 +385,12 @@ function uiLadder(bars,referencePrice){
 }
 
 function uiContext(bars){
-  const x=uiTf(bars),trend=x.net>=3?'ALCISTA':x.net<=-3?'BAJISTA':'MIXTO',a=atr(bars,14),atr14=Number(a?.[a.length-1]);
+  const x=uiTf(bars),trend=x.net>=3?'ALCISTA':x.net<=-3?'BAJISTA':'RANGO',a=atr(bars,14),atr14=Number(a?.[a.length-1]);
   return{...x,trend,atr14:Number.isFinite(atr14)?atr14:NaN}
 }
 function uiMacroContext(h1,h4,d1){
   const one=uiContext(h1),four=uiContext(h4),day=uiContext(d1),ts=[one.trend,four.trend,day.trend],bull=ts.filter(x=>x==='ALCISTA').length,bear=ts.filter(x=>x==='BAJISTA').length;
-  return{trend:bull>=2?'ALCISTA':bear>=2?'BAJISTA':'MIXTO',h1:one,h4:four,d1:day}
+  return{trend:bull>=2?'ALCISTA':bear>=2?'BAJISTA':'RANGO',h1:one,h4:four,d1:day}
 }
 function uiPointDistanceAtr(price,point,atr14){return Number.isFinite(atr14)&&atr14>0?Math.abs(price-point)/atr14:NaN}
 function uiProximity(ladder,price,atr14,regulated=false){
@@ -456,8 +456,8 @@ function drawVolume(canvas,bars){
 function drawMACD(canvas,bars){const{c,w,h}=pc(canvas),p={l:8,r:38,t:8,b:18},pw=w-p.l-p.r,ph=h-p.t-p.b,M=mac(bars.map(x=>x.c)),vals=[...M.L,...M.S].filter(Number.isFinite),lo=Math.min(0,...vals),hi=Math.max(0,...vals),rg=hi-lo||1,X=i=>p.l+(i+.5)*pw/bars.length,Y=v=>p.t+(hi-v)/rg*ph;c.clearRect(0,0,w,h);c.fillStyle='#000000';c.fillRect(0,0,w,h);c.strokeStyle='#464a4d';c.beginPath();c.moveTo(p.l,Y(0));c.lineTo(w-p.r,Y(0));c.stroke();const bw=Math.max(1,Math.min(5,pw/bars.length*.55));for(let i=0;i<bars.length;i++){if(!Number.isFinite(M.L[i])||!Number.isFinite(M.S[i]))continue;const d=M.L[i]-M.S[i];c.fillStyle=d>=0?'rgba(54,212,155,.55)':'rgba(255,104,124,.55)';const yy=Y(d),z=Y(0);c.fillRect(X(i)-bw/2,Math.min(yy,z),bw,Math.max(1,Math.abs(z-yy)))}linePath(c,M.L,bars,X,Y,'#9281f7',1.4);linePath(c,M.S,bars,X,Y,'#f6c552',1.4)}
 function clipBars(b,r){return!r||r>=b.length?b:b.slice(-r)}
 function cAudit(q,x){
-  const c=q.context||{},m=q.macroContext||{},n=q.proximity?.nearest,rel=n?((n.direction==='LONG'&&m.trend==='ALCISTA')||(n.direction==='SHORT'&&m.trend==='BAJISTA')?'A FAVOR':m.trend==='MIXTO'?'MIXTO':'CONTRA TENDENCIA'):'—';
-  return `<h4>Contexto macro</h4><div class="detail-grid">${metric('1H',m.h1?.trend||'—',m.h1?.trend==='ALCISTA'?'g':m.h1?.trend==='BAJISTA'?'r':'y')}${metric('4H',m.h4?.trend||'—',m.h4?.trend==='ALCISTA'?'g':m.h4?.trend==='BAJISTA'?'r':'y')}${metric('Diario',m.d1?.trend||'—',m.d1?.trend==='ALCISTA'?'g':m.d1?.trend==='BAJISTA'?'r':'y')}${metric('Macro',m.trend||'—',m.trend==='ALCISTA'?'g':m.trend==='BAJISTA'?'r':'y')}${metric('Próxima',n?`${n.direction} ${n.rank}`:'—')}${metric('Relación',rel)}</div><div class="audit-section small">1H · ATR14 ${F(c.atr14)} · EMA10 ${F(c.ema10)} · EMA55 ${F(c.ema55)} · EMA200 ${F(c.ema200)}<br>MACD ${F(c.macd)} · Señal ${F(c.signal)} · Volumen ${Number.isFinite(+c.volumeRatio)?(+c.volumeRatio).toFixed(2)+'x':'—'}<br>Stop Long ${F(q.stops?.LONG)} · Stop Short ${F(q.stops?.SHORT)}</div>`
+  const c=q.context||{},m=q.macroContext||{},n=q.proximity?.nearest,p=cryptoPlan(q);
+  return `<h4>Contexto macro</h4><div class="detail-grid">${metric('1H',trendBadge(m.h1?.trend||'RANGO'))}${metric('4H',trendBadge(m.h4?.trend||'RANGO'))}${metric('Diario',trendBadge(m.d1?.trend||'RANGO'))}${metric('Macro',trendBadge(m.trend||'RANGO'))}${metric('Próxima',n?`${n.direction} ${n.rank}`:'—')}${metric('Relación',p?.relation||'—',p?.relation==='A FAVOR'?'g':p?.relation==='CONTRA TENDENCIA'?'r':'y')}</div><div class="audit-section small">1H · ATR14 ${F(c.atr14)} · EMA10 ${F(c.ema10)} · EMA55 ${F(c.ema55)} · EMA200 ${F(c.ema200)}<br>MACD ${F(c.macd)} · Señal ${F(c.signal)} · Volumen ${Number.isFinite(+c.volumeRatio)?(+c.volumeRatio).toFixed(2)+'x':'—'}<br>Stop Long ${F(q.stops?.LONG)} · Stop Short ${F(q.stops?.SHORT)}</div>`
 }
 function zAudit(q,x){
   const c=q.context||{},n=q.proximity?.nearest;
@@ -500,18 +500,18 @@ async function loadC(force=false){
   try{if(force){C=[];CM.clear()}const rtP=J('/api/data?op=runtime&market=crypto&_='+Date.now(),12000).catch(()=>({opens:[],decisions:[]}));C=await uni();const rt=await rtP;runtimeOpen=Array.isArray(rt?.opens)?rt.opens:[];runtimeDecisions=Array.isArray(rt?.decisions)?rt.decisions:[];const currentSet=new Set(C.map(x=>x.s));
     for(const op of runtimeOpen.filter(x=>x.market==='crypto')){const sym=String(op.symbol||'').toUpperCase();if(sym&&!currentSet.has(sym)){C.push({s:sym,p:sym+'USDT',name:assetName('CRYPTO',sym),outside:true});currentSet.add(sym)}}
     let n=0;for(const x of C){try{const[h1,h4,d1,m15]=await Promise.all([K(x.p,'1h',1000),K(x.p,'4h',1000),K(x.p,'1d',1000),K(x.p,'15m',1000)]);x.hist={h1,'1h':h1,h4,'4h':h4,d1,'1d':d1,m15,'15m':m15};CM.set(x.s,serverizeCryptoQ(x.s,cc({h1,h4,d1,m15})))}catch(e){x.err=e.message}n++;$('cbar').style.width=n/C.length*100+'%';$('cstat').textContent=`Analizando contexto + zonas 1H ${n}/${C.length}`;renderC()}
-    cryptoLastFullRefresh=Date.now();$('cstat').textContent='Activo · 1H · proximidad ATR + zonas del detector';$('cdot').className='dot live';updateCryptoAutoText()
+    cryptoLastFullRefresh=Date.now();$('cstat').textContent='Activo · Analyzer exacto 1H · contexto 1H/4H/D';$('cdot').className='dot live';updateCryptoAutoText();await refreshCryptoRuntime()
   }catch(e){$('cstat').textContent='Error: '+e.message;$('cdot').className='dot'}finally{cryptoLoading=false}
 }
 async function pollCryptoBackendCycle(){try{const u=STATUS_SB_URL+'/rest/v1/mtf_state?market=eq.crypto&select=last_run_at&limit=1&_='+Date.now(),r=await fetch(u,{cache:'no-store',headers:{apikey:STATUS_SB_KEY,accept:'application/json'}});if(!r.ok)return;const rows=await r.json(),t=rows?.[0]?.last_run_at?new Date(rows[0].last_run_at).getTime():0;if(!t)return;if(!cryptoLastBackendRun){cryptoLastBackendRun=t;return}if(t>cryptoLastBackendRun){cryptoLastBackendRun=t;if(tab==='c')await loadC(true);else{C=[];CM.clear()}}}catch{}}
 function detailC(sym){
   selC=sym;$('cgrid')?.classList.add('has-detail');const q=CM.get(sym),asset=C.find(x=>x.s===sym);if(!q)return;
-  const ops=runtimeOpensFor('crypto',sym),ctx=q.context||{},macro=q.macroContext||{},lo=q.ladder?.below||[],hi=q.ladder?.above||[],near=q.proximity?.nearest;
-  const relation=near?((near.direction==='LONG'&&macro.trend==='ALCISTA')||(near.direction==='SHORT'&&macro.trend==='BAJISTA')?'A FAVOR':macro.trend==='MIXTO'?'MIXTO':'CONTRA TENDENCIA'):'—';
-  const levels=(arr,color)=>arr.map(v=>`<div class="check"><span class="ico ${color}">${v.rank}</span><span><b>${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · ${Math.abs((v.point/q.price-1)*100).toFixed(2)}%</span></div>`).join('')||'<div class="small">Sin nivel disponible.</div>';
+  const ops=runtimeOpensFor('crypto',sym),ctx=q.context||{},macro=q.macroContext||{},lo=q.ladder?.below||[],hi=q.ladder?.above||[],near=q.proximity?.nearest,plan=cryptoPlan(q);
+  const levels=(arr,color,label)=>arr.map(v=>`<div class="check"><span class="ico ${color}">${v.rank}</span><span><b>${label} ${v.rank} · ${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · ${Math.abs((v.point/q.price-1)*100).toFixed(2)}%</span></div>`).join('')||'<div class="small">Sin nivel disponible.</div>';
+  const planHtml=plan?`<div class="box"><b>Análisis de la próxima entrada</b><div class="detail-grid" style="margin-top:8px">${metric('Setup',plan.direction+' '+plan.rank)}${metric('Estado',plan.state==='IN_ZONE'?'EN ZONA':plan.state==='NEAR'?'CERCA':'ESPERAR',plan.state==='IN_ZONE'?'g':plan.state==='NEAR'?'y':'')}${metric('Relación',plan.relation,plan.relation==='A FAVOR'?'g':plan.relation==='CONTRA TENDENCIA'?'r':'y')}${metric('Entrada',F(plan.entry))}${metric('Stop Loss',F(plan.stop))}${metric('TP1',plan.targets[0]?`${plan.direction==='LONG'?'Short':'Long'} 1 · ${F(plan.targets[0].point)}`:'—')}${metric('TP2',plan.targets[1]?`${plan.direction==='LONG'?'Short':'Long'} 2 · ${F(plan.targets[1].point)}`:'—')}${metric('TP3',plan.targets[2]?`${plan.direction==='LONG'?'Short':'Long'} 3 · ${F(plan.targets[2].point)}`:'—')}</div></div>`:'';
   const legs=ops.length?ops.map((op,i)=>`<div class="box"><b>${op.direction} · ${op.context?.entry_rank||i+1}</b><div class="small">Entrada ${F(op.entry)} · Stop ${F(op.stop)} · TP1 ${F(op.tp1)} · TP2 ${F(op.tp2)} · TP3 ${F(op.tp3)}</div></div>`).join(''):'<div class="small">Sin operaciones abiertas.</div>';
   document.querySelectorAll('#cr tr[data-s]').forEach(r=>r.classList.toggle('selected',r.dataset.s===sym));
-  $('cdet').className='detail';$('cdet').innerHTML=`<h3>${sym}${assetName('CRYPTO',sym,asset?.name)?' · '+assetName('CRYPTO',sym,asset?.name):''} · USD</h3><div>${cOperationalLabel(q,sym)}<span class="badge b">Analyzer exact · 1H</span></div><div class="detail-grid" style="margin-top:8px">${metric('Precio actual',F(q.price))}${metric('Macro',macro.trend||'—',macro.trend==='ALCISTA'?'g':macro.trend==='BAJISTA'?'r':'y')}${metric('1H / 4H / D',(macro.h1?.trend||'—')+' / '+(macro.h4?.trend||'—')+' / '+(macro.d1?.trend||'—'))}${metric('ATR14 1H',F(ctx.atr14))}${metric('Próxima entrada',near?`${near.direction} ${near.rank}`:'—')}${metric('Distancia',near&&Number.isFinite(+near.distanceAtr)?Number(near.distanceAtr).toFixed(2)+' ATR':'—')}${metric('Relación',relation)}</div><div class="box"><b>Long · 3 bullish OB del Analyzer</b>${levels(lo,'g')}</div><div class="box"><b>Short · 3 bearish OB del Analyzer</b>${levels(hi,'r')}</div><div class="box"><b>Stops</b><div class="small">Long ${F(q.stops?.LONG)} · Short ${F(q.stops?.SHORT)}</div></div><div class="box"><b>Operaciones abiertas</b>${legs}</div>`;showCChart(sym)
+  $('cdet').className='detail';$('cdet').innerHTML=`<h3>${sym}${assetName('CRYPTO',sym,asset?.name)?' · '+assetName('CRYPTO',sym,asset?.name):''} · USD</h3><div>${cOperationalLabel(q,sym)}<span class="badge b">Analyzer exact · 1H</span></div><div class="detail-grid" style="margin-top:8px">${metric('Precio actual',F(q.price))}${metric('Macro',trendBadge(macro.trend||'RANGO'))}${metric('1H',trendBadge(macro.h1?.trend||'RANGO'))}${metric('4H',trendBadge(macro.h4?.trend||'RANGO'))}${metric('Diario',trendBadge(macro.d1?.trend||'RANGO'))}${metric('ATR14 1H',F(ctx.atr14))}${metric('Próxima entrada',near?`${near.direction} ${near.rank}`:'—')}${metric('Distancia',near&&Number.isFinite(+near.distanceAtr)?Number(near.distanceAtr).toFixed(2)+' ATR':'—')}</div>${planHtml}<div class="box"><b>Entradas Long · 3 bullish OB del Analyzer</b>${levels(lo,'g','Long')}</div><div class="box"><b>Entradas Short · 3 bearish OB del Analyzer</b>${levels(hi,'r','Short')}</div><div class="box"><b>Stops estructurales</b><div class="small">Long ${F(q.stops?.LONG)} · Short ${F(q.stops?.SHORT)}</div></div><div class="box"><b>Operaciones abiertas</b>${legs}</div>`;showCChart(sym)
 }
 function cMatch(x){const q=CM.get(x.s);if(!q)return false;if(cFilter==='OPEN')return runtimeOpensFor('crypto',x.s).length>0;if(x.outside)return false;if(cFilter==='LONG'||cFilter==='SHORT')return cIsNewEntry(q,x.s,cFilter);if(cFilter==='NEAR')return q.proximity?.state==='NEAR';if(cFilter==='WAIT')return q.proximity?.state==='WAIT';return true}
 function cFilterUI(){document.querySelectorAll('[data-cfilter]').forEach(c=>c.classList.toggle('active-filter',c.dataset.cfilter===cFilter))}
@@ -524,12 +524,24 @@ function contextPill(ctx){
 function proximityCell(q){
   const n=q?.proximity?.nearest;if(!n)return'<span class="small">—</span>';
   const cls=q.proximity.state==='IN_ZONE'?'g':q.proximity.state==='NEAR'?'y':'',label=q.proximity.state==='IN_ZONE'?'EN ZONA':q.proximity.state==='NEAR'?'CERCA':'ESPERAR';
-  return `<span class="badge ${cls}">${label}</span><span class="small" style="display:block;margin-top:3px">${n.direction} · Z${n.rank} · ${Number.isFinite(+n.distanceAtr)?Number(n.distanceAtr).toFixed(2)+' ATR':'—'}</span>`
+  return `<span class="badge ${cls}">${label}</span><span class="small" style="display:block;margin-top:3px">${n.direction} ${n.rank} · ${Number.isFinite(+n.distanceAtr)?Number(n.distanceAtr).toFixed(2)+' ATR':'—'}</span>`
 }
 function ladderCell(levels,prefix){return (levels||[]).map(x=>`<span class="cond-mini ok">${prefix}${x.rank} ${F(x.point)}</span>`).join(' ')||'<span class="small">—</span>'}
+function trendClass(t){return t==='ALCISTA'?'g':t==='BAJISTA'?'r':'y'}
+function trendBadge(t){return `<span class="badge ${trendClass(t)}">${t||'—'}</span>`}
+function cryptoRelation(q,dir){
+  const t=q?.macroContext?.trend||q?.context?.trend||'RANGO';
+  if(t==='RANGO')return'RANGO';
+  return (dir==='LONG'&&t==='ALCISTA')||(dir==='SHORT'&&t==='BAJISTA')?'A FAVOR':'CONTRA TENDENCIA'
+}
+function cryptoPlan(q){
+  const n=q?.proximity?.nearest;if(!n)return null;
+  const targets=n.direction==='LONG'?(q.ladder?.above||[]):(q.ladder?.below||[]);
+  return{direction:n.direction,rank:n.rank,entry:n.point,stop:q.stops?.[n.direction],targets,relation:cryptoRelation(q,n.direction),state:q.proximity?.state||'WAIT',distanceAtr:n.distanceAtr}
+}
 function cryptoContextPill(q){
-  const m=q?.macroContext||{},cls=m.trend==='ALCISTA'?'g':m.trend==='BAJISTA'?'r':'y';
-  return `<span class="badge ${cls}">${m.trend||q?.context?.trend||'—'}</span><span class="small" style="display:block;margin-top:3px">1H ${m.h1?.trend||'—'} · 4H ${m.h4?.trend||'—'} · D ${m.d1?.trend||'—'}</span>`
+  const m=q?.macroContext||{},t=m.trend||q?.context?.trend||'RANGO';
+  return `${trendBadge(t)}<span class="small" style="display:block;margin-top:4px">1H ${trendBadge(m.h1?.trend||'RANGO')} · 4H ${trendBadge(m.h4?.trend||'RANGO')} · D ${trendBadge(m.d1?.trend||'RANGO')}</span>`
 }
 function cryptoSetupCell(q){return contextPill(q.context)}
 function cryptoCondCell(q){return `${ladderCell(q.ladder?.below,'E')}<br>${ladderCell(q.ladder?.above,'S')}`}
