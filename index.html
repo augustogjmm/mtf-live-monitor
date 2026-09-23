@@ -167,8 +167,43 @@ main{max-width:none;width:100%;padding-left:clamp(12px,1.4vw,24px);padding-right
 .health-flow{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:8px;align-items:stretch;margin:12px 0}.health-node{position:relative;background:#000;border:1px solid #292d30;border-radius:12px;padding:13px;cursor:pointer;min-height:92px}.health-node:hover{border-color:#6e727a}.health-node.ok{border-color:rgba(58,211,137,.42)}.health-node.warning{border-color:rgba(255,202,22,.5)}.health-node.error{border-color:rgba(255,149,146,.5)}.health-node .health-name{font:600 10px/1.2 "JetBrains Mono",monospace;letter-spacing:.05em;text-transform:uppercase;color:#a1a4a5}.health-node b{display:block;font-size:18px;margin:8px 0 4px}.health-node small{display:block;color:#6e727a}.health-node:not(:last-child):after{content:'→';position:absolute;right:-10px;top:50%;transform:translate(50%,-50%);z-index:2;color:#464a4d;background:#000;padding:2px}
 .health-grid{display:grid;grid-template-columns:repeat(5,minmax(160px,1fr));gap:10px}.health-card{background:#000;border:1px solid #292d30;border-radius:14px;padding:14px;cursor:pointer;min-height:126px}.health-card:hover{border-color:#6e727a}.health-card.ok{border-color:rgba(58,211,137,.36)}.health-card.warning{border-color:rgba(255,202,22,.42)}.health-card.error{border-color:rgba(255,149,146,.44)}.health-card .hc-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.health-card .hc-title{font-weight:600}.health-state{font:600 9px/1 "JetBrains Mono",monospace;padding:4px 6px;border-radius:5px;border:1px solid #292d30}.health-state.ok{color:#3ad389;border-color:rgba(58,211,137,.45)}.health-state.warning{color:#ffca16;border-color:rgba(255,202,22,.48)}.health-state.error{color:#ff9592;border-color:rgba(255,149,146,.48)}.health-card .hc-value{font:600 21px/1.2 "JetBrains Mono",monospace;margin:13px 0 6px}.health-card .hc-sub{color:#6e727a;font-size:11px;line-height:1.45}.health-detail{margin-top:12px}.health-detail-body{padding:15px}.health-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.health-kv{background:#050505;border:1px solid #292d30;border-radius:9px;padding:10px}.health-kv span{display:block;color:#6e727a;font:500 9px/1.2 "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.04em}.health-kv b{display:block;margin-top:5px;font:500 12px/1.35 "JetBrains Mono",monospace;overflow-wrap:anywhere}.health-table{margin-top:12px}.health-table table{min-width:860px}.health-log{font:400 11px/1.5 "JetBrains Mono",monospace;white-space:pre-wrap;color:#abafb4;background:#050505;border:1px solid #292d30;border-radius:9px;padding:12px;max-height:280px;overflow:auto}.canary-result{font:500 11px/1.4 "JetBrains Mono",monospace}.status-note{margin-top:12px}.e2e-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:8px 0}.e2e-step{height:6px;border-radius:999px;background:#292d30}.e2e-step.ok{background:#3ad389}.e2e-step.warning{background:#ffca16}.e2e-step.error{background:#ff9592}
 @media(max-width:1200px){.health-grid{grid-template-columns:repeat(3,1fr)}.health-flow{grid-template-columns:repeat(3,1fr)}.health-node:after{display:none}.health-detail-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.health-grid,.health-flow{grid-template-columns:1fr 1fr}.health-detail-grid{grid-template-columns:1fr}}@media(max-width:480px){.health-grid,.health-flow{grid-template-columns:1fr}}
+</style><style id="direction-and-splitter-v321">
+.dir-long{color:#3ad389!important}
+.dir-short{color:#ff9592!important}
+.cond-mini.long{color:#3ad389;border-color:#16543f;background:rgba(58,211,137,.045)}
+.cond-mini.short{color:#ff9592;border-color:#5c2730;background:rgba(255,149,146,.045)}
+#vc .scanner-panel th:nth-child(5){color:#3ad389}
+#vc .scanner-panel th:nth-child(6){color:#ff9592}
+.timeframe-context{display:flex;align-items:center;gap:6px;min-width:0}
+.tf-label{font:600 10px/1 "JetBrains Mono",monospace;color:#6e727a}
+
+/* Keep the scanner readable. Split view is enabled only when there is genuinely enough room. */
+.scan-grid{--detail-pane:500px;--splitter-w:14px}
+.scan-grid.has-detail:not(.stacked){
+  grid-template-columns:minmax(1080px,1fr) var(--splitter-w) minmax(440px,var(--detail-pane))!important;
+}
+.scanner-panel .tw{overflow-x:auto!important;overflow-y:auto}
+#vc .scanner-panel table{min-width:1060px!important;table-layout:fixed}
+#vc .scanner-panel th:nth-child(1){width:4%}
+#vc .scanner-panel th:nth-child(2){width:20%}
+#vc .scanner-panel th:nth-child(3){width:11%}
+#vc .scanner-panel th:nth-child(4){width:11%}
+#vc .scanner-panel th:nth-child(5){width:17%}
+#vc .scanner-panel th:nth-child(6){width:17%}
+#vc .scanner-panel th:nth-child(7){width:20%}
+.pane-resizer{min-width:14px}
+.pane-resizer:after{padding:8px 2px}
+@media(max-width:1580px){
+  .scan-grid.has-detail{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+  .scan-grid.has-detail .pane-resizer{display:none!important}
+  .scan-grid.has-detail .detail-panel{display:block!important}
+  #vc .scanner-panel table{min-width:0!important;width:100%!important}
+}
+@media(max-width:1120px){
+  #vc .scanner-panel table{min-width:960px!important}
+}
 </style></head><body><main>
-<div class="top"><div><h1>MTF Live Monitor</h1><div class="muted">OB-LADDER-v3.2 · UI v2.0.0 · Order Block Analyzer · Crypto Top 20 + CEDEAR liquidez dinámica + ADR argentinos USD · reglas congeladas · prueba forward · sin ejecución de órdenes</div></div><div class="controls"><button id="reload">Actualizar</button></div></div>
+<div class="top"><div><h1>MTF Live Monitor</h1><div class="muted">OB-LADDER-v3.2 · UI v3.2.1 · Order Block Analyzer · Crypto Top 20 + CEDEAR liquidez dinámica + ADR argentinos USD · reglas congeladas · prueba forward · sin ejecución de órdenes</div></div><div class="controls"><button id="reload">Actualizar</button></div></div>
 <div class="tabs"><button id="tc" class="on">Crypto Top 20</button><button id="tz">CEDEARs + ADR USD</button><button id="ts">Estadísticas</button><button id="th">Status Page</button></div>
 <section id="vc"><div class="statusline"><span id="cdot" class="dot"></span><b id="cstat">Inicializando…</b><span id="cauto" class="small">· 1H · proximidad por ATR · entrada al tocar zona</span></div><div class="bar"><i id="cbar"></i></div><div class="cards crypto-cards"><div class="card clickable" data-cfilter="all">Activos<b id="cn">0</b><span class="kpi-sub">Top 20 actual</span></div><div class="card clickable" data-cfilter="LONG">Entradas Long<b id="cl">0</b><span class="kpi-sub">bullish OB activo</span></div><div class="card clickable" data-cfilter="SHORT">Entradas Short<b id="csh">0</b><span class="kpi-sub">bearish OB activo</span></div><div class="card clickable" data-cfilter="NEAR">Cerca de entrada<b id="cne">0</b><span class="kpi-sub">distancia ≤ 1 ATR</span></div><div class="card clickable" data-cfilter="WAIT">Esperar<b id="cw">0</b><span class="kpi-sub">distancia > 1 ATR</span></div><div class="card clickable" data-cfilter="OPEN">En seguimiento<b id="ch">0</b><span class="kpi-sub">operaciones abiertas</span></div></div><div class="grid scan-grid" id="cgrid"><div class="panel scanner-panel"><div class="ph"><span>Scanner Crypto</span><span class="small">Order Block Detector · 1H</span></div><div class="tw"><table><thead><tr><th>#</th><th>Activo</th><th>Precio</th><th>Contexto 1H</th><th>Entradas Long</th><th>Entradas Short</th><th>Proximidad / estado</th></tr></thead><tbody id="cr"><tr><td colspan="7" class="empty">Cargando mercado…</td></tr></tbody></table></div></div><div class="pane-resizer" data-grid="cgrid" role="separator" aria-label="Redimensionar panel de detalle" title="Arrastrá para cambiar el ancho · doble clic para restaurar"></div><div class="panel detail-panel"><div class="ph"><span>Detalle Crypto</span><button class="detail-close" id="cclose" type="button">Cerrar ×</button></div><div id="cdet" class="empty">Seleccioná un activo.</div></div></div><div id="cchartPanel" class="chart-panel hide"><div class="ph"><span id="cchartTitle">Order Block Detector · 1H</span><span id="cchartState" class="small"></span></div><div class="chart-toolbar"><div class="group"><span class="small">Temporalidad</span><button class="chart-btn on" data-ctf="1h">1H</button></div><div class="group"><span class="small">Velas</span><button class="chart-btn" data-crange="60">60</button><button class="chart-btn on" data-crange="120">120</button><button class="chart-btn" data-crange="260">260</button><button class="chart-btn" data-crange="0">Todo</button></div></div><div class="chart-grid"><div><div class="chart-card"><div class="chart-label"><b id="cpriceLabel">Precio · 1H</b><span id="cpriceLegend"></span></div><canvas id="cprice"></canvas><div id="chover" class="chart-hover"></div></div><div class="osc-grid"><div class="osc-card"><div class="chart-label"><b>MACD 12/26/9</b><span id="cmacdLegend"></span></div><canvas id="cmacd"></canvas></div><div class="osc-card"><div class="chart-label"><b>Volumen</b><span id="crsiLegend"></span></div><canvas id="crsi"></canvas></div></div></div><div id="caudit" class="chart-audit"></div></div></div><div class="note"><b>CERCA</b> = la línea más próxima está a ≤ 1 ATR14. <b>NUEVA ENTRADA</b> = el precio entra en la zona; la ejecución teórica es la línea central del detector.</div></section>
 <section id="vz" class="hide"><div class="statusline"><span id="zdot" class="dot"></span><b id="zstat">Esperando…</b><span id="zauto" class="small">· Diario USD · spot Long · proximidad por ATR</span><span id="zmarket" class="market-banner"></span></div><div class="bar"><i id="zbar"></i></div><div class="cards market-cards"><div class="card clickable active-filter" data-zfilter="all">Universo analizado<b id="zn">0</b><span class="kpi-sub">CEDEAR líquidos + ADR argentinos</span></div><div class="card clickable" data-zfilter="MADR">ADR argentinos<b id="zmadr">0</b><span class="kpi-sub">serie USD directa</span></div><div class="card clickable" data-zfilter="ENTRY">Nuevas compras<b id="zl">0</b><span class="kpi-sub">precio dentro de zona</span></div><div class="card clickable" data-zfilter="OPEN">En seguimiento<b id="zopen">0</b><span class="kpi-sub">operaciones abiertas</span></div><div class="card clickable" data-zfilter="NEAR">Cerca de compra<b id="zne">0</b><span class="kpi-sub">distancia ≤ 1 ATR</span></div><div class="card clickable" data-zfilter="WAIT">Esperar<b id="zw">0</b><span class="kpi-sub">distancia > 1 ATR</span></div><div class="card clickable" data-zfilter="BEAR">Contexto bajista<b id="zbr">0</b><span class="kpi-sub">lectura de contexto</span></div><div class="card clickable" data-zfilter="ERROR">Sin análisis<b id="zer">0</b><span class="kpi-sub">fuente/histórico no disponible</span></div></div><div class="grid scan-grid" id="zgrid"><div class="panel scanner-panel"><div class="ph"><span>Scanner CEDEARs + ADR USD</span><span class="small">Order Block Detector · Diario · spot Long</span></div><div class="tw"><table><thead><tr><th>#</th><th>Activo</th><th>Tipo</th><th>Serie</th><th>Liquidez</th><th>USD</th><th>Contexto</th><th>Zonas de compra</th><th>Zonas de salida</th><th>Proximidad / estado</th></tr></thead><tbody id="zr"><tr><td colspan="10" class="empty">Abrí esta solapa para cargar.</td></tr></tbody></table></div></div><div class="pane-resizer" data-grid="zgrid" role="separator" aria-label="Redimensionar panel de detalle" title="Arrastrá para cambiar el ancho · doble clic para restaurar"></div><div class="panel detail-panel"><div class="ph"><span>Detalle USD</span><button class="detail-close" id="zclose" type="button">Cerrar ×</button></div><div id="zdet" class="empty">Seleccioná un activo.</div></div></div><div id="zchartPanel" class="chart-panel hide"><div class="ph"><span id="zchartTitle">Order Block Detector · Diario USD</span><span id="zchartState" class="small"></span></div><div class="chart-toolbar"><div class="group"><span class="small">Temporalidad</span><button class="chart-btn on" data-ztf="1d">Diario</button></div><div class="group"><span class="small">Velas</span><button class="chart-btn" data-zrange="60">60</button><button class="chart-btn on" data-zrange="120">120</button><button class="chart-btn" data-zrange="260">260</button><button class="chart-btn" data-zrange="0">Todo</button></div></div><div class="chart-grid"><div><div class="chart-card"><div class="chart-label"><b id="zpriceLabel">Precio · Diario</b><span id="zpriceLegend"></span></div><canvas id="zprice"></canvas><div id="zhover" class="chart-hover"></div></div><div class="osc-grid"><div class="osc-card"><div class="chart-label"><b>MACD 12/26/9</b><span id="zmacdLegend"></span></div><canvas id="zmacd"></canvas></div><div class="osc-card"><div class="chart-label"><b>Volumen</b><span id="zrsiLegend"></span></div><canvas id="zrsi"></canvas></div></div></div><div id="zaudit" class="chart-audit"></div></div></div><div class="note">En regulados la lectura es diaria y sólo Long: proximidad por ATR, entrada al entrar en zona y ejecución teórica en la línea del detector.</div></section>
@@ -507,26 +542,28 @@ async function pollCryptoBackendCycle(){try{const u=STATUS_SB_URL+'/rest/v1/mtf_
 function detailC(sym){
   selC=sym;$('cgrid')?.classList.add('has-detail');const q=CM.get(sym),asset=C.find(x=>x.s===sym);if(!q)return;
   const ops=runtimeOpensFor('crypto',sym),ctx=q.context||{},macro=q.macroContext||{},lo=q.ladder?.below||[],hi=q.ladder?.above||[],near=q.proximity?.nearest,plan=cryptoPlan(q);
-  const levels=(arr,color,label)=>arr.map(v=>`<div class="check"><span class="ico ${color}">${v.rank}</span><span><b>${label} ${v.rank} · ${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · ${Math.abs((v.point/q.price-1)*100).toFixed(2)}%</span></div>`).join('')||'<div class="small">Sin nivel disponible.</div>';
-  const planHtml=plan?`<div class="box"><b>Análisis de la próxima entrada</b><div class="detail-grid" style="margin-top:8px">${metric('Setup',plan.direction+' '+plan.rank)}${metric('Estado',plan.state==='IN_ZONE'?'EN ZONA':plan.state==='NEAR'?'CERCA':'ESPERAR',plan.state==='IN_ZONE'?'g':plan.state==='NEAR'?'y':'')}${metric('Relación',plan.relation,plan.relation==='A FAVOR'?'g':plan.relation==='CONTRA TENDENCIA'?'r':'y')}${metric('Entrada',F(plan.entry))}${metric('Stop Loss',F(plan.stop))}${metric('TP1',plan.targets[0]?`${plan.direction==='LONG'?'Short':'Long'} 1 · ${F(plan.targets[0].point)}`:'—')}${metric('TP2',plan.targets[1]?`${plan.direction==='LONG'?'Short':'Long'} 2 · ${F(plan.targets[1].point)}`:'—')}${metric('TP3',plan.targets[2]?`${plan.direction==='LONG'?'Short':'Long'} 3 · ${F(plan.targets[2].point)}`:'—')}</div></div>`:'';
-  const legs=ops.length?ops.map((op,i)=>`<div class="box"><b>${op.direction} · ${op.context?.entry_rank||i+1}</b><div class="small">Entrada ${F(op.entry)} · Stop ${F(op.stop)} · TP1 ${F(op.tp1)} · TP2 ${F(op.tp2)} · TP3 ${F(op.tp3)}</div></div>`).join(''):'<div class="small">Sin operaciones abiertas.</div>';
+  const levels=(arr,dir)=>arr.map(v=>`<div class="check"><span class="ico ${dir==='LONG'?'g':'r'}">${v.rank}</span><span><b class="dir-${dir==='LONG'?'long':'short'}">${dir} ${v.rank}</b> · <b>${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · ${Math.abs((v.point/q.price-1)*100).toFixed(2)}%</span></div>`).join('')||'<div class="small">Sin nivel disponible.</div>';
+  const planDir=plan?.direction==='SHORT'?'short':'long';
+  const targetDir=plan?.direction==='LONG'?'short':'long';
+  const planHtml=plan?`<div class="box"><b>Análisis de la próxima entrada</b><div class="detail-grid" style="margin-top:8px">${metric('Setup',`<span class="dir-${planDir}">${plan.direction} ${plan.rank}</span>`)}${metric('Estado',plan.state==='IN_ZONE'?'EN ZONA':plan.state==='NEAR'?'CERCA':'ESPERAR',plan.state==='IN_ZONE'?'g':plan.state==='NEAR'?'y':'')}${metric('Relación',plan.relation,plan.relation==='A FAVOR'?'g':plan.relation==='CONTRA TENDENCIA'?'r':'y')}${metric('Entrada',F(plan.entry))}${metric('Stop Loss',F(plan.stop))}${metric('TP1',plan.targets[0]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 1</span> · ${F(plan.targets[0].point)}`:'—')}${metric('TP2',plan.targets[1]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 2</span> · ${F(plan.targets[1].point)}`:'—')}${metric('TP3',plan.targets[2]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 3</span> · ${F(plan.targets[2].point)}`:'—')}</div></div>`:'';
+  const legs=ops.length?ops.map((op,i)=>{const d=op.direction==='SHORT'?'short':'long';return `<div class="box"><b class="dir-${d}">${op.direction} · ${op.context?.entry_rank||i+1}</b><div class="small">Entrada ${F(op.entry)} · Stop ${F(op.stop)} · TP1 ${F(op.tp1)} · TP2 ${F(op.tp2)} · TP3 ${F(op.tp3)}</div></div>`}).join(''):'<div class="small">Sin operaciones abiertas.</div>';
   document.querySelectorAll('#cr tr[data-s]').forEach(r=>r.classList.toggle('selected',r.dataset.s===sym));
-  $('cdet').className='detail';$('cdet').innerHTML=`<h3>${sym}${assetName('CRYPTO',sym,asset?.name)?' · '+assetName('CRYPTO',sym,asset?.name):''} · USD</h3><div>${cOperationalLabel(q,sym)}<span class="badge b">Analyzer exact · 1H</span></div><div class="detail-grid" style="margin-top:8px">${metric('Precio actual',F(q.price))}${metric('Macro',trendBadge(macro.trend||'RANGO'))}${metric('1H',trendBadge(macro.h1?.trend||'RANGO'))}${metric('4H',trendBadge(macro.h4?.trend||'RANGO'))}${metric('Diario',trendBadge(macro.d1?.trend||'RANGO'))}${metric('ATR14 1H',F(ctx.atr14))}${metric('Próxima entrada',near?`${near.direction} ${near.rank}`:'—')}${metric('Distancia',near&&Number.isFinite(+near.distanceAtr)?Number(near.distanceAtr).toFixed(2)+' ATR':'—')}</div>${planHtml}<div class="box"><b>Entradas Long · 3 bullish OB del Analyzer</b>${levels(lo,'g','Long')}</div><div class="box"><b>Entradas Short · 3 bearish OB del Analyzer</b>${levels(hi,'r','Short')}</div><div class="box"><b>Stops estructurales</b><div class="small">Long ${F(q.stops?.LONG)} · Short ${F(q.stops?.SHORT)}</div></div><div class="box"><b>Operaciones abiertas</b>${legs}</div>`;showCChart(sym)
+  $('cdet').className='detail';$('cdet').innerHTML=`<h3>${sym}${assetName('CRYPTO',sym,asset?.name)?' · '+assetName('CRYPTO',sym,asset?.name):''} · USD</h3><div>${cOperationalLabel(q,sym)}<span class="badge b">Analyzer exact · 1H</span></div><div class="detail-grid" style="margin-top:8px">${metric('Precio actual',F(q.price))}${metric('Contexto 1H',trendBadge(macro.h1?.trend||ctx.trend||'RANGO'))}${metric('ATR14 1H',F(ctx.atr14))}${metric('Próxima entrada',near?`<span class="dir-${near.direction==='SHORT'?'short':'long'}">${near.direction} ${near.rank}</span>`:'—')}${metric('Distancia',near&&Number.isFinite(+near.distanceAtr)?Number(near.distanceAtr).toFixed(2)+' ATR':'—')}</div>${planHtml}<div class="box"><b class="dir-long">Entradas Long</b>${levels(lo,'LONG')}</div><div class="box"><b class="dir-short">Entradas Short</b>${levels(hi,'SHORT')}</div><div class="box"><b>Stops estructurales</b><div class="small"><span class="dir-long">Long</span> ${F(q.stops?.LONG)} · <span class="dir-short">Short</span> ${F(q.stops?.SHORT)}</div></div><div class="box"><b>Operaciones abiertas</b>${legs}</div>`;showCChart(sym)
 }
 function cMatch(x){const q=CM.get(x.s);if(!q)return false;if(cFilter==='OPEN')return runtimeOpensFor('crypto',x.s).length>0;if(x.outside)return false;if(cFilter==='LONG'||cFilter==='SHORT')return cIsNewEntry(q,x.s,cFilter);if(cFilter==='NEAR')return q.proximity?.state==='NEAR';if(cFilter==='WAIT')return q.proximity?.state==='WAIT';return true}
 function cFilterUI(){document.querySelectorAll('[data-cfilter]').forEach(c=>c.classList.toggle('active-filter',c.dataset.cfilter===cFilter))}
 function setCFilter(f){cFilter=(cFilter===f&&f!=='all')?'all':f;cFilterUI();renderC()}
 function boolMark(ok,label){return `<span class="cond-mini ${ok?'ok':'no'}">${ok?'✓':'×'} ${label}</span>`}
-function contextPill(ctx){
-  const cls=ctx?.trend==='ALCISTA'?'g':ctx?.trend==='BAJISTA'?'r':'y';
-  return `<span class="badge ${cls}">${ctx?.trend||'—'}</span><span class="small" style="display:block;margin-top:3px">EMA10 ${F(ctx?.ema10)} · EMA55 ${F(ctx?.ema55)} · MACD ${F(ctx?.macd)}</span>`
-}
+function contextPill(ctx){return trendBadge(ctx?.trend||'RANGO')}
 function proximityCell(q){
   const n=q?.proximity?.nearest;if(!n)return'<span class="small">—</span>';
-  const cls=q.proximity.state==='IN_ZONE'?'g':q.proximity.state==='NEAR'?'y':'',label=q.proximity.state==='IN_ZONE'?'EN ZONA':q.proximity.state==='NEAR'?'CERCA':'ESPERAR';
-  return `<span class="badge ${cls}">${label}</span><span class="small" style="display:block;margin-top:3px">${n.direction} ${n.rank} · ${Number.isFinite(+n.distanceAtr)?Number(n.distanceAtr).toFixed(2)+' ATR':'—'}</span>`
+  const cls=q.proximity.state==='IN_ZONE'?'g':q.proximity.state==='NEAR'?'y':'',label=q.proximity.state==='IN_ZONE'?'EN ZONA':q.proximity.state==='NEAR'?'CERCA':'ESPERAR',d=n.direction==='SHORT'?'short':'long';
+  return `<span class="badge ${cls}">${label}</span><span class="small" style="display:block;margin-top:3px"><span class="dir-${d}">${n.direction}</span> ${n.rank} · ${Number.isFinite(+n.distanceAtr)?Number(n.distanceAtr).toFixed(2)+' ATR':'—'}</span>`
 }
-function ladderCell(levels,prefix){return (levels||[]).map(x=>`<span class="cond-mini ok">${prefix}${x.rank} ${F(x.point)}</span>`).join(' ')||'<span class="small">—</span>'}
+function ladderCell(levels,prefix,dir=''){
+  const cls=(dir||prefix).toUpperCase().startsWith('S')?'short':'long';
+  return (levels||[]).map(x=>`<span class="cond-mini ${cls}"><span class="dir-${cls}">${prefix}${x.rank}</span> ${F(x.point)}</span>`).join(' ')||'<span class="small">—</span>'
+}
 function trendClass(t){return t==='ALCISTA'?'g':t==='BAJISTA'?'r':'y'}
 function trendBadge(t){return `<span class="badge ${trendClass(t)}">${t||'—'}</span>`}
 function cryptoRelation(q,dir){
@@ -540,8 +577,8 @@ function cryptoPlan(q){
   return{direction:n.direction,rank:n.rank,entry:n.point,stop:q.stops?.[n.direction],targets,relation:cryptoRelation(q,n.direction),state:q.proximity?.state||'WAIT',distanceAtr:n.distanceAtr}
 }
 function cryptoContextPill(q){
-  const m=q?.macroContext||{},t=m.trend||q?.context?.trend||'RANGO';
-  return `${trendBadge(t)}<span class="small" style="display:block;margin-top:4px">1H ${trendBadge(m.h1?.trend||'RANGO')} · 4H ${trendBadge(m.h4?.trend||'RANGO')} · D ${trendBadge(m.d1?.trend||'RANGO')}</span>`
+  const t=q?.macroContext?.h1?.trend||q?.context?.trend||'RANGO';
+  return `<span class="timeframe-context"><span class="tf-label">1H</span>${trendBadge(t)}</span>`
 }
 function cryptoSetupCell(q){return contextPill(q.context)}
 function cryptoCondCell(q){return `${ladderCell(q.ladder?.below,'E')}<br>${ladderCell(q.ladder?.above,'S')}`}
@@ -551,7 +588,7 @@ function renderC(){
   const all=C.filter(x=>CM.has(x.s)),current=all.filter(x=>!x.outside),a=all.filter(cMatch);
   $('cn').textContent=current.length;$('cl').textContent=current.filter(x=>cIsNewEntry(CM.get(x.s),x.s,'LONG')).length;$('csh').textContent=current.filter(x=>cIsNewEntry(CM.get(x.s),x.s,'SHORT')).length;
   $('cne').textContent=current.filter(x=>CM.get(x.s).proximity?.state==='NEAR').length;$('cw').textContent=current.filter(x=>CM.get(x.s).proximity?.state==='WAIT').length;$('ch').textContent=all.filter(x=>runtimeOpensFor('crypto',x.s).length>0).length;cFilterUI();
-  $('cr').innerHTML=a.length?a.map((x,i)=>{const q=CM.get(x.s),outside=x.outside?'<span class="small y" style="display:block;margin-top:3px">Fuera del Top 20 actual · sólo seguimiento</span>':'';return `<tr data-s="${x.s}" class="${selC===x.s?'selected':''}"><td>${i+1}</td><td>${assetCell('CRYPTO',x.s,x.name)}${outside}</td><td>${F(q.price)}</td><td>${cryptoContextPill(q)}</td><td>${ladderCell(q.ladder?.below,'L')}</td><td>${ladderCell(q.ladder?.above,'S')}</td><td>${proximityCell(q)}<div style="margin-top:4px">${cOperationalLabel(q,x.s)}</div></td></tr>`}).join(''):`<tr><td colspan="7" class="empty">${current.length?'No hay activos para este filtro.':(C.some(x=>x.err)?'No se pudieron descargar históricos suficientes desde Binance.':'Cargando…')}</td></tr>`;
+  $('cr').innerHTML=a.length?a.map((x,i)=>{const q=CM.get(x.s),outside=x.outside?'<span class="small y" style="display:block;margin-top:3px">Fuera del Top 20 actual · sólo seguimiento</span>':'';return `<tr data-s="${x.s}" class="${selC===x.s?'selected':''}"><td>${i+1}</td><td>${assetCell('CRYPTO',x.s,x.name)}${outside}</td><td>${F(q.price)}</td><td>${cryptoContextPill(q)}</td><td>${ladderCell(q.ladder?.below,'L','LONG')}</td><td>${ladderCell(q.ladder?.above,'S','SHORT')}</td><td>${proximityCell(q)}<div style="margin-top:4px">${cOperationalLabel(q,x.s)}</div></td></tr>`}).join(''):`<tr><td colspan="7" class="empty">${current.length?'No hay activos para este filtro.':(C.some(x=>x.err)?'No se pudieron descargar históricos suficientes desde Binance.':'Cargando…')}</td></tr>`;
   document.querySelectorAll('#cr tr[data-s]').forEach(r=>r.onclick=()=>detailC(r.dataset.s));if(selC&&CM.has(selC)&&a.some(x=>x.s===selC))detailC(selC)
 }
 function recalcC(){if(!C.length)return;CM.clear();for(const x of C){const h=x.hist;if(!h)continue;try{const h1=h.h1||h['1h'],h4=h.h4||h['4h'],d1=h.d1||h['1d'],m15=h.m15||h['15m'];if(h1&&h4&&d1&&m15)CM.set(x.s,cc({h1,h4,d1,m15}))}catch(e){x.err=e.message}}renderC();if(selC&&CM.has(selC))detailC(selC)}
@@ -589,7 +626,7 @@ function setZFilter(f){zFilter=(zFilter===f&&f!=='all')?'all':f;zFilterUI();rend
 function renderZ(){
   const analyzed=Z.filter(x=>ZM.has(x.symbol)),view=Z.filter(zMatch),madr=Z.filter(x=>x.kind==='MERVAL_ADR');
   $('zn').textContent=Z.length;$('zmadr').textContent=madr.length;$('zl').textContent=analyzed.filter(x=>zOperationalState(ZM.get(x.symbol),x)==='ENTRY').length;if($('zopen'))$('zopen').textContent=analyzed.filter(x=>zOperationalState(ZM.get(x.symbol),x)==='OPEN').length;$('zne').textContent=analyzed.filter(x=>ZM.get(x.symbol).proximity?.state==='NEAR').length;$('zw').textContent=analyzed.filter(x=>ZM.get(x.symbol).proximity?.state==='WAIT').length;if($('zbr'))$('zbr').textContent=analyzed.filter(x=>ZM.get(x.symbol).context?.trend==='BAJISTA').length;if($('zer'))$('zer').textContent=Z.length-analyzed.length;zFilterUI();
-  $('zr').innerHTML=view.length?view.map((x,i)=>{const q=ZM.get(x.symbol),market=zMarket(x),state=zOperationalLabel(q,x),series=x.u||x.underlying||x.series||'—',liq=x.kind==='CEDEAR'?`#${x.rank||'—'} · ADTV20 ${FM(x.adtv20??x.liquidity?.adtv20)} · Pers ${Number.isFinite(+x.persistence)?(+x.persistence*100).toFixed(0)+'%':'—'} · Spr ${Number.isFinite(+x.spreadPct)?(+x.spreadPct).toFixed(2)+'%':'—'}`:`${x.sourcePanel||'BYMA'} · ${FM(x.currentVolumeAmount)}`;return `<tr data-s="${x.symbol}" class="${selZ===x.symbol?'selected':''}"><td>${i+1}</td><td>${assetCell(market,x.symbol,x.name,series)}</td><td>${zTypePill(x)}</td><td>${series}</td><td>${liq}</td><td>${q?F(q.price):'—'}</td><td>${q?contextPill(q.context):'—'}</td><td>${q?ladderCell(q.ladder?.below,'E'):'—'}</td><td>${q?ladderCell(q.ladder?.above,'S'):'—'}</td><td>${q?proximityCell(q):'—'}<div style="margin-top:4px">${state}</div></td></tr>`}).join(''):`<tr><td colspan="10" class="empty">No hay activos para este filtro.</td></tr>`;
+  $('zr').innerHTML=view.length?view.map((x,i)=>{const q=ZM.get(x.symbol),market=zMarket(x),state=zOperationalLabel(q,x),series=x.u||x.underlying||x.series||'—',liq=x.kind==='CEDEAR'?`#${x.rank||'—'} · ADTV20 ${FM(x.adtv20??x.liquidity?.adtv20)} · Pers ${Number.isFinite(+x.persistence)?(+x.persistence*100).toFixed(0)+'%':'—'} · Spr ${Number.isFinite(+x.spreadPct)?(+x.spreadPct).toFixed(2)+'%':'—'}`:`${x.sourcePanel||'BYMA'} · ${FM(x.currentVolumeAmount)}`;return `<tr data-s="${x.symbol}" class="${selZ===x.symbol?'selected':''}"><td>${i+1}</td><td>${assetCell(market,x.symbol,x.name,series)}</td><td>${zTypePill(x)}</td><td>${series}</td><td>${liq}</td><td>${q?F(q.price):'—'}</td><td>${q?contextPill(q.context):'—'}</td><td>${q?ladderCell(q.ladder?.below,'E','LONG'):'—'}</td><td>${q?ladderCell(q.ladder?.above,'S','SHORT'):'—'}</td><td>${q?proximityCell(q):'—'}<div style="margin-top:4px">${state}</div></td></tr>`}).join(''):`<tr><td colspan="10" class="empty">No hay activos para este filtro.</td></tr>`;
   document.querySelectorAll('#zr tr[data-s]').forEach(r=>r.onclick=()=>detailZ(r.dataset.s));if(selZ&&Z.some(x=>x.symbol===selZ))detailZ(selZ)
 }
 function recalcZ(){if(!Z.length)return;ZM.clear();for(const x of Z){if(x.hist){try{ZM.set(x.symbol,zc(x,x.hist))}catch(e){x.err=e.message}}else if(x.q)ZM.set(x.symbol,x.q)}renderZ();if(selZ&&ZM.has(selZ))detailZ(selZ)}
@@ -629,7 +666,7 @@ async function stats(){
 
 
 function initScanSplitters(){
- const MIN_SCAN=920,MIN_DETAIL=420,MAX_DETAIL=680,SPLIT=10,STACK_AT=MIN_SCAN+MIN_DETAIL+SPLIT+18;
+ const MIN_SCAN=1080,MIN_DETAIL=440,MAX_DETAIL=720,SPLIT=14,STACK_AT=1580;
  const savedKey=id=>'mtf_split_'+id;
  function clampDetail(grid,w){
    const max=Math.min(MAX_DETAIL,Math.max(MIN_DETAIL,grid.getBoundingClientRect().width-MIN_SCAN-SPLIT));
@@ -640,7 +677,7 @@ function initScanSplitters(){
    const shouldStack=width<STACK_AT;
    grid.classList.toggle('stacked',shouldStack);
    if(!shouldStack){
-     let w=Number(localStorage.getItem(savedKey(grid.id)))||460;
+     let w=Number(localStorage.getItem(savedKey(grid.id)))||500;
      w=clampDetail(grid,w);
      grid.style.setProperty('--detail-pane',w+'px');
    }
@@ -653,7 +690,7 @@ function initScanSplitters(){
    sync(grid);
    handle.addEventListener('dblclick',()=>{
      localStorage.removeItem(savedKey(grid.id));
-     grid.style.setProperty('--detail-pane','460px');
+     grid.style.setProperty('--detail-pane','500px');
      sync(grid);
      window.dispatchEvent(new Event('resize'));
    });
@@ -666,7 +703,7 @@ function initScanSplitters(){
      document.body.style.userSelect='none';
      const startX=e.clientX;
      const detail=grid.querySelector('.detail-panel');
-     const startW=detail?.getBoundingClientRect().width||460;
+     const startW=detail?.getBoundingClientRect().width||500;
      const move=ev=>{
        const next=clampDetail(grid,startW-(ev.clientX-startX));
        grid.style.setProperty('--detail-pane',next+'px');
@@ -676,7 +713,7 @@ function initScanSplitters(){
        document.body.style.cursor='';
        document.body.style.userSelect='';
        handle.releasePointerCapture?.(ev.pointerId);
-       const detailW=grid.querySelector('.detail-panel')?.getBoundingClientRect().width||460;
+       const detailW=grid.querySelector('.detail-panel')?.getBoundingClientRect().width||500;
        localStorage.setItem(savedKey(grid.id),String(Math.round(detailW)));
        handle.removeEventListener('pointermove',move);
        handle.removeEventListener('pointerup',end);
@@ -691,7 +728,7 @@ function initScanSplitters(){
 }
 initScanSplitters();
 
-const UI_VERSION='3.2.0',BUILD_ID='MTF-Live-Monitor-3.2.0-OB-ATR',JOB_NAMES={1:'Crypto scanner',2:'CEDEAR scanner',3:'Watcher / daemon',4:'ADR scanner'};let healthData=null,healthBusy=false;
+const UI_VERSION='3.2.1',BUILD_ID='MTF-Live-Monitor-3.2.1-UI-CLEANUP',JOB_NAMES={1:'Crypto scanner',2:'CEDEAR scanner',3:'Watcher / daemon',4:'ADR scanner'};let healthData=null,healthBusy=false;
 function ageMs(v){const t=v?new Date(v).getTime():NaN;return Number.isFinite(t)?Date.now()-t:Infinity}
 function fmtAge(v){const a=ageMs(v);if(!Number.isFinite(a))return'—';const m=Math.max(0,Math.round(a/60000));if(m<2)return'ahora';if(m<60)return m+' min';const h=Math.floor(m/60),rm=m%60;if(h<36)return h+' h '+rm+' min';return Math.floor(h/24)+' d'}
 function dt(v){return v?new Date(v).toLocaleString('es-AR'):'—'}
