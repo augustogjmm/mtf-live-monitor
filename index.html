@@ -1002,6 +1002,10 @@ function statRowClosed(x){
   const st=statSituation(x.status),closed=x.closedAt?new Date(x.closedAt).toLocaleString('es-AR'):'—',leg=(x.legCount||1)+' entrada'+((x.legCount||1)>1?'s':''),ctx=x.trendRelation?x.trendRelation.replaceAll('_',' '):'—';
   return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span><div class="small">${st.read}</div></td><td>${new Date(x.time).toLocaleString('es-AR')}</td><td>${closed}</td><td>${F(x.entry)}</td><td>${statLevel(x,'stop')}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
 }
+function recoveredClosedRow(x){
+  const m=x.market==='crypto'?'CRYPTO':x.market==='merval'?'MERVAL':'CEDEAR';
+  return '<tr><td>'+marketLabel(m)+'</td><td>'+assetCell(m,x.symbol)+'</td><td><b>1 entrada</b></td><td><span class="state-pill loss">HISTÓRICO · STOP</span><div class="small">Recuperado desde Telegram · fuera del corte estadístico</div></td><td>—</td><td>'+new Date(x.event_time).toLocaleString('es-AR')+'</td><td>'+F(x.entry)+'</td><td>'+F(x.level)+'</td><td>—</td><td>—</td><td>—</td><td>PRE-CORTE</td><td>—</td></tr>';
+}
 function resultR(x){const R=Math.abs((+x.entry)-(+x.stop));if(!(R>0))return NaN;if(x?.status==='TP3')return x.dir==='SHORT'?((+x.entry)-(+x.tp3))/R:((+x.tp3)-(+x.entry))/R;if(x?.status==='SL')return-1;return NaN}
 function avgNum(a){const v=a.map(Number).filter(Number.isFinite);return v.length?v.reduce((s,x)=>s+x,0)/v.length:NaN}
 function fmtDuration(ms){if(!Number.isFinite(ms)||ms<0)return'—';const m=Math.round(ms/60000);if(m<60)return m+' min';const h=Math.floor(m/60),rm=m%60;if(h<48)return h+' h '+rm+' m';const d=Math.floor(h/24),rh=h%24;return d+' d '+rh+' h'}
@@ -1065,8 +1069,10 @@ function renderStats(){
   const openCohort=open.filter(x=>x.cohortMember!==false).length,openPrior=open.length-openCohort,histSL=statsRecovered.filter(x=>x.event_type==='SL').length;
   $('sopenCount').textContent=open.length+' operaciones en seguimiento · '+openCohort+' cohorte · '+openPrior+' previas';
   $('sclosedCount').textContent=closed.length+' resueltas cohorte'+(histSL?' · '+histSL+' STOP histórico recuperado':'');
+  const historicalStops=statsRecovered.filter(x=>x.event_type==='SL');
   $('srOpen').innerHTML=open.length?open.map(statRowOpen).join(''):'<tr><td colspan="14" class="empty">No hay operaciones abiertas para estos filtros.</td></tr>';
-  $('srClosed').innerHTML=closed.length?closed.map(statRowClosed).join(''):'<tr><td colspan="13" class="empty">No hay operaciones cerradas de la cohorte para estos filtros.</td></tr>';
+  const closedHtml=[...closed.map(statRowClosed),...historicalStops.map(recoveredClosedRow)].join('');
+  $('srClosed').innerHTML=closedHtml||'<tr><td colspan="13" class="empty">No hay operaciones cerradas de la cohorte ni STOP históricos recuperados.</td></tr>';
   renderStatsAudit();
 }
 
