@@ -192,7 +192,7 @@ async function runtimeSnapshot(market='crypto'){
    };
  }
  const [opens,decisions,liveRows]=await Promise.all([
-   supaAll('/rest/v1/mtf_signals?strategy_version=eq.OB-LADDER-v3.4&source=in.(FORWARD,MIGRATED_STRICT)&status=in.(OPEN,TP1,TP2)&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,context&order=signal_time.desc'),
+   supaAll('/rest/v1/mtf_signals?strategy_version=eq.OB-LADDER-v3.5&source=eq.FORWARD&status=in.(OPEN,TP1,TP2)&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,context&order=signal_time.desc'),
    supa('/rest/v1/rpc/mtf_latest_decisions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({p_market:market})}),
    supa('/rest/v1/mtf_state?market=eq.regulated_live&select=meta,last_run_at&limit=1')
  ]);
