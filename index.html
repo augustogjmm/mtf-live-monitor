@@ -204,14 +204,10 @@ main{max-width:none;width:100%;padding-left:clamp(12px,1.4vw,24px);padding-right
 }
 </style><style id="near-pill-uniform-v331">
 .signal-near .dir-long,.signal-near .dir-short{color:inherit!important}
-</style><style id="crypto-consumed-v342">
-.signal-blocked{color:#baa7ff;border-color:rgba(186,167,255,.38);background:rgba(146,129,247,.05)}
-@media(max-width:1320px){.crypto-cards{grid-template-columns:repeat(4,minmax(130px,1fr))}}
-@media(max-width:720px){.crypto-cards{grid-template-columns:repeat(2,minmax(130px,1fr))}}
 </style></head><body><main>
-<div class="top"><div><h1>MTF Live Monitor</h1><div class="muted">OB-LADDER-v3.4 · UI v3.4.2 · Order Block Analyzer · Crypto Top 20 + CEDEAR liquidez dinámica + ADR argentinos USD · reglas congeladas · prueba forward · sin ejecución de órdenes</div></div><div class="controls"><button id="reload">Actualizar</button></div></div>
+<div class="top"><div><h1>MTF Live Monitor</h1><div class="muted">OB-LADDER-v3.5 · UI v3.5.0 · Order Block Analyzer · Crypto Top 20 + CEDEAR liquidez dinámica + ADR argentinos USD · reglas congeladas · prueba forward · sin ejecución de órdenes</div></div><div class="controls"><button id="reload">Actualizar</button></div></div>
 <div class="tabs"><button id="tc" class="on">Crypto Top 20</button><button id="tz">CEDEARs + ADR USD</button><button id="ts">Estadísticas</button><button id="th">Status Page</button></div>
-<section id="vc"><div class="statusline"><span id="cdot" class="dot"></span><b id="cstat">Inicializando…</b><span id="cauto" class="small">· 1H · proximidad por ATR · entrada al tocar zona</span></div><div class="bar"><i id="cbar"></i></div><div class="cards crypto-cards"><div class="card clickable" data-cfilter="all">Activos<b id="cn">0</b><span class="kpi-sub" id="ccover">Top 20 actual</span></div><div class="card clickable" data-cfilter="LONG">Entradas Long<b id="cl">0</b><span class="kpi-sub">confirmadas por servidor</span></div><div class="card clickable" data-cfilter="SHORT">Entradas Short<b id="csh">0</b><span class="kpi-sub">confirmadas por servidor</span></div><div class="card clickable" data-cfilter="NEAR">Cerca de entrada<b id="cne">0</b><span class="kpi-sub">≤ 1 ATR · disponible</span></div><div class="card clickable" data-cfilter="WAIT">Esperar<b id="cw">0</b><span class="kpi-sub">distancia &gt; 1 ATR</span></div><div class="card clickable" data-cfilter="OPEN">En seguimiento<b id="ch">0</b><span class="kpi-sub">operaciones abiertas</span></div><div class="card clickable" data-cfilter="BLOCKED">Consumidas<b id="cb">0</b><span class="kpi-sub">nivel ya usado / alertado</span></div><div class="card clickable" data-cfilter="ERROR">Sin análisis<b id="ce">0</b><span class="kpi-sub">histórico insuficiente</span></div></div><div class="grid scan-grid" id="cgrid"><div class="panel scanner-panel"><div class="ph"><span>Scanner Crypto</span><span class="small">Order Block Detector · 1H</span></div><div class="tw"><table><thead><tr><th>#</th><th>Activo</th><th>Precio</th><th>Contexto 1H</th><th>Entradas Long</th><th>Entradas Short</th><th>Proximidad / estado</th></tr></thead><tbody id="cr"><tr><td colspan="7" class="empty">Cargando mercado…</td></tr></tbody></table></div></div><div class="pane-resizer" data-grid="cgrid" role="separator" aria-label="Redimensionar panel de detalle" title="Arrastrá para cambiar el ancho · doble clic para restaurar"></div><div class="panel detail-panel"><div class="ph"><span>Detalle Crypto</span><button class="detail-close" id="cclose" type="button">Cerrar ×</button></div><div id="cdet" class="empty">Seleccioná un activo.</div></div></div><div id="cchartPanel" class="chart-panel hide"><div class="ph"><span id="cchartTitle">Order Block Detector · 1H</span><span id="cchartState" class="small"></span></div><div class="chart-toolbar"><div class="group"><span class="small">Temporalidad</span><button class="chart-btn on" data-ctf="1h">1H</button></div><div class="group"><span class="small">Velas</span><button class="chart-btn" data-crange="60">60</button><button class="chart-btn on" data-crange="120">120</button><button class="chart-btn" data-crange="260">260</button><button class="chart-btn" data-crange="0">Todo</button></div></div><div class="chart-grid"><div><div class="chart-card"><div class="chart-label"><b id="cpriceLabel">Precio · 1H</b><span id="cpriceLegend"></span></div><canvas id="cprice"></canvas><div id="chover" class="chart-hover"></div></div><div class="osc-grid"><div class="osc-card"><div class="chart-label"><b>MACD 12/26/9</b><span id="cmacdLegend"></span></div><canvas id="cmacd"></canvas></div><div class="osc-card"><div class="chart-label"><b>Volumen</b><span id="crsiLegend"></span></div><canvas id="crsi"></canvas></div></div></div><div id="caudit" class="chart-audit"></div></div></div><div class="note"><b>CERCA</b> = nivel disponible a ≤ 1 ATR14. <b>EN ZONA</b> = pendiente de confirmación del scanner. <b>NUEVA ENTRADA</b> = confirmada por servidor. <b>NIVEL CONSUMIDO</b> = ese OB ya fue usado o alertado y no genera una nueva operación.</div></section>
+<section id="vc"><div class="statusline"><span id="cdot" class="dot"></span><b id="cstat">Inicializando…</b><span id="cauto" class="small">· 1H · proximidad por ATR · entrada al tocar zona</span></div><div class="bar"><i id="cbar"></i></div><div class="cards crypto-cards"><div class="card clickable" data-cfilter="all">Activos<b id="cn">0</b><span class="kpi-sub" id="ccover">Top 20 actual</span></div><div class="card clickable" data-cfilter="LONG">Long abiertas<b id="cl">0</b><span class="kpi-sub">setups en seguimiento</span></div><div class="card clickable" data-cfilter="SHORT">Short abiertas<b id="csh">0</b><span class="kpi-sub">setups en seguimiento</span></div><div class="card clickable" data-cfilter="NEAR">Cerca de entrada<b id="cne">0</b><span class="kpi-sub">≤ 1 ATR · fuera de zona</span></div><div class="card clickable" data-cfilter="ZONE">En zona<b id="czone">0</b><span class="kpi-sub">precio dentro del OB</span></div><div class="card clickable" data-cfilter="WAIT">Esperar<b id="cw">0</b><span class="kpi-sub">distancia &gt; 1 ATR</span></div><div class="card clickable" data-cfilter="OPEN">En seguimiento<b id="ch">0</b><span class="kpi-sub">setups abiertos</span></div><div class="card clickable" data-cfilter="ERROR">Sin análisis<b id="ce">0</b><span class="kpi-sub">estructura insuficiente</span></div><div class="grid scan-grid" id="cgrid"><div class="panel scanner-panel"><div class="ph"><span>Scanner Crypto</span><span class="small">Order Block Detector · 1H</span></div><div class="tw"><table><thead><tr><th>#</th><th>Activo</th><th>Precio</th><th>Contexto 1H</th><th>Entradas Long</th><th>Entradas Short</th><th>Proximidad / estado</th></tr></thead><tbody id="cr"><tr><td colspan="7" class="empty">Cargando mercado…</td></tr></tbody></table></div></div><div class="pane-resizer" data-grid="cgrid" role="separator" aria-label="Redimensionar panel de detalle" title="Arrastrá para cambiar el ancho · doble clic para restaurar"></div><div class="panel detail-panel"><div class="ph"><span>Detalle Crypto</span><button class="detail-close" id="cclose" type="button">Cerrar ×</button></div><div id="cdet" class="empty">Seleccioná un activo.</div></div></div><div id="cchartPanel" class="chart-panel hide"><div class="ph"><span id="cchartTitle">Order Block Detector · 1H</span><span id="cchartState" class="small"></span></div><div class="chart-toolbar"><div class="group"><span class="small">Temporalidad</span><button class="chart-btn on" data-ctf="1h">1H</button></div><div class="group"><span class="small">Velas</span><button class="chart-btn" data-crange="60">60</button><button class="chart-btn on" data-crange="120">120</button><button class="chart-btn" data-crange="260">260</button><button class="chart-btn" data-crange="0">Todo</button></div></div><div class="chart-grid"><div><div class="chart-card"><div class="chart-label"><b id="cpriceLabel">Precio · 1H</b><span id="cpriceLegend"></span></div><canvas id="cprice"></canvas><div id="chover" class="chart-hover"></div></div><div class="osc-grid"><div class="osc-card"><div class="chart-label"><b>MACD 12/26/9</b><span id="cmacdLegend"></span></div><canvas id="cmacd"></canvas></div><div class="osc-card"><div class="chart-label"><b>Volumen</b><span id="crsiLegend"></span></div><canvas id="crsi"></canvas></div></div></div><div id="caudit" class="chart-audit"></div></div></div><div class="note"><b>ESPERAR</b> = &gt; 1 ATR. <b>CERCA</b> = ≤ 1 ATR y todavía fuera de la zona. <b>EN ZONA</b> = precio dentro del OB. Cuando el scanner live confirma el toque se crea el setup y pasa inmediatamente a <b>EN SEGUIMIENTO</b>.</div></section>
 <section id="vz" class="hide"><div class="statusline"><span id="zdot" class="dot"></span><b id="zstat">Esperando…</b><span id="zauto" class="small">· Diario USD · spot Long · proximidad por ATR</span><span id="zmarket" class="market-banner"></span></div><div class="bar"><i id="zbar"></i></div><div class="cards market-cards"><div class="card clickable active-filter" data-zfilter="all">Universo analizado<b id="zn">0</b><span class="kpi-sub">CEDEAR líquidos + ADR argentinos</span></div><div class="card clickable" data-zfilter="MADR">ADR argentinos<b id="zmadr">0</b><span class="kpi-sub">serie USD directa</span></div><div class="card clickable" data-zfilter="ENTRY">Nuevas compras<b id="zl">0</b><span class="kpi-sub">precio dentro de zona</span></div><div class="card clickable" data-zfilter="OPEN">En seguimiento<b id="zopen">0</b><span class="kpi-sub">operaciones abiertas</span></div><div class="card clickable" data-zfilter="NEAR">Cerca de compra<b id="zne">0</b><span class="kpi-sub">distancia ≤ 1 ATR</span></div><div class="card clickable" data-zfilter="WAIT">Esperar<b id="zw">0</b><span class="kpi-sub">distancia > 1 ATR</span></div><div class="card clickable" data-zfilter="BEAR">Dominante bajista<b id="zbr">0</b><span class="kpi-sub">tendencia semanal</span></div><div class="card clickable" data-zfilter="ERROR">Sin análisis<b id="zer">0</b><span class="kpi-sub">fuente/histórico no disponible</span></div></div><div class="grid scan-grid" id="zgrid"><div class="panel scanner-panel"><div class="ph"><span>Scanner CEDEARs + ADR USD</span><span class="small">Order Block Detector · Diario · contexto Semanal</span></div><div class="tw"><table><thead><tr><th>#</th><th>Activo</th><th>Tipo</th><th>Serie</th><th>Liquidez</th><th>USD</th><th>Contexto Diario</th><th>Entradas Long</th><th>Salidas</th><th>Proximidad / estado</th></tr></thead><tbody id="zr"><tr><td colspan="10" class="empty">Abrí esta solapa para cargar.</td></tr></tbody></table></div></div><div class="pane-resizer" data-grid="zgrid" role="separator" aria-label="Redimensionar panel de detalle" title="Arrastrá para cambiar el ancho · doble clic para restaurar"></div><div class="panel detail-panel"><div class="ph"><span>Detalle USD</span><button class="detail-close" id="zclose" type="button">Cerrar ×</button></div><div id="zdet" class="empty">Seleccioná un activo.</div></div></div><div id="zchartPanel" class="chart-panel hide"><div class="ph"><span id="zchartTitle">Order Block Detector · Diario USD</span><span id="zchartState" class="small"></span></div><div class="chart-toolbar"><div class="group"><span class="small">Temporalidad</span><button class="chart-btn on" data-ztf="1d">Diario</button></div><div class="group"><span class="small">Velas</span><button class="chart-btn" data-zrange="60">60</button><button class="chart-btn on" data-zrange="120">120</button><button class="chart-btn" data-zrange="260">260</button><button class="chart-btn" data-zrange="0">Todo</button></div></div><div class="chart-grid"><div><div class="chart-card"><div class="chart-label"><b id="zpriceLabel">Precio · Diario</b><span id="zpriceLegend"></span></div><canvas id="zprice"></canvas><div id="zhover" class="chart-hover"></div></div><div class="osc-grid"><div class="osc-card"><div class="chart-label"><b>MACD 12/26/9</b><span id="zmacdLegend"></span></div><canvas id="zmacd"></canvas></div><div class="osc-card"><div class="chart-label"><b>Volumen</b><span id="zrsiLegend"></span></div><canvas id="zrsi"></canvas></div></div></div><div id="zaudit" class="chart-audit"></div></div></div><div class="note">En regulados, Diario define entradas/salidas y ATR; Semanal define la tendencia dominante y si el Long va a favor o contra tendencia.</div></section>
 <section id="vs" class="hide">
 <div class="cards stats-cards">
@@ -271,7 +267,7 @@ function assetName(market,sym,provided='',underlying=''){const n=String(provided
 function assetCell(market,sym,provided='',underlying=''){const n=assetName(market,sym,provided,underlying);return `<b>${sym}</b>${n?`<span class=\"small\" style=\"display:block;margin-top:2px\">${n}</span>`:''}`;}
 function loadLocalSignals(){return []}
 let tab='c',C=[],Z=[],CM=new Map,ZM=new Map,selC='',selZ='',cFilter='all',zFilter='all',statsQuick='ALL',sig=[];
-let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null;const ZCACHE='mtf_usd_market_snapshot_v330_regulated_dw',STRATEGY_VERSION='OB-LADDER-v3.4',STATS_UI_BUILD='3.2.0';
+let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],runtimeStructure=[],runtimeLive=[],zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null;const ZCACHE='mtf_usd_market_snapshot_v330_regulated_dw',STRATEGY_VERSION='OB-LADDER-v3.5',STATS_UI_BUILD='3.2.0';
 try{localStorage.removeItem('mtf_usd_market_snapshot_v118');}catch{}
 const STATUS_SB_URL='https://swhfftkhqmbtmbnoskoj.supabase.co';
 const STATUS_SB_KEY='sb_publishable_EbjOQ0SprPfdKLTQ6zER0w_DGsf128M';
@@ -301,6 +297,22 @@ function statSituation(s){
 function statResultClass(s){return s==='SL'?'neg':s==='AMBIGUOUS'?'amb':s==='TP3'?'pos':'run'}
 function check(ok,txt,val=''){return `<div class="check"><span class="ico ${ok?'g':'r'}">${ok?'✓':'✕'}</span><span>${txt}${val?` <span class="small">(${val})</span>`:''}</span></div>`}
 function metric(k,v,c=''){return `<div class="metric"><span>${k}</span><b class="${c}">${v}</b></div>`}
+function canonicalLevel(p){
+  return {rank:+p.rank,point:+p.point,side:p.side,detectorSide:p.detector_side,ob:{originTime:+p.origin_time,confirmTime:+p.confirm_time,bottom:+p.zone_bottom,top:+p.zone_top,avg:+p.point}}
+}
+function canonicalQ(s,live){
+  const price=Number.isFinite(+live?.price)?+live.price:+s.price;
+  const below=(s?.ladder?.below||[]).map(canonicalLevel),above=(s?.ladder?.above||[]).map(canonicalLevel);
+  return {version:STRATEGY_VERSION,price,time:new Date(s.generatedAt||Date.now()).getTime(),ready:s.ready!==false,
+    ladder:{referencePrice:price,below,above,complete:below.length===3&&above.length===3,exactAnalyzer:true},
+    context:s.context||{},macroContext:s.macroContext||{},stops:s.stops||{},
+    proximity:live?.proximity||s.proximity||null,s:live?.state||s?.proximity?.state||'WAIT',dir:(live?.proximity||s.proximity)?.nearest?.direction||'',canonical:true}
+}
+function runtimeLiveFor(sym){return runtimeLive.find(x=>x.symbol===sym)||null}
+function liveMovePct(dir,entry,price){
+  entry=+entry;price=+price;if(!(entry>0)||!(price>0))return NaN;
+  return dir==='SHORT'?(entry-price)/entry*100:(price-entry)/entry*100
+}
 function runtimeOpensFor(market,sym,dir=null){return runtimeOpen.filter(x=>x.market===market&&x.symbol===sym&&(!dir||x.direction===dir))}
 function runtimeOpenFor(market,sym,dir=null){return runtimeOpensFor(market,sym,dir)[0]||null}
 function runtimeDecisionFor(market,sym){return runtimeDecisions.find(x=>x.market===market&&x.symbol===sym)||null}
@@ -319,22 +331,23 @@ function serverizeCryptoQ(sym,q){
   return q
 }
 function cOperationalState(q,sym){
-  if(!q)return'ERROR';
-  const d=currentRuntimeDecision('crypto',sym,q),ops=runtimeOpensFor('crypto',sym),p=q?.proximity||{};
-  if(d?.decision==='ENTRY')return'ENTRY';
-  if(ops.length)return'OPEN';
-  if(d?.decision==='BLOCKED_OPEN')return'BLOCKED';
-  if(p.state==='IN_ZONE')return'ZONE';
-  if(p.state==='NEAR')return'NEAR';
+  const ops=runtimeOpensFor('crypto',sym);if(ops.length)return'OPEN';
+  const l=runtimeLiveFor(sym);
+  if(!q||l?.state==='NO_ANALYSIS')return'ERROR';
+  const st=l?.state||q?.proximity?.state||'WAIT';
+  if(st==='IN_ZONE')return'ZONE';
+  if(st==='NEAR')return'NEAR';
   return'WAIT'
 }
 function cOperationalLabel(q,sym){
-  if(!q)return'<span class="signal-pill signal-error">SIN ANÁLISIS</span>';
-  const d=currentRuntimeDecision('crypto',sym,q),ops=runtimeOpensFor('crypto',sym),p=q?.proximity||{},n=p.nearest,st=cOperationalState(q,sym);
-  if(st==='ENTRY'){const dc=d.direction==='SHORT'?'short':'long';return '<span class="signal-pill signal-'+dc+'">NUEVA ENTRADA <span class="dir-'+dc+'">'+(d.direction||'')+'</span> '+(d?.context?.diagnostic?.proximity?.nearest?.rank||n?.rank||'')+'</span>'}
-  if(st==='OPEN'){const dirs=[...new Set(ops.map(x=>x.direction))].map(v=>'<span class="dir-'+(v==='SHORT'?'short':'long')+'">'+v+'</span>').join('/');return '<span class="signal-pill signal-near">'+ops.length+' ABIERTA'+(ops.length>1?'S':'')+' · '+dirs+'</span>'}
-  if(st==='BLOCKED'){const dc=(d?.direction||n?.direction)==='SHORT'?'short':'long',dir=d?.direction||n?.direction||'',rank=n?.rank||'';return '<span class="signal-pill signal-blocked">NIVEL CONSUMIDO'+(dir?' · <span class="dir-'+dc+'">'+dir+'</span> '+rank:'')+'</span>'}
-  if(st==='ZONE'&&n){const dc=n.direction==='SHORT'?'short':'long';return '<span class="signal-pill signal-near">EN ZONA · PENDIENTE SCANNER · <span class="dir-'+dc+'">'+n.direction+'</span> '+n.rank+'</span>'}
+  const ops=runtimeOpensFor('crypto',sym),st=cOperationalState(q,sym),n=q?.proximity?.nearest;
+  if(st==='OPEN'){
+    const dir=ops[0]?.direction||'',dc=dir==='SHORT'?'short':'long',moves=ops.map(op=>liveMovePct(op.direction,op.entry,q?.price)).filter(Number.isFinite);
+    const mv=moves.length?moves.map(v=>(v>=0?'+':'')+v.toFixed(2)+'%').join(' / '):'—';
+    return '<span class="signal-pill signal-'+dc+'">EN SEGUIMIENTO · <span class="dir-'+dc+'">'+dir+'</span> · '+ops.length+' pata'+(ops.length>1?'s':'')+' · '+mv+'</span>'
+  }
+  if(st==='ERROR')return'<span class="signal-pill signal-error">SIN ANÁLISIS</span>';
+  if(st==='ZONE'&&n){const dc=n.direction==='SHORT'?'short':'long';return '<span class="signal-pill signal-near">EN ZONA · <span class="dir-'+dc+'">'+n.direction+'</span> '+n.rank+'</span>'}
   if(st==='NEAR'&&n){const dc=n.direction==='SHORT'?'short':'long';return '<span class="signal-pill signal-near">CERCA · <span class="dir-'+dc+'">'+n.direction+'</span> '+n.rank+' · '+Number(n.distanceAtr).toFixed(2)+' ATR</span>'}
   return '<span class="signal-pill signal-wait">ESPERAR'+(n&&Number.isFinite(+n.distanceAtr)?' · '+Number(n.distanceAtr).toFixed(2)+' ATR':'')+'</span>'
 }
@@ -597,35 +610,50 @@ function nextCryptoFullRefresh(now=Date.now()){
 }
 function cryptoTime(t){return t?new Date(t).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'—'}
 function updateCryptoAutoText(){const el=$('cauto');if(!el)return;const next=nextCryptoFullRefresh();el.textContent=`· 1H · ATR14 · ${cryptoLastFullRefresh?'última '+cryptoTime(cryptoLastFullRefresh)+' · ':''}próxima ~${cryptoTime(next)}`}
-async function refreshCryptoRuntime(){if(cryptoRuntimeRefreshing)return;cryptoRuntimeRefreshing=true;try{const rt=await J('/api/data?op=runtime&market=crypto&_='+Date.now(),12000);runtimeOpen=Array.isArray(rt?.opens)?rt.opens:[];runtimeDecisions=Array.isArray(rt?.decisions)?rt.decisions:[];if(C.length&&CM.size){for(const x of C)if(CM.has(x.s))CM.set(x.s,serverizeCryptoQ(x.s,CM.get(x.s)));renderC();if(selC&&CM.has(selC))detailC(selC)}}catch{}finally{cryptoRuntimeRefreshing=false}}
-async function loadC(force=false){
-  if(cryptoLoading)return;if(!force&&C.length&&CM.size){await refreshCryptoRuntime();updateCryptoAutoText();return renderC()}cryptoLoading=true;$('cstat').textContent='Cargando universo…';$('cdot').className='dot';$('cbar').style.width='0%';
-  try{if(force){C=[];CM.clear()}const rtP=J('/api/data?op=runtime&market=crypto&_='+Date.now(),12000).catch(()=>({opens:[],decisions:[]}));C=await uni();const rt=await rtP;runtimeOpen=Array.isArray(rt?.opens)?rt.opens:[];runtimeDecisions=Array.isArray(rt?.decisions)?rt.decisions:[];const currentSet=new Set(C.map(x=>x.s));
-    for(const op of runtimeOpen.filter(x=>x.market==='crypto')){const sym=String(op.symbol||'').toUpperCase();if(sym&&!currentSet.has(sym)){C.push({s:sym,p:sym+'USDT',name:assetName('CRYPTO',sym),outside:true});currentSet.add(sym)}}
-    let n=0;for(const x of C){try{const[h1,h4,d1,m15]=await Promise.all([KDetector(x.p),K(x.p,'4h',1000),K(x.p,'1d',1000),K(x.p,'15m',1000)]);x.hist={h1,'1h':h1,h4,'4h':h4,d1,'1d':d1,m15,'15m':m15};CM.set(x.s,serverizeCryptoQ(x.s,cc({h1,h4,d1,m15})))}catch(e){x.err=e.message}n++;$('cbar').style.width=n/C.length*100+'%';$('cstat').textContent=`Analizando contexto + zonas 1H ${n}/${C.length}`;renderC()}
-    cryptoLastFullRefresh=Date.now();$('cstat').textContent='Activo · Analyzer exacto 1H · contexto 1H/4H/D';$('cdot').className='dot live';updateCryptoAutoText();await refreshCryptoRuntime()
-  }catch(e){$('cstat').textContent='Error: '+e.message;$('cdot').className='dot'}finally{cryptoLoading=false}
+async function refreshCryptoRuntime(){
+  if(cryptoRuntimeRefreshing)return;cryptoRuntimeRefreshing=true;
+  try{
+    const rt=await J('/api/data?op=runtime&market=crypto&_='+Date.now(),12000);
+    runtimeOpen=Array.isArray(rt?.opens)?rt.opens:[];runtimeStructure=Array.isArray(rt?.structureStates)?rt.structureStates:[];runtimeLive=Array.isArray(rt?.liveStates)?rt.liveStates:[];
+    const bySym=new Map(runtimeStructure.map(x=>[x.symbol,x])),liveMap=new Map(runtimeLive.map(x=>[x.symbol,x]));
+    C=runtimeStructure.map(x=>({s:x.symbol,p:x.pair||x.symbol+'USDT',name:assetName('CRYPTO',x.symbol),reason:x.reason||''}));
+    const set=new Set(C.map(x=>x.s));for(const op of runtimeOpen){const sym=String(op.symbol||'').toUpperCase();if(sym&&!set.has(sym)){C.push({s:sym,p:sym+'USDT',name:assetName('CRYPTO',sym),outside:true});set.add(sym)}}
+    CM.clear();for(const x of C){const st=bySym.get(x.s);if(st?.ready)CM.set(x.s,canonicalQ(st,liveMap.get(x.s)))}
+    cryptoLastFullRefresh=Date.now();renderC();if(selC&&CM.has(selC))detailC(selC);updateCryptoAutoText()
+  }catch(e){$('cstat').textContent='Error runtime: '+e.message;$('cdot').className='dot'}finally{cryptoRuntimeRefreshing=false}
 }
-async function pollCryptoBackendCycle(){try{const u=STATUS_SB_URL+'/rest/v1/mtf_state?market=eq.crypto&select=last_run_at&limit=1&_='+Date.now(),r=await fetch(u,{cache:'no-store',headers:{apikey:STATUS_SB_KEY,accept:'application/json'}});if(!r.ok)return;const rows=await r.json(),t=rows?.[0]?.last_run_at?new Date(rows[0].last_run_at).getTime():0;if(!t)return;if(!cryptoLastBackendRun){cryptoLastBackendRun=t;return}if(t>cryptoLastBackendRun){cryptoLastBackendRun=t;if(tab==='c')await loadC(true);else{C=[];CM.clear()}}}catch{}}
+async function loadC(force=false){
+  if(cryptoLoading)return;if(!force&&C.length){await refreshCryptoRuntime();return}
+  cryptoLoading=true;$('cstat').textContent='Cargando Analyzer canónico…';$('cdot').className='dot';$('cbar').style.width='35%';
+  try{await refreshCryptoRuntime();$('cbar').style.width='100%';$('cstat').textContent='Activo · Analyzer canónico 1H · scanner live 1m · contexto 1H/4H/D';$('cdot').className='dot live'}
+  catch(e){$('cstat').textContent='Error: '+e.message;$('cdot').className='dot'}finally{cryptoLoading=false}
+}
+async function pollCryptoBackendCycle(){try{const u=STATUS_SB_URL+'/rest/v1/mtf_state?market=eq.crypto_live&select=last_run_at&limit=1&_='+Date.now(),r=await fetch(u,{cache:'no-store',headers:{apikey:STATUS_SB_KEY,accept:'application/json'}});if(!r.ok)return;const rows=await r.json(),t=rows?.[0]?.last_run_at?new Date(rows[0].last_run_at).getTime():0;if(!t)return;if(!cryptoLastBackendRun){cryptoLastBackendRun=t;return}if(t>cryptoLastBackendRun){cryptoLastBackendRun=t;if(tab==='c')await loadC(true);else{C=[];CM.clear()}}}catch{}}
 function detailC(sym){
   selC=sym;$('cgrid')?.classList.add('has-detail');const q=CM.get(sym),asset=C.find(x=>x.s===sym);if(!q)return;
-  const ops=runtimeOpensFor('crypto',sym),ctx=q.context||{},macro=q.macroContext||{},lo=q.ladder?.below||[],hi=q.ladder?.above||[],near=q.proximity?.nearest,plan=cryptoPlan(q);
-  const levels=(arr,dir)=>arr.map(v=>`<div class="check"><span class="ico ${dir==='LONG'?'g':'r'}">${v.rank}</span><span><b class="dir-${dir==='LONG'?'long':'short'}">${dir} ${v.rank}</b> · <b>${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · ${Math.abs((v.point/q.price-1)*100).toFixed(2)}%</span></div>`).join('')||'<div class="small">Sin nivel disponible.</div>';
-  const planDir=plan?.direction==='SHORT'?'short':'long';
-  const targetDir=plan?.direction==='LONG'?'short':'long';
-  const planHtml=plan?`<div class="box"><b>Análisis de la próxima entrada</b><div class="detail-grid" style="margin-top:8px">${metric('Setup',`<span class="dir-${planDir}">${plan.direction} ${plan.rank}</span>`)}${metric('Estado',plan.state==='IN_ZONE'?'EN ZONA':plan.state==='NEAR'?'CERCA':'ESPERAR',plan.state==='IN_ZONE'?'g':plan.state==='NEAR'?'y':'')}${metric('Relación',plan.relation,plan.relation==='A FAVOR'?'g':plan.relation==='CONTRA TENDENCIA'?'r':'y')}${metric('Entrada',F(plan.entry))}${metric('Stop Loss',F(plan.stop))}${metric('TP1',plan.targets[0]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 1</span> · ${F(plan.targets[0].point)}`:'—')}${metric('TP2',plan.targets[1]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 2</span> · ${F(plan.targets[1].point)}`:'—')}${metric('TP3',plan.targets[2]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 3</span> · ${F(plan.targets[2].point)}`:'—')}</div></div>`:'';
-  const legs=ops.length?ops.map((op,i)=>{const d=op.direction==='SHORT'?'short':'long';return `<div class="box"><b class="dir-${d}">${op.direction} · ${op.context?.entry_rank||i+1}</b><div class="small">Entrada ${F(op.entry)} · Stop ${F(op.stop)} · TP1 ${F(op.tp1)} · TP2 ${F(op.tp2)} · TP3 ${F(op.tp3)}</div></div>`}).join(''):'<div class="small">Sin operaciones abiertas.</div>';
+  const ops=runtimeOpensFor('crypto',sym).sort((a,b)=>(+a.context?.entry_rank||0)-(+b.context?.entry_rank||0)),ctx=q.context||{},macro=q.macroContext||{},lo=q.ladder?.below||[],hi=q.ladder?.above||[],near=q.proximity?.nearest,plan=cryptoPlan(q);
+  const levels=(arr,dir)=>arr.map(v=>`<div class="check"><span class="ico ${dir==='LONG'?'g':'r'}">${v.rank}</span><span><b class="dir-${dir==='LONG'?'long':'short'}">${dir} ${v.rank}</b> · <b>${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · ${Math.abs((v.point/q.price-1)*100).toFixed(2)}%</span></div>`).join('')||'<div class="small">Sin OB activo.</div>';
+  let follow='';
+  if(ops.length){
+    const a=ops[0],dir=a.direction,dc=dir==='SHORT'?'short':'long',snap=a.context?.ladder_snapshot||{},entryLevels=dir==='LONG'?(snap.below||[]):(snap.above||[]),used=new Map(ops.map(o=>[+o.context?.entry_rank,o]));
+    const stage=ops.some(o=>o.status==='TP2')?'TP2 ALCANZADO':ops.some(o=>o.status==='TP1')?'TP1 ALCANZADO':'ABIERTO';
+    const rows=entryLevels.map(p=>{const op=used.get(+p.rank);if(op){const mv=liveMovePct(dir,op.entry,q.price);return `<div class="check"><span class="ico ${mv>=0?'g':'r'}">${p.rank}</span><span><b class="dir-${dc}">${dir} ${p.rank}</b> · entrada ${F(op.entry)} · actual ${F(q.price)} · <b class="${mv>=0?'g':'r'}">${mv>=0?'+':''}${mv.toFixed(2)}%</b> · ${op.status}</span></div>`}return `<div class="check"><span class="ico y">${p.rank}</span><span><b>${dir} ${p.rank}</b> · ${F(p.point)} · ${stage==='ABIERTO'?'PENDIENTE':'NO SE AGREGA DESPUÉS DE TP1'}</span></div>`}).join('');
+    const t1=!!a.hit1,t2=!!a.hit2,t3=!!a.hit3;
+    follow=`<div class="box follow-box"><b>Seguimiento del setup</b><div class="detail-grid" style="margin-top:8px">${metric('Dirección',`<span class="dir-${dc}">${dir}</span>`)}${metric('Estado',stage,stage==='ABIERTO'?'y':'g')}${metric('Precio actual',F(q.price))}${metric('Stop',F(a.stop))}${metric('TP1',(t1?'✓ ':'')+F(a.tp1),t1?'g':'')}${metric('TP2',(t2?'✓ ':'')+F(a.tp2),t2?'g':'')}${metric('TP3',(t3?'✓ ':'')+F(a.tp3),t3?'g':'')}</div><div style="margin-top:10px">${rows}</div></div>`
+  }
+  const planDir=plan?.direction==='SHORT'?'short':'long',targetDir=plan?.direction==='LONG'?'short':'long';
+  const planHtml=!ops.length&&plan?`<div class="box"><b>Análisis de la próxima entrada</b><div class="detail-grid" style="margin-top:8px">${metric('Setup',`<span class="dir-${planDir}">${plan.direction} ${plan.rank}</span>`)}${metric('Estado',plan.state==='IN_ZONE'?'EN ZONA':plan.state==='NEAR'?'CERCA':'ESPERAR',plan.state==='IN_ZONE'?'g':plan.state==='NEAR'?'y':'')}${metric('Relación',plan.relation,plan.relation==='A FAVOR'?'g':plan.relation==='CONTRA TENDENCIA'?'r':'y')}${metric('Entrada',F(plan.entry))}${metric('Stop Loss',F(plan.stop))}${metric('TP1',plan.targets[0]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 1</span> · ${F(plan.targets[0].point)}`:'—')}${metric('TP2',plan.targets[1]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 2</span> · ${F(plan.targets[1].point)}`:'—')}${metric('TP3',plan.targets[2]?`<span class="dir-${targetDir}">${plan.direction==='LONG'?'SHORT':'LONG'} 3</span> · ${F(plan.targets[2].point)}`:'—')}</div></div>`:'';
   document.querySelectorAll('#cr tr[data-s]').forEach(r=>r.classList.toggle('selected',r.dataset.s===sym));
-  $('cdet').className='detail';$('cdet').innerHTML=`<h3>${sym}${assetName('CRYPTO',sym,asset?.name)?' · '+assetName('CRYPTO',sym,asset?.name):''} · USD</h3><div>${cOperationalLabel(q,sym)}<span class="badge b">Analyzer exact · 1H</span></div><div class="detail-grid" style="margin-top:8px">${metric('Precio actual',F(q.price))}${metric('Contexto 1H',trendBadge(macro.h1?.trend||ctx.trend||'RANGO'))}${metric('ATR14 1H',F(ctx.atr14))}${metric('Próxima entrada',near?`<span class="dir-${near.direction==='SHORT'?'short':'long'}">${near.direction} ${near.rank}</span>`:'—')}${metric('Distancia',near&&Number.isFinite(+near.distanceAtr)?Number(near.distanceAtr).toFixed(2)+' ATR':'—')}</div>${planHtml}<div class="box"><b class="dir-long">Entradas Long</b>${levels(lo,'LONG')}</div><div class="box"><b class="dir-short">Entradas Short</b>${levels(hi,'SHORT')}</div><div class="box"><b>Stops estructurales</b><div class="small"><span class="dir-long">Long</span> ${F(q.stops?.LONG)} · <span class="dir-short">Short</span> ${F(q.stops?.SHORT)}</div></div><div class="box"><b>Operaciones abiertas</b>${legs}</div>`;showCChart(sym)
+  $('cdet').className='detail';$('cdet').innerHTML=`<h3>${sym}${assetName('CRYPTO',sym,asset?.name)?' · '+assetName('CRYPTO',sym,asset?.name):''} · USD</h3><div>${cOperationalLabel(q,sym)}<span class="badge b">Analyzer canónico · 1H</span></div><div class="detail-grid" style="margin-top:8px">${metric('Precio actual',F(q.price))}${metric('Contexto 1H',trendBadge(macro.h1?.trend||ctx.trend||'RANGO'))}${metric('Contexto 4H',trendBadge(macro.h4?.trend||'RANGO'))}${metric('Contexto Diario',trendBadge(macro.d1?.trend||'RANGO'))}${metric('ATR14 1H',F(ctx.atr14))}${metric('Próxima zona',near?`<span class="dir-${near.direction==='SHORT'?'short':'long'}">${near.direction} ${near.rank}</span>`:'—')}${metric('Distancia',near&&Number.isFinite(+near.distanceAtr)?Number(near.distanceAtr).toFixed(2)+' ATR':'—')}</div>${follow}${planHtml}<div class="box"><b class="dir-long">Entradas Long</b>${levels(lo,'LONG')}</div><div class="box"><b class="dir-short">Entradas Short</b>${levels(hi,'SHORT')}</div>`;showCChart(sym)
 }
 function cMatch(x){
-  const q=CM.get(x.s)||null,st=cOperationalState(q,x.s),d=q?currentRuntimeDecision('crypto',x.s,q):null;
+  const q=CM.get(x.s)||null,st=cOperationalState(q,x.s),ops=runtimeOpensFor('crypto',x.s);
   if(cFilter==='OPEN')return st==='OPEN';
-  if(cFilter==='BLOCKED')return st==='BLOCKED';
   if(cFilter==='ERROR')return st==='ERROR'&&!x.outside;
   if(x.outside)return false;
-  if(cFilter==='LONG'||cFilter==='SHORT')return st==='ENTRY'&&d?.direction===cFilter;
-  if(cFilter==='NEAR')return st==='NEAR'||st==='ZONE';
+  if(cFilter==='LONG'||cFilter==='SHORT')return st==='OPEN'&&ops.some(op=>op.direction===cFilter);
+  if(cFilter==='NEAR')return st==='NEAR';
+  if(cFilter==='ZONE')return st==='ZONE';
   if(cFilter==='WAIT')return st==='WAIT';
   return true
 }
@@ -663,23 +691,21 @@ function cryptoCondCell(q){return `${ladderCell(q.ladder?.below,'E')}<br>${ladde
 function weeklyCondCell(q){return contextPill(q.context)}
 function dailyCondCell(q){return `${ladderCell(q.ladder?.below,'E')}<br>${ladderCell(q.ladder?.above,'S')}`}
 function renderC(){
-  const universe=C.filter(x=>!x.outside),analyzed=universe.filter(x=>CM.has(x.s)),a=C.filter(cMatch),
-        states=universe.map(x=>({x,q:CM.get(x.s)||null,st:cOperationalState(CM.get(x.s)||null,x.s),d:CM.has(x.s)?currentRuntimeDecision('crypto',x.s,CM.get(x.s)):null}));
-  $('cn').textContent=universe.length;
-  if($('ccover'))$('ccover').textContent=analyzed.length+' con análisis · '+(universe.length-analyzed.length)+' sin histórico';
-  $('cl').textContent=states.filter(v=>v.st==='ENTRY'&&v.d?.direction==='LONG').length;
-  $('csh').textContent=states.filter(v=>v.st==='ENTRY'&&v.d?.direction==='SHORT').length;
-  $('cne').textContent=states.filter(v=>v.st==='NEAR'||v.st==='ZONE').length;
+  const universe=C.filter(x=>!x.outside),a=C.filter(cMatch),states=universe.map(x=>({x,q:CM.get(x.s)||null,st:cOperationalState(CM.get(x.s)||null,x.s),ops:runtimeOpensFor('crypto',x.s)}));
+  $('cn').textContent=universe.length;if($('ccover'))$('ccover').textContent=states.filter(v=>v.st!=='ERROR').length+' con análisis · '+states.filter(v=>v.st==='ERROR').length+' sin análisis';
+  $('cl').textContent=states.filter(v=>v.st==='OPEN'&&v.ops.some(o=>o.direction==='LONG')).length;
+  $('csh').textContent=states.filter(v=>v.st==='OPEN'&&v.ops.some(o=>o.direction==='SHORT')).length;
+  $('cne').textContent=states.filter(v=>v.st==='NEAR').length;
+  if($('czone'))$('czone').textContent=states.filter(v=>v.st==='ZONE').length;
   $('cw').textContent=states.filter(v=>v.st==='WAIT').length;
   $('ch').textContent=states.filter(v=>v.st==='OPEN').length;
-  if($('cb'))$('cb').textContent=states.filter(v=>v.st==='BLOCKED').length;
   if($('ce'))$('ce').textContent=states.filter(v=>v.st==='ERROR').length;
   cFilterUI();
   $('cr').innerHTML=a.length?a.map((x,i)=>{
     const q=CM.get(x.s),outside=x.outside?'<span class="small y" style="display:block;margin-top:3px">Fuera del Top 20 actual · sólo seguimiento</span>':'';
-    if(!q)return `<tr data-s="${x.s}" class="${selC===x.s?'selected':''}"><td>${i+1}</td><td>${assetCell('CRYPTO',x.s,x.name)}${outside}</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="signal-pill signal-error">SIN ANÁLISIS</span><span class="small" style="display:block;margin-top:4px">${x.err||'Histórico insuficiente para 1H/4H/D'}</span></td></tr>`;
+    if(!q)return `<tr data-s="${x.s}" class="${selC===x.s?'selected':''}"><td>${i+1}</td><td>${assetCell('CRYPTO',x.s,x.name)}${outside}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>${cOperationalLabel(null,x.s)}<span class="small" style="display:block;margin-top:4px">${x.reason||'Analyzer no dispone de estructura 3+3 completa'}</span></td></tr>`;
     return `<tr data-s="${x.s}" class="${selC===x.s?'selected':''}"><td>${i+1}</td><td>${assetCell('CRYPTO',x.s,x.name)}${outside}</td><td>${F(q.price)}</td><td>${cryptoContextPill(q)}</td><td>${ladderCell(q.ladder?.below,'L','LONG')}</td><td>${ladderCell(q.ladder?.above,'S','SHORT')}</td><td>${proximityCell(q)}<div style="margin-top:4px">${cOperationalLabel(q,x.s)}</div></td></tr>`
-  }).join(''):`<tr><td colspan="7" class="empty">No hay activos para este filtro.</td></tr>`;
+  }).join(''):'<tr><td colspan="7" class="empty">No hay activos para este filtro.</td></tr>';
   document.querySelectorAll('#cr tr[data-s]').forEach(r=>r.onclick=()=>{if(CM.has(r.dataset.s))detailC(r.dataset.s)});if(selC&&CM.has(selC)&&a.some(x=>x.s===selC))detailC(selC)
 }
 function recalcC(){if(!C.length)return;CM.clear();for(const x of C){const h=x.hist;if(!h)continue;try{const h1=h.h1||h['1h'],h4=h.h4||h['4h'],d1=h.d1||h['1d'],m15=h.m15||h['15m'];if(h1&&h4&&d1&&m15)CM.set(x.s,cc({h1,h4,d1,m15}))}catch(e){x.err=e.message}}renderC();if(selC&&CM.has(selC))detailC(selC)}
@@ -850,7 +876,7 @@ function initScanSplitters(){
 }
 initScanSplitters();
 
-const UI_VERSION='3.4.2',BUILD_ID='MTF-Live-Monitor-3.4.2-CONSUMED-STATE',JOB_NAMES={1:'Crypto scanner',2:'CEDEAR scanner',3:'Watcher / daemon',4:'ADR scanner'};let healthData=null,healthBusy=false;
+const UI_VERSION='3.5.0',BUILD_ID='MTF-Live-Monitor-3.5.0-CANONICAL',JOB_NAMES={1:'Crypto scanner',2:'CEDEAR scanner',3:'Watcher / daemon',4:'ADR scanner'};let healthData=null,healthBusy=false;
 function ageMs(v){const t=v?new Date(v).getTime():NaN;return Number.isFinite(t)?Date.now()-t:Infinity}
 function fmtAge(v){const a=ageMs(v);if(!Number.isFinite(a))return'—';const m=Math.max(0,Math.round(a/60000));if(m<2)return'ahora';if(m<60)return m+' min';const h=Math.floor(m/60),rm=m%60;if(h<36)return h+' h '+rm+' min';return Math.floor(h/24)+' d'}
 function dt(v){return v?new Date(v).toLocaleString('es-AR'):'—'}
