@@ -504,9 +504,7 @@ Deno.serve(async(req:Request)=>{
             setupEntry=avgEntry(a), setupPayload={setup_id:rep.context?.setup_id,strategy_version:rep.strategy_version,entries:a.map((x:any)=>({rank:x.context?.entry_rank,entry:x.entry,status:x.status})),context:rep.context?.context,macro_context:rep.context?.macro_context,trend_relation:rep.context?.trend_relation}, seen=prior.get(k)||new Set<string>(),
             setupEligibleAfter=Math.min(...a.map(entryBarEnd).filter((x:number)=>x>0)),
             signalStart=Math.min(...a.map((x:any)=>new Date(x.signal_time).getTime()).filter((x:number)=>Number.isFinite(x)&&x>0)),
-            fetchFrom=isLegacy
-              ? (Number.isFinite(signalStart)?Math.max(signalStart,now-2*60*60*1000):now-2*60*60*1000)
-              : (Number.isFinite(signalStart)?Math.max(since,signalStart):since),
+            fetchFrom=Number.isFinite(signalStart)?Math.max(since,signalStart):since,
             dataKey=rep.market+":"+(rep.market==="crypto"?rep.symbol:(rep.underlying||rep.symbol))+":"+Math.floor(fetchFrom/60000);
       if(rep.market==="merval"&&!liveState.bothOpen){checked++;continue;}
       if(rep.market==="cedear"&&String(marketGuard?.byma?.code||"")!=="OPEN"){checked++;continue;}
