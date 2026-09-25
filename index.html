@@ -205,23 +205,19 @@ main{max-width:none;width:100%;padding-left:clamp(12px,1.4vw,24px);padding-right
 </style><style id="near-pill-uniform-v331">
 .signal-near .dir-long,.signal-near .dir-short{color:inherit!important}
 </style><style>.chart-card canvas{cursor:crosshair}.chart-card canvas.chart-dragging{cursor:grabbing}</style></head><body><main>
-<div class="top"><div><h1>MTF Live Monitor</h1><div class="muted">OB-LADDER-v3.5 · UI v3.5.24 · Order Block Analyzer · Crypto Top 20 + CEDEAR liquidez dinámica + ADR argentinos USD · reglas congeladas · prueba forward · sin ejecución de órdenes</div></div><div class="controls"><button id="reload">Actualizar</button></div></div>
+<div class="top"><div><h1>MTF Live Monitor</h1><div class="muted">OB-LADDER-v3.6 · UI v3.6.0 · Order Block Analyzer · Crypto sin contra tendencia · Regulados D+W alcistas · TP1 salida final · prueba forward · sin ejecución de órdenes</div></div><div class="controls"><button id="reload">Actualizar</button></div></div>
 <div class="tabs"><button id="tc" class="on">Crypto Top 20</button><button id="tz">CEDEARs + ADR USD</button><button id="ts">Estadísticas</button><button id="th">Status Page</button></div>
 <section id="vc"><div class="statusline"><span id="cdot" class="dot"></span><b id="cstat">Inicializando…</b><span id="cauto" class="small">· 1H · proximidad por ATR · entrada al tocar línea exacta</span></div><div class="bar"><i id="cbar"></i></div><div class="cards crypto-cards"><div class="card clickable" data-cfilter="all">Activos<b id="cn">0</b><span class="kpi-sub" id="ccover">Top 20 actual</span></div><div class="card clickable" data-cfilter="NEAR">Cerca de entrada<b id="cne">0</b><span class="kpi-sub">≤ 1 ATR · fuera del OB</span></div><div class="card clickable" data-cfilter="ZONE">En zona<b id="czone">0</b><span class="kpi-sub">precio dentro del OB</span></div><div class="card clickable" data-cfilter="WAIT">Esperar<b id="cw">0</b><span class="kpi-sub">distancia &gt; 1 ATR</span></div><div class="card clickable" data-cfilter="OPEN">En seguimiento<b id="ch">0</b><span class="kpi-sub">setups Crypto abiertos</span></div><div class="card clickable" data-cfilter="ERROR">Sin análisis<b id="ce">0</b><span class="kpi-sub">estructura insuficiente</span></div></div><div class="grid scan-grid" id="cgrid"><div class="panel scanner-panel"><div class="ph"><span>Scanner Crypto</span><span class="small">Order Block Detector · 1H</span></div><div class="tw"><table><thead><tr><th>#</th><th>Activo</th><th>Precio</th><th>Contexto 1H</th><th>Compras</th><th>Entradas Short</th><th>Proximidad / estado</th></tr></thead><tbody id="cr"><tr><td colspan="7" class="empty">Cargando mercado…</td></tr></tbody></table></div></div><div class="pane-resizer" data-grid="cgrid" role="separator" aria-label="Redimensionar panel de detalle" title="Arrastrá para cambiar el ancho · doble clic para restaurar"></div><div class="panel detail-panel"><div class="ph"><span>Detalle Crypto</span><button class="detail-close" id="cclose" type="button">Cerrar ×</button></div><div id="cdet" class="empty">Seleccioná un activo.</div></div></div><div id="cchartPanel" class="chart-panel hide"><div class="ph"><span id="cchartTitle">Order Block Detector · 1H</span><span id="cchartState" class="small"></span></div><div class="chart-toolbar"><div class="group"><span class="small">Temporalidad</span><button class="chart-btn on" data-ctf="1h">1H</button></div><div class="group"><span class="small">Velas</span><button class="chart-btn" data-crange="60">60</button><button class="chart-btn on" data-crange="120">120</button><button class="chart-btn" data-crange="260">260</button><button class="chart-btn" data-crange="0">Todo</button></div><span class="small">Rueda: zoom · arrastrar: mover · arrastrar eje derecho: escala</span></div><div class="chart-grid"><div><div class="chart-card"><div class="chart-label"><b id="cpriceLabel">Precio · 1H</b><span id="cpriceLegend"></span></div><canvas id="cprice"></canvas><div id="chover" class="chart-hover"></div></div><div class="osc-grid"><div class="osc-card"><div class="chart-label"><b>MACD 12/26/9</b><span id="cmacdLegend"></span></div><canvas id="cmacd"></canvas></div><div class="osc-card"><div class="chart-label"><b>Volumen</b><span id="crsiLegend"></span></div><canvas id="crsi"></canvas></div></div></div><div id="caudit" class="chart-audit"></div></div></div><div class="note"><b>ESPERAR</b> = &gt; 1 ATR. <b>CERCA</b> = ≤ 1 ATR y todavía fuera del OB. <b>EN ZONA</b> = precio dentro del OB, pero todavía sin entrada. <b>ENTRADA</b> = el rango intraminuto toca la línea exacta del OB; recién entonces pasa a <b>EN SEGUIMIENTO</b>.</div></section>
-<section id="vz" class="hide"><div class="statusline"><span id="zdot" class="dot"></span><b id="zstat">Esperando…</b><span id="zauto" class="small">· Diario USD · spot · compras · proximidad por ATR</span><span id="zmarket" class="market-banner"></span></div><div class="bar"><i id="zbar"></i></div><div class="cards market-cards"><div class="card clickable active-filter" data-zfilter="all">Universo monitoreado<b id="zn">0</b><span class="kpi-sub">CEDEAR líquidos + ADR argentinos</span></div><div class="card clickable" data-zfilter="MADR">ADR argentinos<b id="zmadr">0</b><span class="kpi-sub">serie USD directa</span></div><div class="card clickable" data-zfilter="ZONE">En zona<b id="zl">0</b><span class="kpi-sub">precio dentro del OB · todavía sin entrada</span></div><div class="card clickable" data-zfilter="OPEN">En seguimiento<b id="zopen">0</b><span class="kpi-sub">operaciones CEDEAR/ADR abiertas</span></div><div class="card clickable" data-zfilter="NEAR">Cerca de compra<b id="zne">0</b><span class="kpi-sub">distancia ≤ 1 ATR</span></div><div class="card clickable" data-zfilter="WAIT">Esperar<b id="zw">0</b><span class="kpi-sub">distancia > 1 ATR</span></div><div class="card clickable" data-zfilter="PENDING">Pendientes / reintentos<b id="zer">0</b><span class="kpi-sub">background hasta resolver</span></div></div><div class="grid scan-grid" id="zgrid"><div class="panel scanner-panel"><div class="ph"><span>Scanner CEDEARs + ADR USD</span><span class="small">Order Block Detector · Diario · contexto Semanal</span></div><div class="tw"><table><thead><tr><th>#</th><th>Activo</th><th>Tipo</th><th>Serie</th><th>Liquidez</th><th>USD</th><th>Contexto Diario</th><th>Compras</th><th>Salidas</th><th>Proximidad / estado</th></tr></thead><tbody id="zr"><tr><td colspan="10" class="empty">Abrí esta solapa para cargar.</td></tr></tbody></table></div></div><div class="pane-resizer" data-grid="zgrid" role="separator" aria-label="Redimensionar panel de detalle" title="Arrastrá para cambiar el ancho · doble clic para restaurar"></div><div class="panel detail-panel"><div class="ph"><span>Detalle USD</span><button class="detail-close" id="zclose" type="button">Cerrar ×</button></div><div id="zdet" class="empty">Seleccioná un activo.</div></div></div><div id="zchartPanel" class="chart-panel hide"><div class="ph"><span id="zchartTitle">Order Block Detector · Diario USD</span><span id="zchartState" class="small"></span></div><div class="chart-toolbar"><div class="group"><span class="small">Temporalidad</span><button class="chart-btn on" data-ztf="1d">Diario</button></div><div class="group"><span class="small">Velas</span><button class="chart-btn" data-zrange="60">60</button><button class="chart-btn on" data-zrange="120">120</button><button class="chart-btn" data-zrange="260">260</button><button class="chart-btn" data-zrange="0">Todo</button></div><span class="small">Rueda: zoom · arrastrar: mover · arrastrar eje derecho: escala</span></div><div class="chart-grid"><div><div class="chart-card"><div class="chart-label"><b id="zpriceLabel">Precio · Diario</b><span id="zpriceLegend"></span></div><canvas id="zprice"></canvas><div id="zhover" class="chart-hover"></div></div><div class="osc-grid"><div class="osc-card"><div class="chart-label"><b>MACD 12/26/9</b><span id="zmacdLegend"></span></div><canvas id="zmacd"></canvas></div><div class="osc-card"><div class="chart-label"><b>Volumen</b><span id="zrsiLegend"></span></div><canvas id="zrsi"></canvas></div></div></div><div id="zaudit" class="chart-audit"></div></div></div><div class="note">En regulados, Diario define entradas/salidas y ATR; Semanal define la tendencia dominante y si la compra va a favor o contra tendencia.</div></section>
+<section id="vz" class="hide"><div class="statusline"><span id="zdot" class="dot"></span><b id="zstat">Esperando…</b><span id="zauto" class="small">· Diario USD · spot · compras · proximidad por ATR</span><span id="zmarket" class="market-banner"></span></div><div class="bar"><i id="zbar"></i></div><div class="cards market-cards"><div class="card clickable active-filter" data-zfilter="all">Universo monitoreado<b id="zn">0</b><span class="kpi-sub">CEDEAR líquidos + ADR argentinos</span></div><div class="card clickable" data-zfilter="MADR">ADR argentinos<b id="zmadr">0</b><span class="kpi-sub">serie USD directa</span></div><div class="card clickable" data-zfilter="ZONE">En zona<b id="zl">0</b><span class="kpi-sub">precio dentro del OB · todavía sin entrada</span></div><div class="card clickable" data-zfilter="OPEN">En seguimiento<b id="zopen">0</b><span class="kpi-sub">operaciones CEDEAR/ADR abiertas</span></div><div class="card clickable" data-zfilter="NEAR">Cerca de compra<b id="zne">0</b><span class="kpi-sub">distancia ≤ 1 ATR</span></div><div class="card clickable" data-zfilter="WAIT">Esperar<b id="zw">0</b><span class="kpi-sub">distancia > 1 ATR</span></div><div class="card clickable" data-zfilter="PENDING">Pendientes / reintentos<b id="zer">0</b><span class="kpi-sub">background hasta resolver</span></div></div><div class="grid scan-grid" id="zgrid"><div class="panel scanner-panel"><div class="ph"><span>Scanner CEDEARs + ADR USD</span><span class="small">Order Block Detector · Diario · contexto Semanal</span></div><div class="tw"><table><thead><tr><th>#</th><th>Activo</th><th>Tipo</th><th>Serie</th><th>Liquidez</th><th>USD</th><th>Contexto Diario</th><th>Compras</th><th>Salidas</th><th>Proximidad / estado</th></tr></thead><tbody id="zr"><tr><td colspan="10" class="empty">Abrí esta solapa para cargar.</td></tr></tbody></table></div></div><div class="pane-resizer" data-grid="zgrid" role="separator" aria-label="Redimensionar panel de detalle" title="Arrastrá para cambiar el ancho · doble clic para restaurar"></div><div class="panel detail-panel"><div class="ph"><span>Detalle USD</span><button class="detail-close" id="zclose" type="button">Cerrar ×</button></div><div id="zdet" class="empty">Seleccioná un activo.</div></div></div><div id="zchartPanel" class="chart-panel hide"><div class="ph"><span id="zchartTitle">Order Block Detector · Diario USD</span><span id="zchartState" class="small"></span></div><div class="chart-toolbar"><div class="group"><span class="small">Temporalidad</span><button class="chart-btn on" data-ztf="1d">Diario</button></div><div class="group"><span class="small">Velas</span><button class="chart-btn" data-zrange="60">60</button><button class="chart-btn on" data-zrange="120">120</button><button class="chart-btn" data-zrange="260">260</button><button class="chart-btn" data-zrange="0">Todo</button></div><span class="small">Rueda: zoom · arrastrar: mover · arrastrar eje derecho: escala</span></div><div class="chart-grid"><div><div class="chart-card"><div class="chart-label"><b id="zpriceLabel">Precio · Diario</b><span id="zpriceLegend"></span></div><canvas id="zprice"></canvas><div id="zhover" class="chart-hover"></div></div><div class="osc-grid"><div class="osc-card"><div class="chart-label"><b>MACD 12/26/9</b><span id="zmacdLegend"></span></div><canvas id="zmacd"></canvas></div><div class="osc-card"><div class="chart-label"><b>Volumen</b><span id="zrsiLegend"></span></div><canvas id="zrsi"></canvas></div></div></div><div id="zaudit" class="chart-audit"></div></div></div><div class="note">En regulados, Diario define la estructura y los Order Blocks; Semanal confirma el contexto. Sólo se habilita compra cuando Diario y Semanal están ALCISTA. Sin stop loss automático; TP1 cierra la operación.</div></section>
 <section id="vs" class="hide">
 <div class="cards stats-cards stats-outcomes">
-  <div class="card">Total operaciones<b id="sTotal">0</b><span class="kpi-sub">todas las operaciones válidas</span></div>
+  <div class="card">Total operaciones<b id="sTotal">0</b><span class="kpi-sub">operaciones válidas v3.6</span></div>
   <div class="card">Operaciones abiertas<b id="sOpen">0</b><span class="kpi-sub">actualmente en seguimiento</span></div>
-  <div class="card">Operaciones cerradas<b id="sClosed">0</b><span class="kpi-sub">TP3 / SL / ambigua</span></div>
-  <div class="card">Cerradas + TP1<b id="sClosedTP1">0</b><span class="kpi-sub">cerradas que alcanzaron TP1</span></div>
-  <div class="card">Cerradas + TP2<b id="sClosedTP2">0</b><span class="kpi-sub">cerradas que alcanzaron TP2</span></div>
-  <div class="card">Cerradas + TP3<b id="sClosedTP3">0</b><span class="kpi-sub">cerradas que completaron TP3</span></div>
-  <div class="card">Cerradas por SL<b id="sClosedSL">0</b><span class="kpi-sub">cierre por stop estructural</span></div>
-  <div class="card">Tasa de acierto<b id="sHitRate">—</b><span class="kpi-sub">TP3 / cerradas resueltas</span></div>
+  <div class="card">Operaciones cerradas<b id="sClosed">0</b><span class="kpi-sub">TP1 / SL / ambigua</span></div>
+  <div class="card">Cerradas por TP1<b id="sClosedTP1">0</b><span class="kpi-sub">objetivo final del sistema</span></div>
+  <div class="card">Cerradas por SL<b id="sClosedSL">0</b><span class="kpi-sub">sólo Crypto</span></div>
+  <div class="card">Tasa de acierto<b id="sHitRate">—</b><span class="kpi-sub">TP1 / cerradas resueltas</span></div>
   <div class="card">Tasa de falla<b id="sFailRate">—</b><span class="kpi-sub">SL / cerradas resueltas</span></div>
-  <div class="card">Falla contra tendencia<b id="sFailContra">—</b><span class="kpi-sub">SL / cerradas contra tendencia</span></div>
-  <div class="card">Falla a favor tendencia<b id="sFailFavor">—</b><span class="kpi-sub">SL / cerradas a favor</span></div>
 </div>
 <div class="panel stats-filter-panel"><div class="ph"><span>Filtros de estadísticas</span><span class="small">estrategia OB Ladder v3</span></div><div class="stats-filters">
 <label>Mercado<select id="sfMarket"><option value="ALL">Todos</option><option value="CRYPTO">Crypto</option><option value="CEDEAR">CEDEAR</option><option value="MERVAL">ADR argentinos</option></select></label>
@@ -230,7 +226,7 @@ main{max-width:none;width:100%;padding-left:clamp(12px,1.4vw,24px);padding-right
 </div></div>
 <div class="panel stats-panel"><div class="ph"><span>Operaciones abiertas</span><span class="small" id="sopenCount">0 en seguimiento</span></div><div class="tw"><table><thead><tr><th>Mercado</th><th>Activo</th><th>Entradas</th><th>Situación</th><th>Señal</th><th>Entrada prom.</th><th>Actual</th><th>Avance</th><th>Stop</th><th>TP1</th><th>TP2</th><th>TP3</th><th>Contexto</th><th>MFE / MAE</th></tr></thead><tbody id="srOpen"></tbody></table></div></div>
 <div class="panel stats-panel"><div class="ph"><span>Operaciones cerradas / resueltas</span><span class="small" id="sclosedCount">0 resueltas</span></div><div class="tw"><table><thead><tr><th>Mercado</th><th>Activo</th><th>Entradas</th><th>Resultado</th><th>Señal</th><th>Cierre</th><th>Entrada prom.</th><th>Stop</th><th>TP1</th><th>TP2</th><th>TP3</th><th>Contexto</th><th>MFE / MAE</th></tr></thead><tbody id="srClosed"></tbody></table></div></div>
-<div class="note"><b>Cómo leer las estadísticas:</b> cada fila representa una operación/setup válido. E1, E2 y E3 son entradas adicionales del mismo setup y se consolidan en una entrada promedio. <b>Tasa de acierto</b> = cierres por TP3 / cierres resueltos; <b>tasa de falla</b> = cierres por SL / cierres resueltos. Las ambiguas se excluyen de ambas tasas. TP1 y TP2 son hitos intermedios; TP3 completa el recorrido. Se permiten hasta <b>3 entradas simultáneas del mismo lado</b> por activo.<br><b>Base estadística:</b> una sola fuente de verdad: <code>mtf_signals</code>, estrategia <code>OB-LADDER-v3.5</code>, fuente <code>FORWARD</code>. Las señales técnicas anuladas y los duplicados de auditoría no participan. <span id="salertstate"></span><br><b>Persistencia servidor:</b> <span id="sstate">consultando snapshot estadístico…</span></div>
+<div class="note"><b>Cómo leer las estadísticas:</b> cada fila representa una operación/setup válido. E1, E2 y E3 son entradas adicionales del mismo setup y cada nueva entrada vuelve a validar contexto. En Crypto se bloquea <b>CONTRA TENDENCIA</b> y se permiten <b>A FAVOR</b> y <b>RANGO</b>. En regulados sólo se compra con <b>Diario + Semanal ALCISTA</b>. <b>TP1 cierra la operación</b>; el SL sólo es operativo en Crypto. TP2 y TP3 quedan como referencias técnicas. Las ambiguas se excluyen de acierto/falla.<br><b>Base estadística:</b> una sola fuente de verdad: <code>mtf_signals</code>, estrategia <code>OB-LADDER-v3.6</code>, fuente <code>FORWARD</code>. <span id="salertstate"></span><br><b>Persistencia servidor:</b> <span id="sstate">consultando snapshot estadístico…</span></div>
 </section>
 <section id="vh" class="hide">
   <div class="health-top">
@@ -264,7 +260,7 @@ function assetName(market,sym,provided='',underlying=''){const n=String(provided
 function assetCell(market,sym,provided='',underlying=''){const n=assetName(market,sym,provided,underlying);return `<b>${sym}</b>${n?`<span class=\"small\" style=\"display:block;margin-top:2px\">${n}</span>`:''}`;}
 function loadLocalSignals(){return []}
 let tab='c',C=[],Z=[],CM=new Map,ZM=new Map,selC='',selZ='',cFilter='all',zFilter='all',statsQuick='ALL',sig=[];
-let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],runtimeStructure=[],runtimeLive=[],zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null;const ZCACHE='mtf_usd_market_snapshot_v330_regulated_dw',STRATEGY_VERSION='OB-LADDER-v3.5',STATS_UI_BUILD='3.5.24';
+let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],runtimeStructure=[],runtimeLive=[],zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null;const ZCACHE='mtf_usd_market_snapshot_v330_regulated_dw',STRATEGY_VERSION='OB-LADDER-v3.6',STATS_UI_BUILD='3.6.0';
 try{localStorage.removeItem('mtf_usd_market_snapshot_v118');}catch{}
 const STATUS_SB_URL='https://swhfftkhqmbtmbnoskoj.supabase.co';
 const STATUS_SB_KEY='sb_publishable_EbjOQ0SprPfdKLTQ6zER0w_DGsf128M';
@@ -280,18 +276,18 @@ function marketGuardText(){return ZMARKET?.combined?.text||'Estado de mercados n
 function marketGuardHtml(){if(!ZMARKET)return'';const c=ZMARKET.combined?.code||'',short=c==='LIVE'?'MERCADOS ABIERTOS':c==='COMPLETE'?'RUEDA COMPLETA':c==='USA_CLOSED'?'USA CERRADO':c==='BYMA_CLOSED'?'BYMA CERRADO':c==='WEEKEND'?'SIN RUEDA':c==='PREOPEN'?'PREAPERTURA':c==='STALE'?'DATOS DEMORADOS':'MERCADOS CERRADOS';return `<span class="market-guard ${marketGuardClass()}">${short}</span>`}
 function renderMarketBanner(){const el=$('zmarket');if(!el)return;if(!ZMARKET){el.innerHTML='<span class="badge y">Mercados: sin estado</span>';return}const b=ZMARKET.byma||{},u=ZMARKET.usa||{},cls=ZMARKET.combined?.code==='LIVE'?'g':ZMARKET.combined?.code==='COMPLETE'?'b':'y';el.innerHTML=`<span class="badge ${cls}">${marketGuardText()}</span><span class="badge">${b.text||'BYMA —'}</span><span class="badge">${u.text||'USA —'}</span>`}
 function marketGuardBox(){if(!ZMARKET)return'';const b=ZMARKET.byma||{},u=ZMARKET.usa||{};return `<div class="guard-box"><b class="${marketGuardClass()}">${marketGuardText()}</b><div class="small">${b.text||'BYMA —'}${b.lastBarAt?' · última '+new Date(b.lastBarAt).toLocaleString('es-AR'):''}</div><div class="small">${u.text||'USA —'}${u.lastBarAt?' · última '+new Date(u.lastBarAt).toLocaleString('es-AR'):''}</div></div>`}
-function resultText(s){return({OPEN:'ABIERTA',TP1:'TP1 ALCANZADO · SIGUE ABIERTA',TP2:'TP2 ALCANZADO · SIGUE ABIERTA',TP3:'TP3 ALCANZADO · CERRADA',SL:'STOP · CERRADA',AMBIGUOUS:'AMBIGUA · EXCLUIDA'})[s]||s}
-function statClosed(s){return ['TP3','SL','AMBIGUOUS'].includes(s)}
+function resultText(s){return({OPEN:'ABIERTA',TP1:'TP1 ALCANZADO · CERRADA',TP2:'REFERENCIA TP2',TP3:'REFERENCIA TP3',SL:'STOP · CERRADA',AMBIGUOUS:'AMBIGUA · EXCLUIDA'})[s]||s}
+function statClosed(s){return ['TP1','SL','AMBIGUOUS'].includes(s)}
 function statSituation(s){
   if(s==='OPEN')return{label:'ABIERTA',cls:'open',read:'Entrada activada; todavía no alcanzó TP1.'};
-  if(s==='TP1')return{label:'ABIERTA · TP1',cls:'tp1',read:'Primer nivel de salida alcanzado; sigue hacia TP2/TP3.'};
-  if(s==='TP2')return{label:'ABIERTA · TP2',cls:'tp1',read:'Segundo nivel alcanzado; sigue hacia TP3.'};
-  if(s==='TP3')return{label:'CERRADA · TP3',cls:'win',read:'Completó los tres niveles del detector.'};
-  if(s==='SL')return{label:'CERRADA · STOP',cls:'loss',read:'Alcanzó la invalidación del Order Block.'};
-  if(s==='AMBIGUOUS')return{label:'RESUELTA · AMBIGUA',cls:'amb',read:'La misma vela tocó niveles incompatibles; se excluye del resultado.'};
+  if(s==='TP1')return{label:'CERRADA · TP1',cls:'win',read:'Alcanzó el objetivo final del sistema.'};
+  if(s==='TP2')return{label:'LEGACY · TP2',cls:'tp1',read:'Estado de una versión anterior; TP2 ya no es operativo.'};
+  if(s==='TP3')return{label:'LEGACY · TP3',cls:'tp1',read:'Estado de una versión anterior; TP3 ya no es operativo.'};
+  if(s==='SL')return{label:'CERRADA · STOP',cls:'loss',read:'Alcanzó el stop de Crypto.'};
+  if(s==='AMBIGUOUS')return{label:'RESUELTA · AMBIGUA',cls:'amb',read:'La misma vela tocó TP1 y SL; se excluye del resultado.'};
   return{label:s,cls:'open',read:s}
 }
-function statResultClass(s){return s==='SL'?'neg':s==='AMBIGUOUS'?'amb':s==='TP3'?'pos':'run'}
+function statResultClass(s){return s==='SL'?'neg':s==='AMBIGUOUS'?'amb':s==='TP1'?'pos':'run'}
 function check(ok,txt,val=''){return `<div class="check"><span class="ico ${ok?'g':'r'}">${ok?'✓':'✕'}</span><span>${txt}${val?` <span class="small">(${val})</span>`:''}</span></div>`}
 function metric(k,v,c=''){return `<div class="metric"><span>${k}</span><b class="${c}">${v}</b></div>`}
 function canonicalLevel(p){
@@ -772,7 +768,7 @@ function detailC(sym){
 function cryptoTrackingAssets(){
   const out=[],seen=new Set(),bySym=new Map(C.map(x=>[x.s,x]));
   for(const op of runtimeOpen){
-    if(op.market!=='crypto'||!['OPEN','TP1','TP2'].includes(String(op.status||'')))continue;
+    if(op.market!=='crypto'||String(op.status||'')!=='OPEN')continue;
     const sym=String(op.symbol||'').toUpperCase();if(!sym||seen.has(sym))continue;seen.add(sym);
     out.push(bySym.get(sym)||{s:sym,p:sym+'USDT',name:assetName('CRYPTO',sym),outside:true,reason:'Operación activa · fuera del snapshot actual del scanner'});
   }
@@ -780,7 +776,7 @@ function cryptoTrackingAssets(){
 }
 function cMatch(x){
   const q=CM.get(x.s)||null,st=cOperationalState(q,x.s);
-  if(cFilter==='OPEN')return runtimeOpensFor('crypto',x.s).some(o=>['OPEN','TP1','TP2'].includes(String(o.status||'')));
+  if(cFilter==='OPEN')return runtimeOpensFor('crypto',x.s).some(o=>String(o.status||'')==='OPEN');
   if(cFilter==='ERROR')return st==='ERROR'&&!x.outside;
   if(x.outside)return false;
   if(cFilter==='NEAR')return st==='NEAR';
@@ -1005,46 +1001,37 @@ function renderZ(){
 }
 function recalcZ(){if(!Z.length)return;ZM.clear();for(const x of Z){if(x.hist){try{ZM.set(x.symbol,zc(x,x.hist))}catch(e){x.err=e.message}}else if(x.q)ZM.set(x.symbol,x.q)}renderZ();if(selZ&&ZM.has(selZ))detailZ(selZ)}
 function marketLabel(m){return m==='CRYPTO'?'Crypto':m==='MERVAL'?'ADR argentino':'CEDEAR'}
-function statQuickMatch(x){if(statsQuick==='OPEN')return !statClosed(x.status);if(statsQuick==='TP1')return !statClosed(x.status)&&x.hit1;if(statsQuick==='CLOSED')return statClosed(x.status);if(statsQuick==='POS')return x.status==='TP3';if(statsQuick==='SL')return x.status==='SL';return true}
+function statQuickMatch(x){if(statsQuick==='OPEN')return !statClosed(x.status);if(statsQuick==='TP1'||statsQuick==='POS')return x.status==='TP1';if(statsQuick==='CLOSED')return statClosed(x.status);if(statsQuick==='SL')return x.status==='SL';return true}
 function statsQuickUI(){document.querySelectorAll('[data-sfilter]').forEach(c=>c.classList.toggle('active-filter',c.dataset.sfilter===statsQuick))}
-function setStatsQuick(f){statsQuick=(statsQuick===f&&f!=='ALL')?'ALL':f;const v=$('sfView');if(v){if(['CLOSED','POS','SL'].includes(statsQuick))v.value='CLOSED';else if(['OPEN','TP1'].includes(statsQuick))v.value='OPEN';else if(statsQuick==='ALL')v.value='ALL'}statsQuickUI();renderStats()}
+function setStatsQuick(f){statsQuick=(statsQuick===f&&f!=='ALL')?'ALL':f;const v=$('sfView');if(v){if(['CLOSED','POS','SL','TP1'].includes(statsQuick))v.value='CLOSED';else if(statsQuick==='OPEN')v.value='OPEN';else if(statsQuick==='ALL')v.value='ALL'}statsQuickUI();renderStats()}
 function statBaseRows(data){const market=$('sfMarket')?.value||'ALL',dir=$('sfDir')?.value||'ALL';return data.filter(x=>(market==='ALL'||x.m===market)&&(dir==='ALL'||x.dir===dir))}function statFilterRows(data){const view=$('sfView')?.value||'ALL';return statBaseRows(data).filter(x=>(view==='ALL'||(view==='OPEN'&&!statClosed(x.status))||(view==='CLOSED'&&statClosed(x.status)))&&statQuickMatch(x))}
 function statRowOpen(x){
   const st=statSituation(x.status),leg=(x.legCount||1)+' entrada'+((x.legCount||1)>1?'s':''),ctx=x.trendRelation?x.trendRelation.replaceAll('_',' '):'—',
-        mv=Number.isFinite(+x.movePct)?+x.movePct:NaN,mvHtml=Number.isFinite(mv)?`<b class="${mv>=0?'g':'r'}">${mv>=0?'+':''}${mv.toFixed(2)}%</b>`:'—';
-  return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span></td><td>${new Date(x.time).toLocaleString('es-AR')}</td><td>${F(x.entry)}</td><td>${Number.isFinite(+x.currentPrice)?F(x.currentPrice):'—'}</td><td>${mvHtml}</td><td>${statLevel(x,'stop')}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
+        mv=Number.isFinite(+x.movePct)?+x.movePct:NaN,mvHtml=Number.isFinite(mv)?`<b class="${mv>=0?'g':'r'}">${mv>=0?'+':''}${mv.toFixed(2)}%</b>`:'—',
+        stopCell=x.m==='CRYPTO'?statLevel(x,'stop'):'—';
+  return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span></td><td>${new Date(x.time).toLocaleString('es-AR')}</td><td>${F(x.entry)}</td><td>${Number.isFinite(+x.currentPrice)?F(x.currentPrice):'—'}</td><td>${mvHtml}</td><td>${stopCell}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
 }
 function statRowClosed(x){
-  const st=statSituation(x.status),closed=x.closedAt?new Date(x.closedAt).toLocaleString('es-AR'):'—',leg=(x.legCount||1)+' entrada'+((x.legCount||1)>1?'s':''),ctx=x.trendRelation?x.trendRelation.replaceAll('_',' '):'—';
-  return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span><div class="small">${st.read}</div></td><td>${new Date(x.time).toLocaleString('es-AR')}</td><td>${closed}</td><td>${F(x.entry)}</td><td>${statLevel(x,'stop')}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
+  const st=statSituation(x.status),closed=x.closedAt?new Date(x.closedAt).toLocaleString('es-AR'):'—',leg=(x.legCount||1)+' entrada'+((x.legCount||1)>1?'s':''),ctx=x.trendRelation?x.trendRelation.replaceAll('_',' '):'—',stopCell=x.m==='CRYPTO'?statLevel(x,'stop'):'—';
+  return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span><div class="small">${st.read}</div></td><td>${new Date(x.time).toLocaleString('es-AR')}</td><td>${closed}</td><td>${F(x.entry)}</td><td>${stopCell}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
 }
-function resultR(x){const R=Math.abs((+x.entry)-(+x.stop));if(!(R>0))return NaN;if(x?.status==='TP3')return x.dir==='SHORT'?((+x.entry)-(+x.tp3))/R:((+x.tp3)-(+x.entry))/R;if(x?.status==='SL')return-1;return NaN}
+function resultR(x){const R=Math.abs((+x.entry)-(+x.stop));if(!(R>0))return NaN;if(x?.status==='TP1')return x.dir==='SHORT'?((+x.entry)-(+x.tp1))/R:((+x.tp1)-(+x.entry))/R;if(x?.status==='SL')return-1;return NaN}
 function avgNum(a){const v=a.map(Number).filter(Number.isFinite);return v.length?v.reduce((s,x)=>s+x,0)/v.length:NaN}
 function fmtDuration(ms){if(!Number.isFinite(ms)||ms<0)return'—';const m=Math.round(ms/60000);if(m<60)return m+' min';const h=Math.floor(m/60),rm=m%60;if(h<48)return h+' h '+rm+' m';const d=Math.floor(h/24),rh=h%24;return d+' d '+rh+' h'}
 function renderStatsMetrics(base){
   const open=base.filter(x=>!statClosed(x.status)),
         closed=base.filter(x=>statClosed(x.status)),
         resolved=closed.filter(x=>x.status!=='AMBIGUOUS'),
-        tp1=closed.filter(x=>x.hit1).length,
-        tp2=closed.filter(x=>x.hit2).length,
-        tp3=closed.filter(x=>x.hit3||x.status==='TP3').length,
+        tp1=closed.filter(x=>x.status==='TP1').length,
         sl=closed.filter(x=>x.status==='SL').length,
-        contra=resolved.filter(x=>String(x.trendRelation||'').replaceAll('_',' ').toUpperCase()==='CONTRA TENDENCIA'),
-        favor=resolved.filter(x=>String(x.trendRelation||'').replaceAll('_',' ').toUpperCase()==='A FAVOR'),
-        contraSL=contra.filter(x=>x.status==='SL').length,
-        favorSL=favor.filter(x=>x.status==='SL').length,
         pct=(n,d)=>d?(100*n/d).toFixed(1)+'%':'—';
   $('sTotal').textContent=base.length;
   $('sOpen').textContent=open.length;
   $('sClosed').textContent=closed.length;
   $('sClosedTP1').textContent=tp1;
-  $('sClosedTP2').textContent=tp2;
-  $('sClosedTP3').textContent=tp3;
   $('sClosedSL').textContent=sl;
-  $('sHitRate').textContent=pct(resolved.filter(x=>x.status==='TP3').length,resolved.length);
+  $('sHitRate').textContent=pct(tp1,resolved.length);
   $('sFailRate').textContent=pct(sl,resolved.length);
-  $('sFailContra').textContent=pct(contraSL,contra.length);
-  $('sFailFavor').textContent=pct(favorSL,favor.length);
 }
 function renderStats(){
   statsQuickUI();
@@ -1133,7 +1120,7 @@ function initScanSplitters(){
 }
 initScanSplitters();
 
-const UI_VERSION='3.5.24',BUILD_ID='MTF-Live-Monitor-3.5.24-TRACKING-SOURCE',JOB_NAMES={1:'Crypto structure',2:'Preparación CEDEAR',3:'Watcher / daemon',7:'Regulados live',8:'Crypto live'};let healthData=null,healthBusy=false;
+const UI_VERSION='3.6.0',BUILD_ID='MTF-Live-Monitor-3.6.0-DIRECTION-TP1',JOB_NAMES={1:'Crypto structure',2:'Preparación CEDEAR',3:'Watcher / daemon',7:'Regulados live',8:'Crypto live'};let healthData=null,healthBusy=false;
 function ageMs(v){const t=v?new Date(v).getTime():NaN;return Number.isFinite(t)?Date.now()-t:Infinity}
 function fmtAge(v){const a=ageMs(v);if(!Number.isFinite(a))return'—';const m=Math.max(0,Math.round(a/60000));if(m<2)return'ahora';if(m<60)return m+' min';const h=Math.floor(m/60),rm=m%60;if(h<36)return h+' h '+rm+' min';return Math.floor(h/24)+' d'}
 function dt(v){return v?new Date(v).toLocaleString('es-AR'):'—'}
@@ -1162,7 +1149,7 @@ function healthStates(){
  const audit=H('ok','N/A','La estrategia live v3.5 traza por snapshots, señales y eventos','tabla legacy no requerida');
  const hard=(d.errors?.cron_failures_24h||0)+(d.errors?.alert_failures_24h||0)+(d.errors?.scanner_errors||0),transport24=(d.errors?.http_5xx_24h||0)+(d.errors?.transport_errors_24h||0),httpAge=ageMs(d.errors?.last_http_error_at),recentTransport=transport24>0&&httpAge<10*60000;
  const errors=hard?H('warning','WARNING',hard+' fallos reales de cron/alertas/scanner en 24 h',String(hard)):recentTransport?H('warning','WARNING','Timeouts de transporte recientes; motores siguen con evidencia live',transport24+' históricos/24h'):H('ok','OK',transport24?transport24+' timeouts históricos/24h · sin fallos recientes':'0 fallos operativos recientes','0 actuales');
- const build=d.build?.strategy_frozen?H('ok','OK','Reglas congeladas',`${d.build?.strategy_version||'OB-LADDER-v3.5'} · UI ${UI_VERSION}`):H('warning','WARNING','Registro de estrategia no congelado',`${d.build?.strategy_version||'—'} · UI ${UI_VERSION}`);
+ const build=d.build?.strategy_frozen?H('ok','OK','Reglas congeladas',`${d.build?.strategy_version||'OB-LADDER-v3.6'} · UI ${UI_VERSION}`):H('warning','WARNING','Registro de estrategia no congelado',`${d.build?.strategy_version||'—'} · UI ${UI_VERSION}`);
  return{scheduler,crypto,cedear,merval,data,mtf,pos,tg,db,audit,errors,build}
 }
 function overallHealth(h){const a=['scheduler','crypto','cedear','merval','data','mtf','pos','tg','db','audit','build'].map(k=>h[k]).filter(Boolean);return a.some(x=>x.level==='error')?'error':a.some(x=>x.level==='warning')?'warning':'ok'}
