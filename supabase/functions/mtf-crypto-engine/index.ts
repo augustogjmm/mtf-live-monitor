@@ -5,6 +5,7 @@ const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
 const VERSION="OB-LADDER-v3.6";
+const LEGACY_VERSION="OB-LADDER-v3.5";
 const ENGINE="ANALYZER_CANONICAL_V3_6";
 const STABLES=new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const FALLBACK=["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
@@ -149,7 +150,7 @@ async function snapshotOne(sym:string){
 async function structure(){
   let base=await universe();
   const [{data:openRows,error:openErr},{data:prevStructure,error:prevStructErr}]=await Promise.all([
-    sb.from("mtf_signals").select("symbol").eq("strategy_version",VERSION).eq("market","crypto").in("source",["FORWARD","MIGRATED_STRICT"]).eq("status","OPEN"),
+    sb.from("mtf_signals").select("symbol,strategy_version,status").in("strategy_version",[LEGACY_VERSION,VERSION]).eq("market","crypto").in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]),
     sb.from("mtf_state").select("meta").eq("market","crypto_structure").maybeSingle()
   ]);
   if(openErr)throw openErr;if(prevStructErr)throw prevStructErr;
@@ -160,7 +161,8 @@ async function structure(){
     base=(prevBase.length>=15?prevBase:FALLBACK.slice(0,20));universeFallback=true;
   }
   base=[...new Set(base)].slice(0,20);
-  const carried=[...new Set((openRows||[]).map((x:any)=>String(x.symbol||"").toUpperCase()).filter(Boolean))].filter((s:string)=>!base.includes(s));
+  const operationalRows=(openRows||[]).filter((x:any)=>String(x.strategy_version)===LEGACY_VERSION?["OPEN","TP1","TP2"].includes(String(x.status)):String(x.status)==="OPEN");
+  const carried=[...new Set(operationalRows.map((x:any)=>String(x.symbol||"").toUpperCase()).filter(Boolean))].filter((s:string)=>!base.includes(s));
   const syms=[...base,...carried],out:any[]=[];let rebuilt=0;
   for(const sym of syms){
     try{
@@ -180,7 +182,13 @@ function touched(bar:Bar,x:Level){return bar.l<=x.point&&bar.h>=x.point}
 async function openSignals(sym:string){
   const {data,error}=await sb.from("mtf_signals").select("*").eq("strategy_version",VERSION).eq("market","crypto").eq("symbol",sym).eq("status","OPEN").order("signal_time");if(error)throw error;return data||[];
 }
+async function legacyOperationalSignals(sym:string){
+  const {data,error}=await sb.from("mtf_signals").select("*").eq("strategy_version",LEGACY_VERSION).eq("market","crypto").eq("symbol",sym)
+    .in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]).order("signal_time");
+  if(error)throw error;return data||[];
+}
 async function insertLeg(row:any){
+  const legacy=await legacyOperationalSignals(String(row?.symbol||""));if(legacy.length)return null;
   const {data,error}=await sb.from("mtf_signals").insert({...row,strategy_version:VERSION,status:"OPEN",best_r:0,worst_r:0,hit1:false,hit2:false,hit3:false,created_at:iso(),updated_at:iso()}).select("*").single();
   if(error){if(String((error as any)?.code)==="23505")return null;throw error}return data;
 }
@@ -215,6 +223,7 @@ async function live(createEntries=true){
     const price=prices.get(pair)??n(snap0.price),
       ladder={below:(snap0.ladder?.below||[]).map(levelFromPublic),above:(snap0.ladder?.above||[]).map(levelFromPublic)},
       atr=n(snap0.context?.atr14),prox=proximity(ladder,price,atr,false);
+    const legacy=await legacyOperationalSignals(sym);
     let opens=await openSignals(sym),freshBars:Bar[]=[];
     const previousObserved=!!prev;
     let lastSeen=n(prev?.last_bar_close);
@@ -231,7 +240,10 @@ async function live(createEntries=true){
 
     for(const bar of freshBars){
       const barClose=n(bar.closeTime)||bar.t+60000;
-      if(opens.length){
+      if(legacy.length){
+        // Migration boundary: legacy v3.5 setups remain exit-managed by the watcher.
+        // Do not add v3.6 legs or create a second setup on the same asset.
+      }else if(opens.length){
         const anchor=opens[0],ctx=anchor.context||{},dir=String(anchor.direction),
           raw=dir==="LONG"?(ctx.ladder_snapshot?.below||[]):(ctx.ladder_snapshot?.above||[]);
         if(!["TP1","TP2"].includes(String(anchor.status))){
@@ -275,9 +287,11 @@ async function live(createEntries=true){
       lastSeen=Math.max(lastSeen||0,barClose);
     }
 
+    const operational=legacy.length?legacy:opens;
     liveStates.push({
-      symbol:sym,price,state:opens.length?"OPEN":prox.state,proximity:prox,open_count:opens.length,
-      setup_id:opens[0]?.context?.setup_id||null,direction:opens[0]?.direction||null,
+      symbol:sym,price,state:operational.length?"OPEN":prox.state,proximity:prox,open_count:operational.length,
+      setup_id:operational[0]?.context?.setup_id||null,direction:operational[0]?.direction||null,
+      active_strategy_version:operational[0]?.strategy_version||null,legacy_active:legacy.length>0,
       last_bar_close:lastSeen>0?lastSeen:(n(prev?.last_bar_close)||null),
       baseline:!createEntries,updated_at:iso()
     });
