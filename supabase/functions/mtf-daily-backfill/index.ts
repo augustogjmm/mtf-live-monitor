@@ -7,6 +7,7 @@ const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: fa
 
 const BYMA = "https://open.bymadata.com.ar/vanoms-be-core/rest/api/bymadata/free";
 const STRATEGY_VERSION = "OB-LADDER-v3.6";
+const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
 const STABLES = new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const CRYPTO_FALLBACK = ["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
 const UNDERLYING_MAP: Record<string,string> = { BBV:"BBVA", B:"GOLD", "BA.C":"BAC", BRKB:"BRK-B", BRKA:"BRK-A", DISN:"DIS", TRVV:"TRV", UN:"NU", NOKA:"NOK", KOFM:"KOF", "AKO.B":"AKO-B", ADGO:"AGRO", BNG:"BG", TXR:"TX", XROX:"XRX", BPA11:"BPAC11.SA" };
@@ -357,12 +358,15 @@ async function pool<T,R>(a:T[],limit:number,fn:(x:T)=>Promise<R>){let i=0;const 
 async function cedearUniverse(){const panel=pickByma(await bymaPanel()),e=(await pool(panel,5,async r=>{const b=await bymaHistory(String((r as any).symbol).toUpperCase());if(b.length<20)return null;return{symbol:String((r as any).symbol).toUpperCase(),liquidity:liqMetrics(r,b)};})).filter(Boolean) as any[];return selectLiquidUniverse(e);}
 
 async function ensureCedearWork(runDate:string){
-  const {count,error:countErr}=await sb.from("mtf_cedear_work").select("symbol",{count:"exact",head:true}).eq("run_date",runDate);
-  if(countErr)throw countErr;
-  if((count||0)>0)return count||0;
+  const {data:existing,error:existingErr}=await sb.from("mtf_cedear_work").select("symbol").eq("run_date",runDate);
+  if(existingErr)throw existingErr;
   const panel=pickByma(await bymaPanel());
-  if(!panel.length)throw new Error("BYMA no devolvió universo CEDEAR");
-  const rows=panel.map((r:any)=>({
+  if(!panel.length){
+    if((existing||[]).length)return (existing||[]).length;
+    throw new Error("BYMA no devolvió universo CEDEAR");
+  }
+  const have=new Set((existing||[]).map((r:any)=>String(r.symbol||"").toUpperCase()));
+  const rows=panel.filter((r:any)=>!have.has(String(r.symbol||"").toUpperCase())).map((r:any)=>({
     run_date:runDate,
     symbol:String(r.symbol||"").toUpperCase(),
     underlying:underlyingFor(String(r.symbol||"").toUpperCase()),
@@ -380,10 +384,10 @@ async function ensureCedearWork(runDate:string){
     updated_at:new Date().toISOString()
   }));
   for(let i=0;i<rows.length;i+=250){
-    const {error}=await sb.from("mtf_cedear_work").upsert(rows.slice(i,i+250),{onConflict:"run_date,symbol"});
+    const {error}=await sb.from("mtf_cedear_work").upsert(rows.slice(i,i+250),{onConflict:"run_date,symbol",ignoreDuplicates:true});
     if(error)throw error;
   }
-  return rows.length;
+  return have.size+rows.length;
 }
 async function bootstrapCedearUniverse(){
   const runDate=dateTZ("America/Argentina/Buenos_Aires");
@@ -631,6 +635,11 @@ async function activeSetupSignals(market:string,symbol:string){
     .eq("status","OPEN").order("signal_time");
   if(error)throw error;return data||[];
 }
+async function legacyOperationalSignals(market:string,symbol:string){
+  const {data,error}=await sb.from("mtf_signals").select("*").eq("strategy_version",LEGACY_STRATEGY_VERSION).eq("market",market).eq("symbol",symbol)
+    .in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]).order("signal_time");
+  if(error)throw error;return data||[];
+}
 function seedSetupContext(cur:any,market:string,symbol:string,timeframe:string,diag:any){
   const setupId=setupIdFor(market,symbol,cur.direction,timeframe,diag.ladder);
   return {...cur,context:{...(cur.context||{}),setup_id:setupId,engine:"ANALYZER_CANONICAL_V3_6"}};
@@ -641,6 +650,7 @@ async function setState(market:string,lastProcessed:number,meta:any){const curre
 
 async function insertSignal(s:SignalInsert){
  const setupId=String((s.context as any)?.setup_id||""),rank=Number((s.context as any)?.entry_rank||0);
+ const legacy=await legacyOperationalSignals(String(s.market),String(s.symbol));if(legacy.length)return null;
  const {data:opens,error:openErr}=await sb.from("mtf_signals").select("*")
    .eq("strategy_version",STRATEGY_VERSION).eq("market",s.market).eq("symbol",s.symbol)
    .eq("status","OPEN").order("signal_time");
@@ -735,7 +745,7 @@ function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:
 async function processRegulatedLive(createEntries=true){
   const open=await bymaLiveOpen();
   if(createEntries&&!open)return{strategy_version:STRATEGY_VERSION,skipped:"byma_not_open"};
-  const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=20;
+  const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=4;
   const {data:prevRow}=await sb.from("mtf_state").select("meta").eq("market","regulated_live").maybeSingle();
   const prevSnapshot:any[]=prevRow?.meta?.snapshot||[],
         prevMap=new Map<string,any>(prevSnapshot.map((x:any)=>[String(x.market)+":"+String(x.symbol),x]));
@@ -761,8 +771,9 @@ async function processRegulatedLive(createEntries=true){
       extra:{pricing_method:"ADR",source_panel:x.sourcePanel||null,source:"Yahoo Finance USD"}
     }))
   ];
-  const {data:carryRows,error:carryErr}=await sb.from("mtf_signals").select("market,symbol,underlying,context")
-    .eq("strategy_version",STRATEGY_VERSION).in("market",["cedear","merval"]).in("source",["FORWARD","MIGRATED_STRICT"]).eq("status","OPEN");
+  const {data:carryCandidates,error:carryErr}=await sb.from("mtf_signals").select("market,symbol,underlying,context,strategy_version,status")
+    .in("strategy_version",[LEGACY_STRATEGY_VERSION,STRATEGY_VERSION]).in("market",["cedear","merval"]).in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]);
+  const carryRows=(carryCandidates||[]).filter((x:any)=>String(x.strategy_version)===LEGACY_STRATEGY_VERSION?["OPEN","TP1","TP2"].includes(String(x.status)):String(x.status)==="OPEN");
   if(carryErr)throw carryErr;
   const itemKeys=new Set(items.map((x:any)=>String(x.market)+":"+String(x.sym)));
   for(const row of carryRows||[]){
@@ -812,10 +823,11 @@ async function processRegulatedLive(createEntries=true){
       if(!diag.ready)return{ok:false,ready:false,market,symbol:sym,underlying,state:"NO_ANALYSIS",reason:diag.reason,price:live.price,t:live.t,...extra};
 
       const below=diag.ladder.below.map(publicLevel),above=diag.ladder.above.map(publicLevel),
-            structureReady=below.length===3&&above.length===3;
+            structureReady=below.length===3&&above.length===3,
+            legacy:any[]=await legacyOperationalSignals(market,sym);
       let active:any[]=await activeSetupSignals(market,sym),added=0;
 
-      for(const trigger of triggers){
+      if(!legacy.length)for(const trigger of triggers){
         const stepDiag:any=regulatedLiveDiagnostic(d,trigger.c,trigger);
         if(!stepDiag.ready)continue;
         // Re-read active state before each historical minute so a concurrent watcher close
@@ -847,16 +859,18 @@ async function processRegulatedLive(createEntries=true){
       }
 
       active=await activeSetupSignals(market,sym);
+      const operational=legacy.length?legacy:active;
       return{
-        ok:true,ready:true,actionable:structureReady&&regulatedRiskProfile(diag).relation==="A_FAVOR",market,symbol:sym,underlying,
+        ok:true,ready:true,actionable:structureReady&&regulatedRiskProfile(diag).relation==="A_FAVOR"&&!legacy.length,market,symbol:sym,underlying,
         reason:!structureReady?`setup_incomplete_${below.length}x${above.length}`:(regulatedRiskProfile(diag).relation==="A_FAVOR"?null:"context_requires_daily_and_weekly_bullish"),
         price:live.price,t:live.t,name:live.name||prev?.name||"",bar:displayTrigger,fresh_trigger:triggers.length>0,source:live.source,
-        state:active.length?"OPEN":diag.proximity?.state,
+        state:operational.length?"OPEN":diag.proximity?.state,
         proximity:diag.proximity,
         ladder:{reference_price:live.price,below,above,complete:structureReady,exact_analyzer:true},
         context:diag.context,macroContext:diag.macroContext,stops:diag.stops,
         entry_allowed:regulatedRiskProfile(diag).relation==="A_FAVOR",risk_profile:regulatedRiskProfile(diag),stop_policy:"NONE",exit_policy:"TP1_ONLY_NO_SL",
-        open_count:active.length,setup_id:active[0]?.context?.setup_id||null,direction:active[0]?.direction||null,
+        open_count:operational.length,setup_id:operational[0]?.context?.setup_id||null,direction:operational[0]?.direction||null,
+        active_strategy_version:operational[0]?.strategy_version||null,legacy_active:legacy.length>0,
         created:added,...extra
       };
     }catch(e){
@@ -865,7 +879,7 @@ async function processRegulatedLive(createEntries=true){
     }
   };
 
-  const results=await pool(batch,6,scanOne);
+  const results=await pool(batch,2,scanOne);
   const universeKeys=new Set(items.map((x:any)=>x.market+":"+x.sym)),
         merged=new Map<string,any>();
   for(const x of prevSnapshot){
