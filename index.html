@@ -332,7 +332,8 @@ function cOperationalState(q,sym){
   const ops=runtimeOpensFor('crypto',sym);if(ops.length)return'OPEN';
   const l=runtimeLiveFor(sym);
   if(!q||l?.state==='NO_ANALYSIS')return'ERROR';
-  const st=l?.state||q?.proximity?.state||'WAIT';
+  const st=l?.state||q?.proximity?.state||'WAIT',n=q?.proximity?.nearest;
+  if((st==='IN_ZONE'||st==='NEAR')&&n&&cryptoRelation(q,n.direction)==='CONTRA TENDENCIA')return'BLOCKED';
   if(st==='IN_ZONE')return'ZONE';
   if(st==='NEAR')return'NEAR';
   return'WAIT'
@@ -345,6 +346,7 @@ function cOperationalLabel(q,sym){
     return '<span class="signal-pill signal-'+dc+'">EN SEGUIMIENTO · <span class="dir-'+dc+'">'+dir+'</span> · '+ops.length+' entrada'+(ops.length>1?'s':'')+' activa'+(ops.length>1?'s':'')+' · '+mv+'</span>'
   }
   if(st==='ERROR')return'<span class="signal-pill signal-error">SIN ANÁLISIS</span>';
+  if(st==='BLOCKED'&&n)return'<span class="signal-pill signal-wait">NO ENTRAR · CONTRA TENDENCIA · '+n.direction+' '+n.rank+'</span>';
   if((st==='ZONE'||st==='NEAR')&&n){
     const dc=n.direction==='SHORT'?'short':'long',pct=Number.isFinite(+q.price)&&Number.isFinite(+n.point)&&+n.point?Math.abs(+q.price-+n.point)/Math.abs(+n.point)*100:NaN;
     return '<span class="signal-pill signal-near">'+(st==='ZONE'?'EN ZONA':'CERCA')+' · <span class="dir-'+dc+'">'+n.direction+'</span> '+n.rank+' · entrada '+F(n.point)+(Number.isFinite(pct)?' · falta '+pct.toFixed(2)+'%':'')+'</span>'
@@ -373,14 +375,17 @@ function zOperationalState(q,x){
   if(!q)return x?.retrying?'RETRY':'PENDING';
   const market=zMarket(x),ops=zRuntimeOpensFor(market,x.symbol,'LONG');
   if(ops.length)return'OPEN';
-  if(q?.proximity?.state==='IN_ZONE')return'ZONE';
-  return q?.proximity?.state==='NEAR'?'NEAR':'WAIT';
+  const p=q?.proximity?.state||'WAIT';
+  if((p==='IN_ZONE'||p==='NEAR')&&regulatedRisk(q).relation!=='A FAVOR')return'BLOCKED';
+  if(p==='IN_ZONE')return'ZONE';
+  return p==='NEAR'?'NEAR':'WAIT';
 }
 function zIsNewEntry(q,x){return zOperationalState(q,x)==='ENTRY'}
 function zOperationalLabel(q,x){
   const st=zOperationalState(q,x),market=zMarket(x),ops=zRuntimeOpensFor(market,x.symbol,'LONG'),n=q?.proximity?.nearest;
   if(st==='PENDING')return'<span class="signal-pill signal-loading">PENDIENTE DE ANÁLISIS</span>';
   if(st==='RETRY')return'<span class="signal-pill signal-loading">REINTENTANDO</span>';
+  if(st==='BLOCKED'){const r=regulatedRisk(q);return'<span class="signal-pill signal-wait">NO COMPRAR · requiere Diario + Semanal ALCISTA · '+r.confluence+'</span>'}
   if(st==='OPEN'){
     const moves=ops.map(op=>liveMovePct('LONG',op.entry,q?.price)).filter(Number.isFinite),mv=moves.length?moves.map(v=>(v>=0?'+':'')+v.toFixed(2)+'%').join(' / '):'—';
     return '<span class="signal-pill signal-long">EN SEGUIMIENTO · COMPRA · '+ops.length+' compra'+(ops.length>1?'s':'')+' activa'+(ops.length>1?'s':'')+' · '+mv+'</span>';
@@ -645,13 +650,13 @@ function regulatedRisk(q){
 function regulatedRelation(q){return regulatedRisk(q).relation}
 function regulatedPlan(q){
   const n=q?.proximity?.nearest;if(!n)return null;
-  return{rank:n.rank,entry:n.point,stop:q.stops?.LONG,targets:q.ladder?.above||[],relation:regulatedRelation(q),state:q.proximity?.state||'WAIT',distanceAtr:n.distanceAtr}
+  return{rank:n.rank,entry:n.point,targets:q.ladder?.above||[],relation:regulatedRelation(q),state:q.proximity?.state||'WAIT',distanceAtr:n.distanceAtr}
 }
 function zAudit(q,x){
   const d=q.context||{},w=q.macroContext?.w1||{},n=q.proximity?.nearest,r=regulatedRisk(q);
-  return `<h4>Lectura Diario / Semanal</h4><div class="detail-grid">${metric('Diario',trendBadge(d.trend||'RANGO'))}${metric('Semanal',trendBadge(w.trend||'RANGO'))}${metric('Confluencia',r.confluence,r.cls)}${metric('Riesgo compra',r.risk,r.cls)}${metric('Próxima compra',n?`<span class="dir-long">COMPRA ${n.rank}</span> · ${F(n.point)}`:'—')}${metric('Distancia',n?entryGapText(q,n):'—')}</div><div class="audit-section small">Diario · ATR14 ${F(d.atr14)} · EMA10 ${F(d.ema10)} · EMA55 ${F(d.ema55)} · EMA200 ${F(d.ema200)}<br>MACD ${F(d.macd)} · Señal ${F(d.signal)} · Volumen ${Number.isFinite(+d.volumeRatio)?(+d.volumeRatio).toFixed(2)+'x':'—'}<br>Stop compra ${F(q.stops?.LONG)}</div>`
+  return `<h4>Lectura Diario / Semanal</h4><div class="detail-grid">${metric('Diario',trendBadge(d.trend||'RANGO'))}${metric('Semanal',trendBadge(w.trend||'RANGO'))}${metric('Confluencia',r.confluence,r.cls)}${metric('Riesgo compra',r.risk,r.cls)}${metric('Próxima compra',n?`<span class="dir-long">COMPRA ${n.rank}</span> · ${F(n.point)}`:'—')}${metric('Distancia',n?entryGapText(q,n):'—')}</div><div class="audit-section small">Diario · ATR14 ${F(d.atr14)} · EMA10 ${F(d.ema10)} · EMA55 ${F(d.ema55)} · EMA200 ${F(d.ema200)}<br>MACD ${F(d.macd)} · Señal ${F(d.signal)} · Volumen ${Number.isFinite(+d.volumeRatio)?(+d.volumeRatio).toFixed(2)+'x':'—'}<br>Regla v3.6 · sin stop loss automático · salida completa en TP1</div>`
 }
-function frozenSetupChartLevels(ops){
+function frozenSetupChartLevels(ops,showStop=true){
   if(!ops?.length)return[];
   const a=ops[0],dir=String(a.direction||'LONG'),snap=a.context?.ladder_snapshot||{},
         entries=dir==='LONG'?(snap.below||[]):(snap.above||[]),
@@ -664,7 +669,7 @@ function frozenSetupChartLevels(ops){
     levels.push({label:(dir==='LONG'?'L':'S')+rank+(executed?' EJEC':' PEND'),v:+p.point,color:executed?dirColor:'#f6c552',originTime:legStart,dash:!executed,width:executed?2.6:1.4});
   }
   [['TP1',a.tp1],['TP2',a.tp2],['TP3',a.tp3]].forEach(([label,v])=>{if(Number.isFinite(+v))levels.push({label,v:+v,color:'#42b7ff',width:1.6,originTime:setupStart})});
-  if(Number.isFinite(+a.stop))levels.push({label:'SL',v:+a.stop,color:'#ff6b6b',dash:true,width:1.6,originTime:setupStart});
+  if(showStop&&Number.isFinite(+a.stop))levels.push({label:'SL',v:+a.stop,color:'#ff6b6b',dash:true,width:1.6,originTime:setupStart});
   return levels;
 }
 async function showCChart(sym,force=false){
@@ -700,7 +705,7 @@ async function showZChart(sym){
   document.querySelectorAll('[data-zrange]').forEach(b=>{b.classList.toggle('on',+b.dataset.zrange===cfg.range);b.onclick=()=>{cfg.range=+b.dataset.zrange;resetChartNav('z',sym);showZChart(sym)}});
   const full=NB(x.hist?.['1d']||[]),vw=chartWindow('z',sym,full),bars=vw.bars,
         active=zRuntimeOpensFor(zMarket(x),sym,'LONG').sort((a,b)=>(+a.context?.entry_rank||0)-(+b.context?.entry_rank||0)),levels=[];
-  if(active.length)levels.push(...frozenSetupChartLevels(active));
+  if(active.length)levels.push(...frozenSetupChartLevels(active,false));
   else{
     for(const v of q.ladder?.below||[])levels.push({label:'L'+v.rank,v:v.point,color:'#169400',originTime:v.ob?.originTime});
     for(const v of q.ladder?.above||[])levels.push({label:'TP'+v.rank,v:v.point,color:'#42b7ff',originTime:v.ob?.originTime});
@@ -966,10 +971,10 @@ function detailZ(sym){
     const a=ops[0],snap=frozen||canonicalLadderSnapshot(a.context?.ladder_snapshot||{})||{},entryLevels=snap.below||[],used=new Map(ops.map(o=>[+o.context?.entry_rank,o])),
           stage=ops.some(o=>o.status==='TP2')?'TP2 ALCANZADO':ops.some(o=>o.status==='TP1')?'TP1 ALCANZADO':'ABIERTO';
     const rows=entryLevels.map(p=>{const op=used.get(+p.rank);if(op){const mv=liveMovePct('LONG',op.entry,q.price);return `<div class="check"><span class="ico ${mv>=0?'g':'r'}">${p.rank}</span><span><b class="dir-long">COMPRA ${p.rank}</b> · <b>COMPRA EJECUTADA</b> ${F(op.entry)} · actual ${F(q.price)} · <b class="${mv>=0?'g':'r'}">${mv>=0?'+':''}${mv.toFixed(2)}%</b> · ${op.status}</span></div>`}return `<div class="check"><span class="ico y">${p.rank}</span><span><b>COMPRA ${p.rank}</b> · <b>COMPRA PENDIENTE</b> ${F(p.point)} · ${stage==='ABIERTO'?'esperando toque de la línea exacta':'no se agrega después de TP1'}</span></div>`}).join('');
-    follow=`<div class="box"><b>Seguimiento de la operación</b><div class="detail-grid" style="margin-top:8px">${metric('Tipo','<span class="dir-long">COMPRA</span>')}${metric('Compras ejecutadas',String(ops.length))}${metric('Estado',stage,stage==='ABIERTO'?'y':'g')}${metric('Precio actual',F(q.price))}${metric('Riesgo de contexto',risk.risk,risk.cls)}${metric('Stop',F(a.stop))}${metric('TP1',(a.hit1?'✓ ':'')+F(a.tp1),a.hit1?'g':'')}${metric('TP2',(a.hit2?'✓ ':'')+F(a.tp2),a.hit2?'g':'')}${metric('TP3',(a.hit3?'✓ ':'')+F(a.tp3),a.hit3?'g':'')}</div><div style="margin-top:10px">${rows}</div></div>`
+    follow=`<div class="box"><b>Seguimiento de la operación</b><div class="detail-grid" style="margin-top:8px">${metric('Tipo','<span class="dir-long">COMPRA</span>')}${metric('Compras ejecutadas',String(ops.length))}${metric('Estado',stage,stage==='ABIERTO'?'y':'g')}${metric('Precio actual',F(q.price))}${metric('Riesgo de contexto',risk.risk,risk.cls)}${metric('Gestión','Sin stop automático')}${metric('Salida TP1',(a.hit1?'✓ ':'')+F(a.tp1),a.hit1?'g':'')}${metric('Referencia TP2',F(a.tp2))}${metric('Referencia TP3',F(a.tp3))}</div><div style="margin-top:10px">${rows}</div></div>`
   }
   const zoneNote=!ops.length&&plan?.state==='IN_ZONE'?`<div class="note"><b>EN ZONA no es entrada.</b> El precio está dentro del Order Block de COMPRA ${plan.rank}; la operación sólo se ejecuta cuando toca la línea exacta <b>${F(plan.entry)}</b>. Falta ${entryGapText(q,near)}.</div>`:'';
-  const planHtml=!ops.length&&plan?`<div class="box"><b>Análisis de la próxima entrada</b><div class="detail-grid" style="margin-top:8px">${metric('Compra exacta','<span class="dir-long">COMPRA '+plan.rank+'</span> · '+F(plan.entry))}${metric('Estado',plan.state==='IN_ZONE'?'EN ZONA':plan.state==='NEAR'?'CERCA':'ESPERAR',plan.state==='IN_ZONE'?'g':plan.state==='NEAR'?'y':'')}${metric('Falta a entrada',entryGapText(q,near))}${metric('Contexto D+S',risk.confluence,risk.cls)}${metric('Riesgo',risk.risk,risk.cls)}${metric('Relación',risk.relation,risk.cls)}${metric('Stop Loss',Number.isFinite(+plan.stop)?F(plan.stop):'—')}${metric('TP1',plan.targets[0]?`TP1 · ${F(plan.targets[0].point)}`:'—')}${metric('TP2',plan.targets[1]?`TP2 · ${F(plan.targets[1].point)}`:'—')}${metric('TP3',plan.targets[2]?`TP3 · ${F(plan.targets[2].point)}`:'—')}</div></div>`:'';
+  const planHtml=!ops.length&&plan?`<div class="box"><b>Análisis de la próxima entrada</b><div class="detail-grid" style="margin-top:8px">${metric('Compra exacta','<span class="dir-long">COMPRA '+plan.rank+'</span> · '+F(plan.entry))}${metric('Estado',plan.state==='IN_ZONE'?'EN ZONA':plan.state==='NEAR'?'CERCA':'ESPERAR',plan.state==='IN_ZONE'?'g':plan.state==='NEAR'?'y':'')}${metric('Falta a entrada',entryGapText(q,near))}${metric('Contexto D+S',risk.confluence,risk.cls)}${metric('Riesgo',risk.risk,risk.cls)}${metric('Relación',risk.relation,risk.cls)}${metric('Gestión','Sin stop automático')}${metric('Salida del sistema',plan.targets[0]?`TP1 · ${F(plan.targets[0].point)}`:'—')}${metric('Referencia TP2',plan.targets[1]?`TP2 · ${F(plan.targets[1].point)}`:'—')}${metric('Referencia TP3',plan.targets[2]?`TP3 · ${F(plan.targets[2].point)}`:'—')}</div></div>`:'';
   const structureInfo=`<div class="note"><b>Estructura que Analyzer ve hoy:</b> ${lo.length} entrada${lo.length===1?'':'s'} OB activa${lo.length===1?'':'s'} · ${hi.length} salida${hi.length===1?'':'s'} OB activa${hi.length===1?'':'s'}. Si no existe una salida, se muestra como ausente; no se inventa un TP.</div>`;
   $('zdet').className='detail';$('zdet').innerHTML=`<h3>${sym}${assetName(market,sym,x.name,series)?' · '+assetName(market,sym,x.name,series):''} → ${series} · USD</h3><div>${zTypePill(x)}<span class="badge b">Diario</span></div>${marketGuardBox()}<div class="detail-grid" style="margin-top:8px">${metric('Precio actual',F(q.price)+' USD')}${metric('Contexto Diario',trendBadge(d.trend||'RANGO'))}${metric('Contexto Semanal',trendBadge(w.trend||'RANGO'))}${metric('Confluencia',risk.confluence,risk.cls)}${metric('Riesgo compra',risk.risk,risk.cls)}${metric('ATR14 Diario',F(d.atr14))}${metric('Próxima compra',near?'<span class="dir-long">COMPRA '+near.rank+'</span> · '+F(near.point):'—')}${metric('Distancia a compra',near?entryGapText(q,near):'—')}${metric('Liquidez',liqMetric)}</div>${follow}${zoneNote}${planHtml}${structureInfo}<div class="box"><b class="dir-long">Compras</b>${entries}</div><div class="box"><b>Salidas</b>${exits}</div>`;if(x.cached){$('zchartPanel').classList.add('hide')}else showZChart(sym)
 }
