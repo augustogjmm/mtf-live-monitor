@@ -6,7 +6,7 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false, autoRefreshToken: false } });
 
 const BYMA = "https://open.bymadata.com.ar/vanoms-be-core/rest/api/bymadata/free";
-const STRATEGY_VERSION = "OB-LADDER-v3.5";
+const STRATEGY_VERSION = "OB-LADDER-v3.6";
 const STABLES = new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const CRYPTO_FALLBACK = ["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
 const UNDERLYING_MAP: Record<string,string> = { BBV:"BBVA", B:"GOLD", "BA.C":"BAC", BRKB:"BRK-B", BRKA:"BRK-A", DISN:"DIS", TRVV:"TRV", UN:"NU", NOKA:"NOK", KOFM:"KOF", "AKO.B":"AKO-B", ADGO:"AGRO", BNG:"BG", TXR:"TX", XROX:"XRX", BPA11:"BPAC11.SA" };
@@ -217,7 +217,7 @@ function ladderSignal(direction:"LONG"|"SHORT",level:LadderLevel,diag:any,timefr
   const targets:LadderLevel[]=direction==="LONG"?diag.ladder.above:diag.ladder.below;if(targets.length<3)return null;
   const stop=n(diag?.stops?.[direction]);if(!Number.isFinite(stop))return null;
   return{direction,entry:level.point,stop,tp1:targets[0].point,tp2:targets[1].point,tp3:targets[2].point,context:{
-    strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_5",operational_timeframe:timeframe,indicators_role:"context_only",
+    strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",operational_timeframe:timeframe,indicators_role:"context_only",
     proximity_rule:"NEAR_when_distance_to_nearest_entry_line_lte_1_ATR14",
     trigger_basis:"entry_only_when_intraday_range_crosses_exact_OB_center_line",
     stop_basis:"beyond_third_analyzer_entry_zone_plus_0_25_ATR",
@@ -225,7 +225,9 @@ function ladderSignal(direction:"LONG"|"SHORT",level:LadderLevel,diag:any,timefr
     ladder_snapshot:{reference_price:diag.ladder.referencePrice,below:diag.ladder.below.map(publicLevel),above:diag.ladder.above.map(publicLevel)},
     proximity:diag.proximity,context:diag.context,macro_context:diag.macroContext,
     trend_relation:timeframe==="1d"?regulatedRiskProfile(diag).relation:trendRelation(direction,diag.macroContext?.trend||diag.context.trend),
-    risk_profile:timeframe==="1d"?regulatedRiskProfile(diag).risk:null}};
+    risk_profile:timeframe==="1d"?regulatedRiskProfile(diag).risk:null,
+    entry_policy:timeframe==="1d"?"require_D1_and_W1_ALCISTA_each_leg":"block_CONTRA_TENDENCIA_allow_A_FAVOR_or_RANGO_each_leg",
+    exit_policy:timeframe==="1d"?"TP1_ONLY_NO_SL":"TP1_OR_SL",stop_policy:timeframe==="1d"?"NONE":"STRUCTURAL"}};
 }
 
 function cryptoObDiagnosticAt(bundle:any,t:number){
@@ -598,7 +600,7 @@ function setupIdFor(market:string,symbol:string,direction:string,timeframe:strin
   const targets=(direction==="LONG"?ladder?.above:ladder?.below)||[];
   const e=entries.slice(0,3).map((x:any)=>String(x?.ob?.originTime??x?.origin_time??"")).join("-");
   const t=targets.slice(0,3).map((x:any)=>String(x?.ob?.originTime??x?.origin_time??"")).join("-");
-  return [market,symbol,direction,timeframe,e,t].join(":");
+  return [STRATEGY_VERSION,market,symbol,direction,timeframe,e,t].join(":");
 }
 function publicToLevel(p:any,direction:"LONG"|"SHORT"):LadderLevel{
   const detectorSide=String(p?.detector_side||"")==="bear"?"bear":"bull";
@@ -607,14 +609,14 @@ function publicToLevel(p:any,direction:"LONG"|"SHORT"):LadderLevel{
 }
 function frozenSignals(anchor:any,bar:{h:number;l:number},diag:any){
   const direction=String(anchor.direction)==="SHORT"?"SHORT":"LONG";
-  if(["TP1","TP2"].includes(String(anchor.status||"")))return[];
+  if(String(anchor.status||"")!=="OPEN")return[];
   const snap=anchor?.context?.ladder_snapshot||{},raw=direction==="LONG"?(snap.below||[]):(snap.above||[]);
   const out:any[]=[];
   for(const p of raw){
     const level=publicToLevel(p,direction as "LONG"|"SHORT");
     if(!pointTouched(bar,level))continue;
     out.push({direction,entry:level.point,stop:Number(anchor.stop),tp1:Number(anchor.tp1),tp2:Number(anchor.tp2),tp3:Number(anchor.tp3),
-      context:{...(anchor.context||{}),strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_5",
+      context:{...(anchor.context||{}),strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",
         entry_rank:level.rank,ob_key:String(anchor?.context?.operational_timeframe||"1h")+":"+direction+":"+String(level.ob.originTime),
         order_block:level.ob,entry_level:publicLevel(level),proximity:diag?.proximity||anchor?.context?.proximity,
         context:diag?.context||anchor?.context?.context,macro_context:diag?.macroContext||anchor?.context?.macro_context,
@@ -626,12 +628,12 @@ function frozenSignals(anchor:any,bar:{h:number;l:number},diag:any){
 }
 async function activeSetupSignals(market:string,symbol:string){
   const {data,error}=await sb.from("mtf_signals").select("*").eq("strategy_version",STRATEGY_VERSION).eq("market",market).eq("symbol",symbol)
-    .in("status",["OPEN","TP1","TP2"]).order("signal_time");
+    .eq("status","OPEN").order("signal_time");
   if(error)throw error;return data||[];
 }
 function seedSetupContext(cur:any,market:string,symbol:string,timeframe:string,diag:any){
   const setupId=setupIdFor(market,symbol,cur.direction,timeframe,diag.ladder);
-  return {...cur,context:{...(cur.context||{}),setup_id:setupId,engine:"ANALYZER_CANONICAL_V3_5"}};
+  return {...cur,context:{...(cur.context||{}),setup_id:setupId,engine:"ANALYZER_CANONICAL_V3_6"}};
 }
 
 async function getState(market:string){const{data,error}=await sb.from("mtf_state").select("*").eq("market",market).maybeSingle();if(error)throw error;return data;}
@@ -641,7 +643,7 @@ async function insertSignal(s:SignalInsert){
  const setupId=String((s.context as any)?.setup_id||""),rank=Number((s.context as any)?.entry_rank||0);
  const {data:opens,error:openErr}=await sb.from("mtf_signals").select("*")
    .eq("strategy_version",STRATEGY_VERSION).eq("market",s.market).eq("symbol",s.symbol)
-   .in("status",["OPEN","TP1","TP2"]).order("signal_time");
+   .eq("status","OPEN").order("signal_time");
  if(openErr)throw openErr;
  const sameDir=(opens||[]).filter((x:any)=>x.direction===s.direction),opposite=(opens||[]).filter((x:any)=>x.direction!==s.direction);
  if(opposite.length)return null;
@@ -658,7 +660,7 @@ async function insertSignal(s:SignalInsert){
  return data;
 }
 
-async function openSignals(market:string){const{data,error}=await sb.from("mtf_signals").select("*").eq("market",market).eq("strategy_version",STRATEGY_VERSION).in("status",["OPEN","TP1","TP2"]).order("signal_time");if(error)throw error;return data||[];}
+async function openSignals(market:string){const{data,error}=await sb.from("mtf_signals").select("*").eq("market",market).eq("strategy_version",STRATEGY_VERSION).eq("status","OPEN").order("signal_time");if(error)throw error;return data||[];}
 async function updateSignal(s:any){const{error}=await sb.from("mtf_signals").update({status:s.status,best_r:s.best_r,worst_r:s.worst_r,hit1:s.hit1,hit2:s.hit2,hit3:s.hit3,hit1_at:s.hit1_at||null,hit2_at:s.hit2_at||null,hit3_at:s.hit3_at||null,closed_at:s.closed_at||null,updated_at:new Date().toISOString()}).eq("id",s.id);if(error)throw error;}
 
 function trackOne(s:any,bars:Bar[],since:number){
@@ -700,14 +702,14 @@ async function processCrypto(lastMs:number,activatedAt:number){
    else if(curs.length&&insertedCount){decision="ENTRY";reason=beforeCount?"frozen_setup_next_leg_touched":"new_frozen_setup_started";}
    else if(curs.length&&!insertedCount){decision="BLOCKED_OPEN";reason="frozen_setup_rank_already_used_or_consumed";}
    else if((diag?.touches?.long?.length||0)+(diag?.touches?.short?.length||0)>0&&active.length)reason="current_detector_touch_ignored_while_setup_frozen";
-   audit.push(auditRow(cycleId,"crypto",sym,sym,curs[0]?.direction||active[0]?.direction||null,c.t,decision,reason,{diagnostic:diag,engine:"ANALYZER_CANONICAL_V3_5",active_setup:active[0]?.context?.setup_id||null,created:insertedCount}));
+   audit.push(auditRow(cycleId,"crypto",sym,sym,curs[0]?.direction||active[0]?.direction||null,c.t,decision,reason,{diagnostic:diag,engine:"ANALYZER_CANONICAL_V3_6",active_setup:active[0]?.context?.setup_id||null,created:insertedCount}));
   }
   const opens=(await openSignals("crypto")).filter((x:any)=>x.symbol===sym);for(const x of opens){const u=trackOne(x,m15,lastMs);if(u.status!==x.status||u.hit1!==x.hit1||u.hit2!==x.hit2||u.hit3!==x.hit3||u.best_r!==x.best_r||u.worst_r!==x.worst_r)await updateSignal(u);}
  }catch(e){errors.push({symbol:sym,error:String((e as Error).message||e)});}}
  await flushAudit(audit);
  const leftovers=(await openSignals("crypto")).filter((x:any)=>!universeSet.has(x.symbol)),groups=new Map<string,any[]>();for(const x of leftovers){if(!groups.has(x.symbol))groups.set(x.symbol,[]);groups.get(x.symbol)!.push(x);}
  for(const [sym,signals] of groups){try{const bars=await binanceKlines(sym+"USDT","15m",1000);for(const x of signals){const u=trackOne(x,bars,lastMs);if(u.status!==x.status||u.hit1!==x.hit1||u.hit2!==x.hit2||u.hit3!==x.hit3)await updateSignal(u);}}catch(e){errors.push({symbol:sym,tracking:true,error:String((e as Error).message||e)});}}
- return{strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_5",operational_timeframe:"1h",execution_sampling:"15m_high_low_only",entry_rule:"freeze 3 Analyzer entry levels + shared SL + 3 opposite targets when first leg triggers",exit_rule:"setup-level shared targets; new OBs ignored until setup closes",indicators_role:"1h_4h_1d_context_only; proximity=distance/ATR14",universe:universe.length,created:created.length,audit_rows:audit.length,tracked_outside_universe:leftovers.length,errors};
+ return{strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",operational_timeframe:"1h",execution_sampling:"15m_high_low_only",entry_rule:"freeze 3 Analyzer entry levels + shared SL + 3 opposite targets when first leg triggers",exit_rule:"setup-level shared targets; new OBs ignored until setup closes",indicators_role:"1h_4h_1d_context_only; proximity=distance/ATR14",universe:universe.length,created:created.length,audit_rows:audit.length,tracked_outside_universe:leftovers.length,errors};
 }
 
 
@@ -760,7 +762,7 @@ async function processRegulatedLive(createEntries=true){
     }))
   ];
   const {data:carryRows,error:carryErr}=await sb.from("mtf_signals").select("market,symbol,underlying,context")
-    .eq("strategy_version",STRATEGY_VERSION).in("market",["cedear","merval"]).in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]);
+    .eq("strategy_version",STRATEGY_VERSION).in("market",["cedear","merval"]).in("source",["FORWARD","MIGRATED_STRICT"]).eq("status","OPEN");
   if(carryErr)throw carryErr;
   const itemKeys=new Set(items.map((x:any)=>String(x.market)+":"+String(x.sym)));
   for(const row of carryRows||[]){
@@ -819,11 +821,12 @@ async function processRegulatedLive(createEntries=true){
         // Re-read active state before each historical minute so a concurrent watcher close
         // cannot be followed by a late frozen E2/E3 insert.
         active=await activeSetupSignals(market,sym);
+        const entryAllowed=regulatedRiskProfile(stepDiag).relation==="A_FAVOR";
         let curs:any[]=[];
-        if(active.length){
+        if(entryAllowed&&active.length){
           curs=frozenSignals(active[0],trigger,stepDiag)
             .filter(cur=>!active.some((x:any)=>Number(x?.context?.entry_rank||0)===Number(cur?.context?.entry_rank||0)));
-        }else if(structureReady&&createEntries&&prev&&prev.actionable===true){
+        }else if(entryAllowed&&structureReady&&createEntries&&prev&&prev.actionable===true){
           curs=(stepDiag.touches.long||[]).map((level:any)=>{
             const cur:any=ladderSignal("LONG",level,stepDiag,"1d");
             return cur?seedSetupContext(cur,market,sym,"1d",stepDiag):null;
@@ -845,13 +848,14 @@ async function processRegulatedLive(createEntries=true){
 
       active=await activeSetupSignals(market,sym);
       return{
-        ok:true,ready:true,actionable:structureReady,market,symbol:sym,underlying,
-        reason:structureReady?null:`setup_incomplete_${below.length}x${above.length}`,
+        ok:true,ready:true,actionable:structureReady&&regulatedRiskProfile(diag).relation==="A_FAVOR",market,symbol:sym,underlying,
+        reason:!structureReady?`setup_incomplete_${below.length}x${above.length}`:(regulatedRiskProfile(diag).relation==="A_FAVOR"?null:"context_requires_daily_and_weekly_bullish"),
         price:live.price,t:live.t,name:live.name||prev?.name||"",bar:displayTrigger,fresh_trigger:triggers.length>0,source:live.source,
         state:active.length?"OPEN":diag.proximity?.state,
         proximity:diag.proximity,
         ladder:{reference_price:live.price,below,above,complete:structureReady,exact_analyzer:true},
         context:diag.context,macroContext:diag.macroContext,stops:diag.stops,
+        entry_allowed:regulatedRiskProfile(diag).relation==="A_FAVOR",risk_profile:regulatedRiskProfile(diag),stop_policy:"NONE",exit_policy:"TP1_ONLY_NO_SL",
         open_count:active.length,setup_id:active[0]?.context?.setup_id||null,direction:active[0]?.direction||null,
         created:added,...extra
       };
@@ -874,7 +878,7 @@ async function processRegulatedLive(createEntries=true){
   await sb.from("mtf_state").upsert({
     market:"regulated_live",last_processed_at:iso(now),last_run_at:iso(now),
     meta:{
-      strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_5",
+      strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",
       generated_at:iso(now),baseline:!createEntries,snapshot:liveSnapshot,
       cursor:nextCursor,retry_cursor:nextRetryCursor,chunk_size:CHUNK,universe_size:total,
       scanned_this_run:batch.length,full_cycle_completed:wrapped,
@@ -885,7 +889,7 @@ async function processRegulatedLive(createEntries=true){
   },{onConflict:"market"});
 
   return{
-    strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_5",
+    strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",
     mode:"regulated_live_chunked",baseline:!createEntries,run_date:runDate,
     universe:total,scanned_this_run:batch.length,cursor,next_cursor:nextCursor,
     retry_queue:retryKeys.length,retried_symbol:retryItem?.sym||null,
@@ -1018,7 +1022,7 @@ async function processMerval(lastMs:number,activatedAt:number){
  await flushAudit(audit);
  const leftovers=(await openSignals("merval")).filter((s:any)=>!universeSet.has(s.symbol)),groups=new Map<string,any[]>();for(const s of leftovers){if(!groups.has(s.symbol))groups.set(s.symbol,[]);groups.get(s.symbol)!.push(s);}
  for(const [sym,signals] of groups){try{const first=signals[0],underlying=String(first?.underlying||"");if(!underlying)throw new Error("Posición ADR sin underlying USD");const daily=await yahooDaily(underlying),bars:Bar[]=daily.map((v:any)=>({t:v.t,o:v.open,h:v.high,l:v.low,c:v.close,v:v.volume}));for(const s of signals){const u=trackOne(s,bars,lastMs);if(u.status!==s.status||u.best_r!==s.best_r||u.worst_r!==s.worst_r||u.hit1!==s.hit1||u.hit2!==s.hit2||u.hit3!==s.hit3)await updateSignal(u);}}catch(e){errors.push({symbol:sym,tracking:true,error:String((e as Error).message||e)});}}
- return{strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_5",operational_timeframe:"1d",dominant_context_timeframe:"1w",universe:universe.length,adr:universe.length,created:created.length,audit_rows:audit.length,tracked_outside_universe:leftovers.length,snapshot:universe.map((x:any)=>({symbol:x.symbol,name:x.name||x.symbol,sourcePanel:x.sourcePanel||null,favorite:!!x.favorite,adr:x.adr||null,method:"ADR",series:x.adr,currentVolumeAmount:n(x.currentVolumeAmount)||0})),errors};
+ return{strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",operational_timeframe:"1d",dominant_context_timeframe:"1w",universe:universe.length,adr:universe.length,created:created.length,audit_rows:audit.length,tracked_outside_universe:leftovers.length,snapshot:universe.map((x:any)=>({symbol:x.symbol,name:x.name||x.symbol,sourcePanel:x.sourcePanel||null,favorite:!!x.favorite,adr:x.adr||null,method:"ADR",series:x.adr,currentVolumeAmount:n(x.currentVolumeAmount)||0})),errors};
 }
 function nyDailyReady(){
   const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
