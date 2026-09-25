@@ -207,10 +207,11 @@ async function runtimeSnapshot(market='crypto'){
    supa('/rest/v1/rpc/mtf_latest_decisions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({p_market:market})}),
    supa('/rest/v1/mtf_state?market=eq.regulated_live&select=meta,last_run_at&limit=1')
  ]);
- const snap=liveRows?.[0]?.meta?.snapshot||[];
+ const snap=liveRows?.[0]?.meta?.snapshot||[],
+       filteredOpens=(opens||[]).filter(x=>!market||x.market===market);
  return{
-   opens:(opens||[]).filter(x=>!market||x.market===market),
-   openSummary:openSummary(opens),
+   opens:filteredOpens,
+   openSummary:openSummary(filteredOpens),
    decisions:Array.isArray(decisions)?decisions:[],
    liveStates:Array.isArray(snap)?snap.filter(x=>!market||x.market===market):[],
    liveGeneratedAt:liveRows?.[0]?.meta?.generated_at||liveRows?.[0]?.last_run_at||null,
