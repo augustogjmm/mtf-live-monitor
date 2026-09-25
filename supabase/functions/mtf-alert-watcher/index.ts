@@ -5,11 +5,12 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
 const STRATEGY_VERSION = "OB-LADDER-v3.6";
+const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession:false, autoRefreshToken:false } });
 
 type Signal = {
   id:number; market:"crypto"|"cedear"|"merval"; symbol:string; underlying?:string|null;
-  direction:string; signal_time:string; created_at:string; entry:number; stop:number; tp1:number; tp2:number; tp3:number; status:string; context?:any;
+  direction:string; signal_time:string; created_at:string; entry:number; stop:number; tp1:number; tp2:number; tp3:number; status:string; strategy_version?:string; context?:any;
 };
 type Bar = { t:number; h:number; l:number; c:number };
 
@@ -186,7 +187,7 @@ async function createEvent(ev:any){
   if(sentErr)throw sentErr;
   if(sent)return false;
   const {error}=await sb.from("mtf_alert_events").upsert(
-    {...ev,strategy_version:STRATEGY_VERSION,updated_at:new Date().toISOString()},
+    {...ev,strategy_version:String(ev.strategy_version||STRATEGY_VERSION),updated_at:new Date().toISOString()},
     {onConflict:"group_key,event_type",ignoreDuplicates:true}
   );
   if(error)throw error;
@@ -314,10 +315,10 @@ async function sendPending(config:any){
   const staleCutoff=new Date(Date.now()-5*60*1000).toISOString();
   await sb.from("mtf_alert_events")
     .update({status:"FAILED",updated_at:new Date().toISOString(),last_error:"Stale SENDING claim: not retried to avoid duplicate Telegram delivery"})
-    .eq("strategy_version",STRATEGY_VERSION).eq("status","SENDING").lt("updated_at",staleCutoff);
+    .in("strategy_version",[LEGACY_STRATEGY_VERSION,STRATEGY_VERSION]).eq("status","SENDING").lt("updated_at",staleCutoff);
 
   const {data:events,error}=await sb.from("mtf_alert_events")
-    .select("*").eq("strategy_version",STRATEGY_VERSION).eq("status","PENDING")
+    .select("*").in("strategy_version",[LEGACY_STRATEGY_VERSION,STRATEGY_VERSION]).eq("status","PENDING")
     .order("detected_at",{ascending:true}).order("id",{ascending:true}).limit(15);
   if(error)throw error;
 
@@ -470,10 +471,15 @@ Deno.serve(async(req:Request)=>{
       });
     }
 
-    const {data:allOpens,error:openErr}=await sb.from("mtf_signals").select("*").eq("strategy_version",STRATEGY_VERSION)
-      .in("source",["FORWARD","MIGRATED_STRICT"]).eq("status","OPEN").order("signal_time");
+    const {data:allOpenCandidates,error:openErr}=await sb.from("mtf_signals").select("*")
+      .in("strategy_version",[LEGACY_STRATEGY_VERSION,STRATEGY_VERSION])
+      .in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]).order("signal_time");
     if(openErr)throw openErr;
-    const opens=(allOpens||[]) as Signal[];
+    const opens=((allOpenCandidates||[]) as Signal[]).filter((s:any)=>
+      String(s.strategy_version)===LEGACY_STRATEGY_VERSION
+        ? ["OPEN","TP1","TP2"].includes(String(s.status))
+        : String(s.status)==="OPEN"
+    );
 
     const openGroups=new Map<string,Signal[]>();
     for(const s of opens as Signal[]){const k=setupGroupKey(s);if(!openGroups.has(k))openGroups.set(k,[]);openGroups.get(k)!.push(s)}
@@ -481,7 +487,8 @@ Deno.serve(async(req:Request)=>{
     const keys=[...openGroups.keys()];
     const prior=new Map<string,Set<string>>();
     if(keys.length){
-      const {data:evs,error:evErr}=await sb.from("mtf_alert_events").select("group_key,event_type").eq("strategy_version",STRATEGY_VERSION).gte("detected_at",new Date(activated).toISOString());
+      const {data:evs,error:evErr}=await sb.from("mtf_alert_events").select("group_key,event_type,strategy_version")
+        .in("strategy_version",[LEGACY_STRATEGY_VERSION,STRATEGY_VERSION]).in("group_key",keys);
       if(evErr)throw evErr;
       for(const e of evs||[]){if(!prior.has(e.group_key))prior.set(e.group_key,new Set());prior.get(e.group_key)!.add(e.event_type)}
     }
@@ -493,10 +500,13 @@ Deno.serve(async(req:Request)=>{
     const cache=new Map<string,Bar[]>();
     let checked=0,createdLevels=0;
     for(const [k,a] of openGroups){
-      const rep=a[0], setupEntry=avgEntry(a), setupPayload={setup_id:rep.context?.setup_id,entries:a.map((x:any)=>({rank:x.context?.entry_rank,entry:x.entry,status:x.status})),context:rep.context?.context,macro_context:rep.context?.macro_context,trend_relation:rep.context?.trend_relation}, seen=prior.get(k)||new Set<string>(),
+      const rep=a[0], isLegacy=String(rep.strategy_version)===LEGACY_STRATEGY_VERSION,
+            setupEntry=avgEntry(a), setupPayload={setup_id:rep.context?.setup_id,strategy_version:rep.strategy_version,entries:a.map((x:any)=>({rank:x.context?.entry_rank,entry:x.entry,status:x.status})),context:rep.context?.context,macro_context:rep.context?.macro_context,trend_relation:rep.context?.trend_relation}, seen=prior.get(k)||new Set<string>(),
             setupEligibleAfter=Math.min(...a.map(entryBarEnd).filter((x:number)=>x>0)),
             signalStart=Math.min(...a.map((x:any)=>new Date(x.signal_time).getTime()).filter((x:number)=>Number.isFinite(x)&&x>0)),
-            fetchFrom=Number.isFinite(signalStart)?Math.max(since,signalStart):since,
+            fetchFrom=isLegacy
+              ? (Number.isFinite(signalStart)?Math.max(signalStart,now-2*60*60*1000):now-2*60*60*1000)
+              : (Number.isFinite(signalStart)?Math.max(since,signalStart):since),
             dataKey=rep.market+":"+(rep.market==="crypto"?rep.symbol:(rep.underlying||rep.symbol))+":"+Math.floor(fetchFrom/60000);
       if(rep.market==="merval"&&!liveState.bothOpen){checked++;continue;}
       if(rep.market==="cedear"&&String(marketGuard?.byma?.code||"")!=="OPEN"){checked++;continue;}
@@ -522,29 +532,83 @@ Deno.serve(async(req:Request)=>{
           (s as any).worst_r=Math.min(n((s as any).worst_r)||0,adv);
         }
         if(Number.isFinite(setupEligibleAfter)&&setupEligibleAfter>0&&b.t<=setupEligibleAfter)continue;
-        const hardStop=rep.market==="crypto"&&(isLong?b.l<=n(rep.stop):b.h>=n(rep.stop)),
-          t1=isLong?b.h>=n(rep.tp1):b.l<=n(rep.tp1),
-          newTarget=!seen.has("TP1")&&t1;
-        if(hardStop&&newTarget&&!seen.has("SL")&&!seen.has("AMBIGUOUS")){
-          await createEvent({group_key:k,event_type:"AMBIGUOUS",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:b.c,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            detected_at:new Date(b.t).toISOString(),payload:{bar:b,...setupPayload},status:"PENDING"});
-          await syncSignals(a.map(x=>x.id),{status:"AMBIGUOUS",closed_at:new Date(b.t).toISOString()});seen.add("AMBIGUOUS");createdLevels++;break;
-        }
-        if(t1&&!seen.has("TP1")){
-          const hitAt=new Date(b.t).toISOString();
-          if(config.alert_tp1)await createEvent({group_key:k,event_type:"TP1",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp1,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
-          await syncSignals(a.map(x=>x.id),{status:"TP1",hit1:true,hit1_at:hitAt,closed_at:hitAt});
-          seen.add("TP1");createdLevels++;break;
-        }
-        if(hardStop&&!seen.has("SL")&&!seen.has("AMBIGUOUS")){
-          const hitAt=new Date(b.t).toISOString();
-          if(config.alert_sl)await createEvent({group_key:k,event_type:"SL",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.stop,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.stop),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
-          await syncSignals(a.map(x=>x.id),{status:"SL",closed_at:hitAt});seen.add("SL");createdLevels++;break;
+        if(isLegacy){
+          const hardStop=isLong?b.l<=n(rep.stop):b.h>=n(rep.stop),
+            t1=isLong?b.h>=n(rep.tp1):b.l<=n(rep.tp1),
+            t2=isLong?b.h>=n(rep.tp2):b.l<=n(rep.tp2),
+            t3=isLong?b.h>=n(rep.tp3):b.l<=n(rep.tp3),
+            newTarget=(!seen.has("TP1")&&t1)||(!seen.has("TP2")&&t2)||(!seen.has("TP3")&&t3),
+            eventVersion=LEGACY_STRATEGY_VERSION;
+          if(hardStop&&newTarget&&!seen.has("SL")&&!seen.has("AMBIGUOUS")){
+            await createEvent({strategy_version:eventVersion,group_key:k,event_type:"AMBIGUOUS",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:b.c,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              detected_at:new Date(b.t).toISOString(),payload:{bar:b,...setupPayload},status:"PENDING"});
+            await syncSignals(a.map(x=>x.id),{status:"AMBIGUOUS",closed_at:new Date(b.t).toISOString()});seen.add("AMBIGUOUS");createdLevels++;break;
+          }
+          if(t3&&!seen.has("TP3")){
+            const hitAt=new Date(b.t).toISOString();
+            if(!seen.has("TP1"))await createEvent({strategy_version:eventVersion,group_key:k,event_type:"TP1",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp1,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            if(!seen.has("TP2"))await createEvent({strategy_version:eventVersion,group_key:k,event_type:"TP2",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp2,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.tp2),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            await createEvent({strategy_version:eventVersion,group_key:k,event_type:"TP3",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp3,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.tp3),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            await syncSignals(a.map(x=>x.id),{status:"TP3",hit1:true,hit2:true,hit3:true,hit1_at:(a[0] as any).hit1_at||hitAt,hit2_at:(a[0] as any).hit2_at||hitAt,hit3_at:hitAt,closed_at:hitAt});
+            seen.add("TP1");seen.add("TP2");seen.add("TP3");createdLevels++;break;
+          }
+          if(t2&&!seen.has("TP2")){
+            const hitAt=new Date(b.t).toISOString();
+            if(!seen.has("TP1"))await createEvent({strategy_version:eventVersion,group_key:k,event_type:"TP1",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp1,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            await createEvent({strategy_version:eventVersion,group_key:k,event_type:"TP2",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp2,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.tp2),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            await syncSignals(a.map(x=>x.id),{status:"TP2",hit1:true,hit2:true,hit1_at:(a[0] as any).hit1_at||hitAt,hit2_at:hitAt});
+            seen.add("TP1");seen.add("TP2");createdLevels++;
+          }else if(t1&&!seen.has("TP1")){
+            const hitAt=new Date(b.t).toISOString();
+            await createEvent({strategy_version:eventVersion,group_key:k,event_type:"TP1",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp1,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            await syncSignals(a.map(x=>x.id),{status:"TP1",hit1:true,hit1_at:hitAt});seen.add("TP1");createdLevels++;
+          }
+          if(hardStop&&!seen.has("SL")&&!seen.has("AMBIGUOUS")){
+            const hitAt=new Date(b.t).toISOString();
+            await createEvent({strategy_version:eventVersion,group_key:k,event_type:"SL",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.stop,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.stop),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            await syncSignals(a.map(x=>x.id),{status:"SL",closed_at:hitAt});seen.add("SL");createdLevels++;break;
+          }
+          if(seen.has("TP3")||seen.has("SL")||seen.has("AMBIGUOUS"))break;
+        }else{
+          const hardStop=rep.market==="crypto"&&(isLong?b.l<=n(rep.stop):b.h>=n(rep.stop)),
+            t1=isLong?b.h>=n(rep.tp1):b.l<=n(rep.tp1),
+            newTarget=!seen.has("TP1")&&t1;
+          if(hardStop&&newTarget&&!seen.has("SL")&&!seen.has("AMBIGUOUS")){
+            await createEvent({strategy_version:STRATEGY_VERSION,group_key:k,event_type:"AMBIGUOUS",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:b.c,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              detected_at:new Date(b.t).toISOString(),payload:{bar:b,...setupPayload},status:"PENDING"});
+            await syncSignals(a.map(x=>x.id),{status:"AMBIGUOUS",closed_at:new Date(b.t).toISOString()});seen.add("AMBIGUOUS");createdLevels++;break;
+          }
+          if(t1&&!seen.has("TP1")){
+            const hitAt=new Date(b.t).toISOString();
+            if(config.alert_tp1)await createEvent({strategy_version:STRATEGY_VERSION,group_key:k,event_type:"TP1",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp1,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            await syncSignals(a.map(x=>x.id),{status:"TP1",hit1:true,hit1_at:hitAt,closed_at:hitAt});
+            seen.add("TP1");createdLevels++;break;
+          }
+          if(hardStop&&!seen.has("SL")&&!seen.has("AMBIGUOUS")){
+            const hitAt=new Date(b.t).toISOString();
+            if(config.alert_sl)await createEvent({strategy_version:STRATEGY_VERSION,group_key:k,event_type:"SL",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
+              signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.stop,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+              move_pct:pct(rep.direction,setupEntry,rep.stop),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+            await syncSignals(a.map(x=>x.id),{status:"SL",closed_at:hitAt});seen.add("SL");createdLevels++;break;
+          }
         }
       }
       for(const s of a){
