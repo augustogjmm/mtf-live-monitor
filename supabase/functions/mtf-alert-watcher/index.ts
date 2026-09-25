@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
-const STRATEGY_VERSION = "OB-LADDER-v3.5";
+const STRATEGY_VERSION = "OB-LADDER-v3.6";
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession:false, autoRefreshToken:false } });
 
 type Signal = {
@@ -237,15 +237,16 @@ function eventText(e:any){
   }
   if(e.event_type==="ENTRY"){
     const entryTitle=e.market==="crypto"?`${dirIcon} <b>ENTRADA ${esc(dir)}${rank?" "+rank:""} · ${esc(e.symbol)}</b>`:`${dirIcon} <b>COMPRA${rank?" "+rank:""} · ${esc(e.symbol)}</b>`;
+    const riskLine=e.market==="crypto"
+      ?`Stop estructural: ${fmt(e.stop)} · <b>${pct(dir,e.entry,e.stop).toFixed(2)}%</b>`
+      :"Sin stop loss automático";
     return [
       entryTitle,
       `${market}${e.underlying&&e.underlying!==e.symbol?" · "+esc(e.underlying):""}`,
       contextLine,
       `Entrada: <b>${fmt(e.entry)}</b>`,
-      `Stop estructural: ${fmt(e.stop)} · <b>${pct(dir,e.entry,e.stop).toFixed(2)}%</b>`,
-      `TP1: ${fmt(e.tp1)} · <b>+${Math.abs(pct(dir,e.entry,e.tp1)).toFixed(2)}%</b>`,
-      `TP2: ${fmt(e.tp2)} · <b>+${Math.abs(pct(dir,e.entry,e.tp2)).toFixed(2)}%</b>`,
-      `TP3: ${fmt(e.tp3)} · <b>+${Math.abs(pct(dir,e.entry,e.tp3)).toFixed(2)}%</b>`,
+      riskLine,
+      `Salida del sistema (TP1): ${fmt(e.tp1)} · <b>+${Math.abs(pct(dir,e.entry,e.tp1)).toFixed(2)}%</b>`,
       `Confirmada: ${baTime(e.detected_at||e.created_at||e.signal_time)}`,
       `Vela base: ${baTime(e.signal_time)}`
     ].join("\n");
@@ -253,8 +254,8 @@ function eventText(e:any){
   if(e.event_type==="TP1") return [
     `✅ <b>TP1 ALCANZADO · ${esc(displayDir)} · ${esc(e.symbol)}</b>`,
     `Nivel: ${fmt(e.tp1)} · <b>${p}</b>`,
-    `Referencia del setup: ${fmt(e.entry)}`,
-    `Stop estructural: ${fmt(e.stop)} · TP2: ${fmt(e.tp2)}`
+    `Entrada promedio del setup: ${fmt(e.entry)}`,
+    "Operación cerrada por objetivo."
   ].join("\n");
   if(e.event_type==="TP2") return [
     `🎯 <b>TP2 ALCANZADO · ${esc(displayDir)} · ${esc(e.symbol)}</b>`,
@@ -386,11 +387,13 @@ async function syncPreEntryAlerts(marketGuard:any){
   for(const x of sm.get("crypto_live")?.meta?.snapshot||[]){
     if(String(x?.state)!=="NEAR"||Number(x?.open_count||0)>0)continue;
     const p=x?.proximity?.nearest;if(!p||!Number.isFinite(n(p.point)))continue;
-    const st=cs.get(String(x.symbol))||{},price=n(x.price),entry=n(p.point),distPct=entry?Math.abs(price-entry)/Math.abs(entry)*100:NaN;
+    const st=cs.get(String(x.symbol))||{},price=n(x.price),entry=n(p.point),distPct=entry?Math.abs(price-entry)/Math.abs(entry)*100:NaN,
+          relation=st?.macroContext?.trend?((String(p.direction)==="LONG"&&st.macroContext.trend==="ALCISTA")||(String(p.direction)==="SHORT"&&st.macroContext.trend==="BAJISTA")?"A_FAVOR":st.macroContext.trend==="RANGO"?"RANGO":"CONTRA_TENDENCIA"):"";
+    if(relation==="CONTRA_TENDENCIA")continue;
     current.push({
       key:proximityAlertKey("crypto",x),kind:"CRYPTO_NEAR",market:"crypto",symbol:String(x.symbol),underlying:String(x.symbol),
       direction:String(p.direction||"LONG"),rank:Number(p.rank||0),price,entry,distanceAtr:n(p.distanceAtr),distancePct:distPct,
-      zoneBottom:n(p.zone_bottom),zoneTop:n(p.zone_top),context:st?.context||{},macro:st?.macroContext||{},relation:st?.macroContext?.trend?((String(p.direction)==="LONG"&&st.macroContext.trend==="ALCISTA")||(String(p.direction)==="SHORT"&&st.macroContext.trend==="BAJISTA")?"A_FAVOR":st.macroContext.trend==="RANGO"?"RANGO":"CONTRA_TENDENCIA"):""
+      zoneBottom:n(p.zone_bottom),zoneTop:n(p.zone_top),context:st?.context||{},macro:st?.macroContext||{},relation
     });
   }
   const regOpen=String(marketGuard?.byma?.code||"")==="OPEN";
@@ -399,6 +402,7 @@ async function syncPreEntryAlerts(marketGuard:any){
       if(String(x?.state)!=="IN_ZONE"||Number(x?.open_count||0)>0)continue;
       const p=x?.proximity?.nearest;if(!p||!Number.isFinite(n(p.point)))continue;
       const r=regulatedRiskFromSnapshot(x),price=n(x.price),entry=n(p.point),distPct=entry?Math.abs(price-entry)/Math.abs(entry)*100:NaN;
+      if(r.relation!=="A_FAVOR")continue;
       current.push({
         key:proximityAlertKey(String(x.market||"cedear"),x),kind:"REGULATED_ZONE",market:String(x.market||"cedear"),symbol:String(x.symbol),underlying:String(x.underlying||x.symbol),
         direction:"LONG",rank:Number(p.rank||0),price,entry,distanceAtr:n(p.distance_atr??p.distanceAtr),distancePct:distPct,
@@ -467,7 +471,7 @@ Deno.serve(async(req:Request)=>{
     }
 
     const {data:allOpens,error:openErr}=await sb.from("mtf_signals").select("*").eq("strategy_version",STRATEGY_VERSION)
-      .in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]).order("signal_time");
+      .in("source",["FORWARD","MIGRATED_STRICT"]).eq("status","OPEN").order("signal_time");
     if(openErr)throw openErr;
     const opens=(allOpens||[]) as Signal[];
 
@@ -518,54 +522,30 @@ Deno.serve(async(req:Request)=>{
           (s as any).worst_r=Math.min(n((s as any).worst_r)||0,adv);
         }
         if(Number.isFinite(setupEligibleAfter)&&setupEligibleAfter>0&&b.t<=setupEligibleAfter)continue;
-        const hardStop=isLong?b.l<=n(rep.stop):b.h>=n(rep.stop),
+        const hardStop=rep.market==="crypto"&&(isLong?b.l<=n(rep.stop):b.h>=n(rep.stop)),
           t1=isLong?b.h>=n(rep.tp1):b.l<=n(rep.tp1),
-          t2=isLong?b.h>=n(rep.tp2):b.l<=n(rep.tp2),
-          t3=isLong?b.h>=n(rep.tp3):b.l<=n(rep.tp3),
-          newTarget=(!seen.has("TP1")&&t1)||(!seen.has("TP2")&&t2)||(!seen.has("TP3")&&t3);
+          newTarget=!seen.has("TP1")&&t1;
         if(hardStop&&newTarget&&!seen.has("SL")&&!seen.has("AMBIGUOUS")){
           await createEvent({group_key:k,event_type:"AMBIGUOUS",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:b.c,entry:rep.entry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            detected_at:new Date(b.t).toISOString(),payload:{bar:b},status:"PENDING"});
+            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:b.c,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
+            detected_at:new Date(b.t).toISOString(),payload:{bar:b,...setupPayload},status:"PENDING"});
           await syncSignals(a.map(x=>x.id),{status:"AMBIGUOUS",closed_at:new Date(b.t).toISOString()});seen.add("AMBIGUOUS");createdLevels++;break;
         }
-        if(t3&&!seen.has("TP3")){
+        if(t1&&!seen.has("TP1")){
           const hitAt=new Date(b.t).toISOString();
-          if(!seen.has("TP1")&&config.alert_tp1)await createEvent({group_key:k,event_type:"TP1",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp1,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
-          if(!seen.has("TP2")&&config.alert_tp2)await createEvent({group_key:k,event_type:"TP2",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp2,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.tp2),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
-          if(config.alert_tp3!==false)await createEvent({group_key:k,event_type:"TP3",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp3,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.tp3),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
-          await syncSignals(a.map(x=>x.id),{status:"TP3",hit1:true,hit2:true,hit3:true,hit1_at:(a[0] as any).hit1_at||hitAt,hit2_at:(a[0] as any).hit2_at||hitAt,hit3_at:hitAt,closed_at:hitAt});
-          seen.add("TP1");seen.add("TP2");seen.add("TP3");createdLevels++;break;
-        }
-        if(t2&&!seen.has("TP2")){
-          const hitAt=new Date(b.t).toISOString();
-          if(!seen.has("TP1")&&config.alert_tp1)await createEvent({group_key:k,event_type:"TP1",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp1,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
-          if(config.alert_tp2)await createEvent({group_key:k,event_type:"TP2",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
-            signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp2,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.tp2),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
-          await syncSignals(a.map(x=>x.id),{status:"TP2",hit1:true,hit2:true,hit1_at:(a[0] as any).hit1_at||hitAt,hit2_at:hitAt});
-          seen.add("TP1");seen.add("TP2");createdLevels++;
-        } else if(t1&&!seen.has("TP1")){
           if(config.alert_tp1)await createEvent({group_key:k,event_type:"TP1",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
             signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.tp1,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:new Date(b.t).toISOString(),payload:setupPayload,status:"PENDING"});
-          await syncSignals(a.map(x=>x.id),{status:"TP1",hit1:true,hit1_at:new Date(b.t).toISOString()});seen.add("TP1");createdLevels++;
+            move_pct:pct(rep.direction,setupEntry,rep.tp1),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+          await syncSignals(a.map(x=>x.id),{status:"TP1",hit1:true,hit1_at:hitAt,closed_at:hitAt});
+          seen.add("TP1");createdLevels++;break;
         }
         if(hardStop&&!seen.has("SL")&&!seen.has("AMBIGUOUS")){
+          const hitAt=new Date(b.t).toISOString();
           if(config.alert_sl)await createEvent({group_key:k,event_type:"SL",market:rep.market,symbol:rep.symbol,underlying:rep.underlying,direction:rep.direction,
             signal_time:rep.signal_time,signal_ids:a.map(x=>x.id),price:rep.stop,entry:setupEntry,stop:rep.stop,tp1:rep.tp1,tp2:rep.tp2,tp3:rep.tp3,
-            move_pct:pct(rep.direction,setupEntry,rep.stop),detected_at:new Date(b.t).toISOString(),payload:setupPayload,status:"PENDING"});
-          await syncSignals(a.map(x=>x.id),{status:"SL",closed_at:new Date(b.t).toISOString()});seen.add("SL");createdLevels++;break;
+            move_pct:pct(rep.direction,setupEntry,rep.stop),detected_at:hitAt,payload:setupPayload,status:"PENDING"});
+          await syncSignals(a.map(x=>x.id),{status:"SL",closed_at:hitAt});seen.add("SL");createdLevels++;break;
         }
-        if(seen.has("TP3")||seen.has("SL")||seen.has("AMBIGUOUS"))break;
       }
       for(const s of a){
         const start=excursionStart.get(s.id),best=n((s as any).best_r)||0,worst=n((s as any).worst_r)||0;
