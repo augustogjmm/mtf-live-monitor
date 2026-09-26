@@ -5,6 +5,19 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession:false, autoRefreshToken:false } });
 
+async function recordRuntimeError(action:string,target:string,statusCode:number|null,error:string,context:any={}){
+  try{
+    await sb.from("mtf_runtime_errors").insert({
+      component:"mtf-cron-dispatch",
+      action,
+      target,
+      status_code:statusCode,
+      error:String(error||"").slice(0,1200),
+      context
+    });
+  }catch(_){}
+}
+
 Deno.serve(async (req: Request) => {
   const suppliedSecret=req.headers.get("x-cron-secret");
   const {data:validSecret,error:secretError}=await sb.rpc("mtf_validate_cron_secret",{p_secret:suppliedSecret});
@@ -72,18 +85,26 @@ Deno.serve(async (req: Request) => {
     }
     targetBody = { market };
   }
-  const r = await fetch(`${SUPABASE_URL}/functions/v1/${target}`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "authorization": `Bearer ${SERVICE_ROLE}`,
-      "apikey": SERVICE_ROLE,
-    },
-    body: JSON.stringify(targetBody),
-  });
-  const text = await r.text();
-  return new Response(text, {
-    status: r.status,
-    headers: { "content-type": r.headers.get("content-type") || "application/json" },
-  });
+  try{
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/${target}`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "authorization": `Bearer ${SERVICE_ROLE}`,
+        "apikey": SERVICE_ROLE,
+      },
+      body: JSON.stringify(targetBody),
+    });
+    const text = await r.text();
+    if(!r.ok){
+      await recordRuntimeError(action,target,r.status,`Downstream HTTP ${r.status}`,{response:text.slice(0,1000),targetBody});
+    }
+    return new Response(text, {
+      status: r.status,
+      headers: { "content-type": r.headers.get("content-type") || "application/json" },
+    });
+  }catch(e){
+    await recordRuntimeError(action,target,null,String((e as Error).message||e),{targetBody});
+    throw e;
+  }
 });
