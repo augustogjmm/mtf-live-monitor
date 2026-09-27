@@ -193,8 +193,7 @@ async function snapshotOne(sym:string){
   const [h1,h4,d1]=await Promise.all([klines(pair,"1h",1000),klines(pair,"4h",1000),klines(pair,"1d",1000)]);
   const live=h1[h1.length-1];if(!live)return{symbol:sym,ready:false,reason:"missing_live_1h"};
   const h1c=h1.filter(x=>(x.closeTime||0)<now),h4c=h4.filter(x=>(x.closeTime||0)<now),d1c=d1.filter(x=>(x.closeTime||0)<now),lastClosed=h1c[h1c.length-1];
-  const preview=clone(st);if(st.lastOpen==null||live.t>st.lastOpen)step(preview,live);
-  const ladder=ladderFromState(preview,live.c),c1=context(h1c),c4=context(h4c),cd=context(d1c);
+  const ladder=ladderFromState(st,live.c),c1=context(h1c),c4=context(h4c),cd=context(d1c);
   if(!c1.ready||!c4.ready||!cd.ready||!lastClosed)return{symbol:sym,ready:false,reason:"context_insufficient",ladder};
   const trends=[c1.trend,c4.trend,cd.trend],bull=trends.filter(x=>x==="ALCISTA").length,bear=trends.filter(x=>x==="BAJISTA").length,macro=bull>=2?"ALCISTA":bear>=2?"BAJISTA":"RANGO";
   const publicLadder={reference_price:live.c,below:ladder.below.map(publicLevel),above:ladder.above.map(publicLevel)},base={context:c1,macroContext:{trend:macro,h1:c1,h4:c4,d1:cd}};
@@ -277,7 +276,7 @@ async function live(createEntries=true){
       liveStates.push({symbol:sym,state:"NO_ANALYSIS",reason:snap0.reason,last_h1_close:n(prev?.last_h1_close)||null,updated_at:iso()});
       continue;
     }
-    const price=prices.get(pair)??n(snap0.price),legacy=await legacyOperationalSignals(sym),opens=await openSignals(sym);
+    const price=prices.get(pair)??n(snap0.price),legacy=await legacyOperationalSignals(sym);let opens=await openSignals(sym);
     const prox0={below:(snap0.ladder?.below||[]).map(levelFromPublic),above:(snap0.ladder?.above||[]).map(levelFromPublic)};
     const prox=proximity(prox0,price,n(snap0.context?.atr14),false);
     let lastH1=n(prev?.last_h1_close),latestClosed:Bar|null=null;
@@ -302,7 +301,7 @@ async function live(createEntries=true){
           const plan=tradePlan(candidate.dir,candidate.level,fresh,n((latestClosed as Bar).c));if(!plan)continue;
           const id=setupId(sym,candidate.dir,latestClose),row=signalFromConfirmation(sym,candidate.dir,candidate.level,fresh,id,latestClosed as Bar,plan);
           const ins=await insertLeg(row);
-          if(ins){created.push({symbol:sym,direction:candidate.dir,rank:candidate.level.rank,setup_id:id,bar_close:latestClose,entry:row.entry,stop:row.stop,tp1:row.tp1,rr:plan.rr});break}
+          if(ins){opens.push(ins);created.push({symbol:sym,direction:candidate.dir,rank:candidate.level.rank,setup_id:id,bar_close:latestClose,entry:row.entry,stop:row.stop,tp1:row.tp1,rr:plan.rr});break}
         }
       }
     }
