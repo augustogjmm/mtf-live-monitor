@@ -4,9 +4,11 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
-const VERSION="OB-LADDER-v3.6";
-const LEGACY_VERSION="OB-LADDER-v3.5";
-const ENGINE="ANALYZER_CANONICAL_V3_6";
+const VERSION="OB-LADDER-v3.7";
+const LEGACY_VERSION="OB-LADDER-v3.6";
+const ENGINE="MTF_PULLBACK_CONFIRM_V3_7";
+const MIN_RR=1.8;
+const ATR_STOP_BUFFER=.30;
 const STABLES=new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const FALLBACK=["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
 const HOUR=3600000;
@@ -115,15 +117,35 @@ async function catchup(sym:string,row:any){
   return st;
 }
 function ema(vals:number[],period:number){const out:number[]=[],k=2/(period+1);let e:number|null=null;for(const v of vals){e=e==null?v:v*k+e*(1-k);out.push(e)}return out}
+function rsi(vals:number[],period=14){
+  if(vals.length<=period)return NaN;
+  let gain=0,loss=0;
+  for(let i=1;i<=period;i++){const d=vals[i]-vals[i-1];if(d>=0)gain+=d;else loss-=d}
+  gain/=period;loss/=period;
+  let value=loss===0?100:100-100/(1+gain/loss);
+  for(let i=period+1;i<vals.length;i++){
+    const d=vals[i]-vals[i-1];gain=(gain*(period-1)+Math.max(0,d))/period;loss=(loss*(period-1)+Math.max(0,-d))/period;
+    value=loss===0?100:100-100/(1+gain/loss);
+  }
+  return value;
+}
+function marketStructure(b:Bar[]){
+  if(b.length<45)return"RANGO";
+  const curr=b.slice(-20),prev=b.slice(-40,-20);
+  const ch=Math.max(...curr.map(x=>x.h)),cl=Math.min(...curr.map(x=>x.l)),ph=Math.max(...prev.map(x=>x.h)),pl=Math.min(...prev.map(x=>x.l));
+  if(ch>ph&&cl>pl)return"ALCISTA";
+  if(ch<ph&&cl<pl)return"BAJISTA";
+  return"RANGO";
+}
 function context(b:Bar[]){
-  if(b.length<210)return{ready:false,trend:"RANGO"};
+  if(b.length<210)return{ready:false,trend:"RANGO",structure:"RANGO"};
   const c=b.map(x=>x.c),e10=ema(c,10),e55=ema(c,55),e200=ema(c,200),fast=ema(c,12),slow=ema(c,26),mac=c.map((_,i)=>fast[i]-slow[i]),sig=ema(mac,9),i=c.length-1;
-  const a10=e10[i],a55=e55[i],a200=e200[i],ml=mac[i],ms=sig[i],mh=ml-ms,s55=i>=3?a55-e55[i-3]:0;
-  const lr=[c[i]>a10,a10>a55,c[i]>a55,c[i]>a200,ml>ms,mh>=0,s55>=0],sr=[c[i]<a10,a10<a55,c[i]<a55,c[i]<a200,ml<ms,mh<=0,s55<=0];
+  const a10=e10[i],a55=e55[i],a200=e200[i],ml=mac[i],ms=sig[i],mh=ml-ms,prevHist=i>0?mac[i-1]-sig[i-1]:mh,s55=i>=3?a55-e55[i-3]:0;
+  const lr=[c[i]>a10,a10>a55,c[i]>a55,c[i]>a200,ml>ms,mh>=0,s55>0],sr=[c[i]<a10,a10<a55,c[i]<a55,c[i]<a200,ml<ms,mh<=0,s55<0];
   const longScore=lr.filter(Boolean).length,shortScore=sr.filter(Boolean).length,trend=longScore-shortScore>=3?"ALCISTA":longScore-shortScore<=-3?"BAJISTA":"RANGO";
   const tr=b.map((x,j)=>j?Math.max(x.h-x.l,Math.abs(x.h-b[j-1].c),Math.abs(x.l-b[j-1].c)):x.h-x.l);let atr=tr.slice(0,14).reduce((a,z)=>a+z,0)/14;for(let j=14;j<tr.length;j++)atr=(atr*13+tr[j])/14;
-  const vols=b.slice(-20).map(x=>x.v),vavg=vols.reduce((a,z)=>a+z,0)/Math.max(1,vols.length);
-  return{ready:true,trend,close:c[i],ema10:a10,ema55:a55,ema200:a200,macd:ml,signal:ms,histogram:mh,ema55Slope:s55,volumeRatio:vavg>0?b[i].v/vavg:NaN,atr14:atr,longScore,shortScore};
+  const priorVols=b.slice(-21,-1).map(x=>x.v),vavg=priorVols.reduce((a,z)=>a+z,0)/Math.max(1,priorVols.length),r=rsi(c,14),structure=marketStructure(b);
+  return{ready:true,trend,structure,close:c[i],ema10:a10,ema55:a55,ema200:a200,macd:ml,signal:ms,histogram:mh,histogramPrev:prevHist,histogramImproving:mh>prevHist,ema55Slope:s55,rsi14:r,volumeRatio:vavg>0?b[i].v/vavg:NaN,atr14:atr,longScore,shortScore};
 }
 function proximity(ladder:any,price:number,atr:number,regulated=false){
   const a:any[]=[];for(const x of ladder?.below||[])a.push({direction:"LONG",rank:x.rank,point:x.point,zone_bottom:x.ob.bottom,zone_top:x.ob.top,distance:Math.abs(price-x.point),distanceAtr:atr>0?Math.abs(price-x.point)/atr:NaN,in_zone:price>=x.ob.bottom&&price<=x.ob.top});
@@ -132,20 +154,55 @@ function proximity(ladder:any,price:number,atr:number,regulated=false){
 }
 function stopFor(direction:string,ladder:any,atr:number){const a=direction==="LONG"?ladder.below:ladder.above;if(a.length<3)return NaN;const x=a[2],buf=atr>0?atr*.25:Math.abs(x.point)*.0025;return direction==="LONG"?x.ob.bottom-buf:x.ob.top+buf}
 function trendRelation(direction:string,trend:string){if(trend==="RANGO")return"RANGO";return(direction==="LONG"&&trend==="ALCISTA")||(direction==="SHORT"&&trend==="BAJISTA")?"A_FAVOR":"CONTRA_TENDENCIA"}
+function directionEligibility(direction:string,snap:any){
+  const want=direction==="LONG"?"ALCISTA":"BAJISTA",c1=snap?.context||{},c4=snap?.macroContext?.h4||{},d1=snap?.macroContext?.d1||{};
+  const trendOk=c1.trend===want&&c4.trend===want&&d1.trend===want;
+  const emaOk=direction==="LONG"?(n(c1.ema55)>n(c1.ema200)&&n(c1.ema55Slope)>0):(n(c1.ema55)<n(c1.ema200)&&n(c1.ema55Slope)<0);
+  const structureOk=c1.structure===want;
+  const rsiOk=direction==="LONG"?n(c1.rsi14)>50:n(c1.rsi14)<50;
+  const macdOk=direction==="LONG"?(n(c1.macd)>n(c1.signal)&&n(c1.histogram)>n(c1.histogramPrev)):(n(c1.macd)<n(c1.signal)&&n(c1.histogram)<n(c1.histogramPrev));
+  const volumeOk=n(c1.volumeRatio)>=1;
+  const momentumScore=[rsiOk,macdOk,volumeOk].filter(Boolean).length;
+  const reasons:string[]=[];if(!trendOk)reasons.push("mtf_trend");if(!emaOk)reasons.push("ema55_200");if(!structureOk)reasons.push("structure");if(momentumScore<2)reasons.push("momentum");
+  return{eligible:trendOk&&emaOk&&structureOk&&momentumScore>=2,trendOk,emaOk,structureOk,rsiOk,macdOk,volumeOk,momentumScore,reasons};
+}
+function rejectsZone(bar:Bar,level:Level,direction:string){
+  const range=Math.max(1e-12,bar.h-bar.l),overlap=bar.l<=level.ob.top&&bar.h>=level.ob.bottom;
+  if(!overlap)return false;
+  if(direction==="LONG"){
+    const lowerWick=(Math.min(bar.o,bar.c)-bar.l)/range;
+    return bar.l<=level.point&&bar.c>level.point&&bar.c>bar.o&&lowerWick>=.20;
+  }
+  const upperWick=(bar.h-Math.max(bar.o,bar.c))/range;
+  return bar.h>=level.point&&bar.c<level.point&&bar.c<bar.o&&upperWick>=.20;
+}
+function tradePlan(direction:string,level:Level,snap:any,entry:number){
+  const atr=n(snap?.context?.atr14);if(!(atr>0)||!(entry>0))return null;
+  const stop=direction==="LONG"?level.ob.bottom-ATR_STOP_BUFFER*atr:level.ob.top+ATR_STOP_BUFFER*atr,risk=Math.abs(entry-stop);
+  if(!(risk>0)||(direction==="LONG"&&stop>=entry)||(direction==="SHORT"&&stop<=entry))return null;
+  const raw=(direction==="LONG"?snap?.ladder?.above:snap?.ladder?.below)||[],targets=raw.map(levelFromPublic).filter((x:Level)=>direction==="LONG"?x.point>entry:x.point<entry);
+  const scored=targets.map((x:Level)=>({level:x,rr:Math.abs(x.point-entry)/risk})),idx=scored.findIndex((x:any)=>x.rr>=MIN_RR);
+  if(idx<0)return null;
+  const picked=scored.slice(idx);
+  return{stop,risk,rr:picked[0].rr,tp1:picked[0].level.point,tp2:picked[1]?.level.point??picked[0].level.point,tp3:picked[2]?.level.point??picked[picked.length-1]?.level.point??picked[0].level.point,target_rank:picked[0].level.rank};
+}
 
 async function snapshotOne(sym:string){
   const row=await loadState(sym);if(!row)return{symbol:sym,ready:false,reason:"detector_not_initialized"};
-  const st=await catchup(sym,row),pair=sym+"USDT";
+  const st=await catchup(sym,row),pair=sym+"USDT",now=Date.now();
   const [h1,h4,d1]=await Promise.all([klines(pair,"1h",1000),klines(pair,"4h",1000),klines(pair,"1d",1000)]);
   const live=h1[h1.length-1];if(!live)return{symbol:sym,ready:false,reason:"missing_live_1h"};
-  const preview=clone(st);if(st.lastOpen==null||live.t>st.lastOpen)step(preview,live);
-  const ladder=ladderFromState(preview,live.c),c1=context(h1),c4=context(h4),cd=context(d1);
-  if(!c1.ready||!c4.ready||!cd.ready)return{symbol:sym,ready:false,reason:"context_insufficient",ladder};
+  const h1c=h1.filter(x=>(x.closeTime||0)<now),h4c=h4.filter(x=>(x.closeTime||0)<now),d1c=d1.filter(x=>(x.closeTime||0)<now),lastClosed=h1c[h1c.length-1];
+  const ladder=ladderFromState(st,live.c),c1=context(h1c),c4=context(h4c),cd=context(d1c);
+  if(!c1.ready||!c4.ready||!cd.ready||!lastClosed)return{symbol:sym,ready:false,reason:"context_insufficient",ladder};
   const trends=[c1.trend,c4.trend,cd.trend],bull=trends.filter(x=>x==="ALCISTA").length,bear=trends.filter(x=>x==="BAJISTA").length,macro=bull>=2?"ALCISTA":bear>=2?"BAJISTA":"RANGO";
+  const publicLadder={reference_price:live.c,below:ladder.below.map(publicLevel),above:ladder.above.map(publicLevel)},base={context:c1,macroContext:{trend:macro,h1:c1,h4:c4,d1:cd}};
   const prox=proximity(ladder,live.c,c1.atr14,false);
-  return{symbol:sym,pair,ready:ladder.complete,reason:ladder.complete?null:"less_than_3x3_active_obs",price:live.c,live1h:{t:live.t,h:live.h,l:live.l,c:live.c},historyProcessed:st.processed,
-    ladder:{reference_price:live.c,below:ladder.below.map(publicLevel),above:ladder.above.map(publicLevel)},
-    context:c1,macroContext:{trend:macro,h1:c1,h4:c4,d1:cd},proximity:prox,stops:{LONG:stopFor("LONG",ladder,c1.atr14),SHORT:stopFor("SHORT",ladder,c1.atr14)},generatedAt:iso()};
+  const temp={...base,ladder:publicLadder};
+  return{symbol:sym,pair,ready:ladder.complete,reason:ladder.complete?null:"less_than_3x3_active_obs",price:live.c,live1h:{t:live.t,h:live.h,l:live.l,c:live.c},
+    lastClosed1h:{t:lastClosed.t,closeTime:lastClosed.closeTime,h:lastClosed.h,l:lastClosed.l,o:lastClosed.o,c:lastClosed.c,v:lastClosed.v},historyProcessed:st.processed,
+    ladder:publicLadder,context:c1,macroContext:base.macroContext,eligibility:{LONG:directionEligibility("LONG",temp),SHORT:directionEligibility("SHORT",temp)},proximity:prox,
+    stops:{LONG:stopFor("LONG",ladder,c1.atr14),SHORT:stopFor("SHORT",ladder,c1.atr14)},generatedAt:iso()};
 }
 async function structure(){
   let base=await universe();
@@ -193,17 +250,16 @@ async function insertLeg(row:any){
   if(error){if(String((error as any)?.code)==="23505")return null;throw error}return data;
 }
 function setupId(sym:string,dir:string,when:number){return[VERSION,"crypto",sym,dir,Math.floor(when/60000)].join(":")}
-function signalFromLevel(sym:string,dir:string,level:Level,snap:any,id:string,bar:Bar){
-  const entries=(dir==="LONG"?snap.ladder.below:snap.ladder.above).map(levelFromPublic),targets=(dir==="LONG"?snap.ladder.above:snap.ladder.below).map(levelFromPublic);
-  if(entries.length<3||targets.length<3)return null;
-  const stop=n(snap.stops?.[dir]);if(!Number.isFinite(stop))return null;
-  const eventTime=n(bar.closeTime)||bar.t+60000;
-  return{market:"crypto",symbol:sym,underlying:sym,direction:dir,signal_time:iso(eventTime),entry:level.point,stop,tp1:targets[0].point,tp2:targets[1].point,tp3:targets[2].point,source:"FORWARD",
-    context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"1m",trigger_basis:"entry_only_when_1m_range_crosses_exact_OB_center_line",
-      entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
-      ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,trend_relation:trendRelation(dir,snap.macroContext?.trend||"RANGO"),proximity:snap.proximity,
-      entry_policy:"block_CONTRA_TENDENCIA_allow_A_FAVOR_or_RANGO_each_leg",exit_policy:"TP1_OR_SL",
-      trigger_bar:{t:bar.t,closeTime:eventTime,h:bar.h,l:bar.l,c:bar.c},stop_basis:"beyond_entry_3_zone_plus_0_25_ATR"}};
+function signalFromConfirmation(sym:string,dir:string,level:Level,snap:any,id:string,bar:Bar,plan:any){
+  const eventTime=n(bar.closeTime)||bar.t+HOUR,gate=directionEligibility(dir,snap);
+  return{market:"crypto",symbol:sym,underlying:sym,direction:dir,signal_time:iso(eventTime),entry:bar.c,stop:plan.stop,tp1:plan.tp1,tp2:plan.tp2,tp3:plan.tp3,source:"FORWARD",
+    context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"1h",trigger_basis:"closed_1h_rejection_from_active_ob",
+      entry_price_basis:"confirmation_close",entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
+      ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:"A_FAVOR",proximity:snap.proximity,
+      entry_policy:"D_4H_1H_same_trend_and_1H_structure_plus_2of3_momentum_and_rejection",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
+      rr_min:MIN_RR,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
+      protection_policy:"after_closed_1m_reaches_1R_move_active_stop_to_break_even_for_next_bar",
+      trigger_bar:{t:bar.t,closeTime:eventTime,o:bar.o,h:bar.h,l:bar.l,c:bar.c,v:bar.v},stop_basis:"entry_OB_far_edge_plus_0_30_ATR"}};
 }
 async function live(createEntries=true){
   const [{data:st,error:stErr},{data:prevRow,error:prevErr}]=await Promise.all([
@@ -217,82 +273,46 @@ async function live(createEntries=true){
   for(const snap0 of snaps){
     const sym=String(snap0.symbol),pair=sym+"USDT",prev=prevMap.get(sym)||null;
     if(!snap0.ready){
-      liveStates.push({symbol:sym,state:"NO_ANALYSIS",reason:snap0.reason,last_bar_close:n(prev?.last_bar_close)||null,updated_at:iso()});
+      liveStates.push({symbol:sym,state:"NO_ANALYSIS",reason:snap0.reason,last_h1_close:n(prev?.last_h1_close)||null,updated_at:iso()});
       continue;
     }
-    const price=prices.get(pair)??n(snap0.price),
-      ladder={below:(snap0.ladder?.below||[]).map(levelFromPublic),above:(snap0.ladder?.above||[]).map(levelFromPublic)},
-      atr=n(snap0.context?.atr14),prox=proximity(ladder,price,atr,false);
-    const legacy=await legacyOperationalSignals(sym);
-    let opens=await openSignals(sym),freshBars:Bar[]=[];
-    const previousObserved=!!prev;
-    let lastSeen=n(prev?.last_bar_close);
-    if(!(lastSeen>0)&&prev?.updated_at)lastSeen=Math.max(0,new Date(prev.updated_at).getTime()-60000);
+    const price=prices.get(pair)??n(snap0.price),legacy=await legacyOperationalSignals(sym);let opens=await openSignals(sym);
+    const prox0={below:(snap0.ladder?.below||[]).map(levelFromPublic),above:(snap0.ladder?.above||[]).map(levelFromPublic)};
+    const prox=proximity(prox0,price,n(snap0.context?.atr14),false);
+    let lastH1=n(prev?.last_h1_close),latestClosed:Bar|null=null;
     try{
-      const now=Date.now(),
-            start=lastSeen>0?Math.max(0,lastSeen+1):now-5*60000,
-            m=await klines(pair,"1m",1000,start);
-      freshBars=m.filter((b:Bar)=>{
-        const ct=n(b.closeTime)||b.t+60000;
-        return ct<now-250 && (!(lastSeen>0)||ct>lastSeen);
-      }).sort((a:Bar,b:Bar)=>(n(a.closeTime)||a.t+60000)-(n(b.closeTime)||b.t+60000));
+      const rows=await klines(pair,"1h",4),closed=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now());
+      latestClosed=closed[closed.length-1]||null;
     }catch{}
+    const latestClose=latestClosed?(n(latestClosed.closeTime)||latestClosed.t+HOUR):0,previousObserved=!!prev&&lastH1>0;
+    if(!lastH1&&latestClose>0)lastH1=latestClose;
 
-    for(const bar of freshBars){
-      const barClose=n(bar.closeTime)||bar.t+60000;
-      if(legacy.length){
-        // Migration boundary: legacy v3.5 setups remain exit-managed by the watcher.
-        // Do not add v3.6 legs or create a second setup on the same asset.
-      }else if(opens.length){
-        const anchor=opens[0],ctx=anchor.context||{},dir=String(anchor.direction),
-          raw=dir==="LONG"?(ctx.ladder_snapshot?.below||[]):(ctx.ladder_snapshot?.above||[]);
-        if(!["TP1","TP2"].includes(String(anchor.status))){
-          const used=new Set(opens.map((x:any)=>n(x.context?.entry_rank)));
-          for(const p of raw){
-            const lv=levelFromPublic(p);
-            if(used.has(lv.rank)||!touched(bar,lv))continue;
-            const fresh=await snapshotOne(sym);
-            if(!fresh.ready||trendRelation(dir,fresh.macroContext?.trend||"RANGO")==="CONTRA_TENDENCIA")continue;
-            const row=signalFromLevel(sym,dir,lv,{
-              ladder:ctx.ladder_snapshot,stops:{[dir]:anchor.stop},context:fresh.context,
-              macroContext:fresh.macroContext,proximity:fresh.proximity
-            },String(ctx.setup_id),bar);
-            if(row){
-              row.stop=anchor.stop;row.tp1=anchor.tp1;row.tp2=anchor.tp2;row.tp3=anchor.tp3;
-              const ins=await insertLeg(row);
-              if(ins){opens.push(ins);used.add(lv.rank);created.push({symbol:sym,direction:dir,rank:lv.rank,setup_id:ctx.setup_id,bar_close:barClose})}
-            }
-          }
-        }
-      }else if(createEntries&&previousObserved){
-        const longs=ladder.below.filter((x:Level)=>touched(bar,x)),shorts=ladder.above.filter((x:Level)=>touched(bar,x));
-        if(!(longs.length&&shorts.length)){
-          const dir=longs.length?"LONG":shorts.length?"SHORT":null;
-          if(dir){
-            const fresh=await snapshotOne(sym);
-            if(fresh.ready){
-              const fl={below:(fresh.ladder.below||[]).map(levelFromPublic),above:(fresh.ladder.above||[]).map(levelFromPublic)},
-                ft=(dir==="LONG"?fl.below:fl.above).filter((x:Level)=>touched(bar,x));
-              if(ft.length&&trendRelation(dir,fresh.macroContext?.trend||"RANGO")!=="CONTRA_TENDENCIA"){
-                const id=setupId(sym,dir,barClose);
-                for(const lv of ft){
-                  const row=signalFromLevel(sym,dir,lv,fresh,id,bar);
-                  if(row){const ins=await insertLeg(row);if(ins){opens.push(ins);created.push({symbol:sym,direction:dir,rank:lv.rank,setup_id:id,bar_close:barClose})}}
-                }
-              }
-            }
-          }
+    if(!legacy.length&&!opens.length&&createEntries&&previousObserved&&latestClosed&&latestClose>n(prev?.last_h1_close)){
+      const fresh=await snapshotOne(sym);
+      if(fresh.ready){
+        const ladder={below:(fresh.ladder?.below||[]).map(levelFromPublic),above:(fresh.ladder?.above||[]).map(levelFromPublic)};
+        const candidates=[
+          ...ladder.below.map((x:Level)=>({dir:"LONG",level:x})),
+          ...ladder.above.map((x:Level)=>({dir:"SHORT",level:x}))
+        ].filter((x:any)=>rejectsZone(latestClosed as Bar,x.level,x.dir))
+         .sort((a:any,b:any)=>a.level.rank-b.level.rank);
+        for(const candidate of candidates){
+          const gate=directionEligibility(candidate.dir,fresh);if(!gate.eligible)continue;
+          const plan=tradePlan(candidate.dir,candidate.level,fresh,n((latestClosed as Bar).c));if(!plan)continue;
+          const id=setupId(sym,candidate.dir,latestClose),row=signalFromConfirmation(sym,candidate.dir,candidate.level,fresh,id,latestClosed as Bar,plan);
+          const ins=await insertLeg(row);
+          if(ins){opens.push(ins);created.push({symbol:sym,direction:candidate.dir,rank:candidate.level.rank,setup_id:id,bar_close:latestClose,entry:row.entry,stop:row.stop,tp1:row.tp1,rr:plan.rr});break}
         }
       }
-      lastSeen=Math.max(lastSeen||0,barClose);
     }
-
+    if(latestClose>0)lastH1=Math.max(lastH1||0,latestClose);
     const operational=legacy.length?legacy:opens;
+    const eligible=snap0.eligibility||{};
     liveStates.push({
       symbol:sym,price,state:operational.length?"OPEN":prox.state,proximity:prox,open_count:operational.length,
       setup_id:operational[0]?.context?.setup_id||null,direction:operational[0]?.direction||null,
       active_strategy_version:operational[0]?.strategy_version||null,legacy_active:legacy.length>0,
-      last_bar_close:lastSeen>0?lastSeen:(n(prev?.last_bar_close)||null),
+      eligibility:eligible,last_h1_close:lastH1||null,last_bar_close:lastH1||null,
       baseline:!createEntries,updated_at:iso()
     });
   }
