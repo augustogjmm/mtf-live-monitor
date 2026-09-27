@@ -4,9 +4,9 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
-const VERSION="OB-LADDER-v3.7.1";
+const VERSION="OB-LADDER-v3.7.2";
 const LEGACY_VERSION="OB-LADDER-v3.6";
-const ENGINE="MTF_PULLBACK_CONFIRM_V3_7_1";
+const ENGINE="MTF_PULLBACK_CONFIRM_V3_7_2";
 const MIN_RR=1.8;
 const ATR_STOP_BUFFER=.30;
 const STABLES=new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
@@ -78,8 +78,16 @@ function step(st:DetectorState,b:Bar){
   st.tail=w.slice(-10);st.processed=i+1;st.lastOpen=b.t;return st;
 }
 function ladderFromState(st:DetectorState,price:number){
-  const bulls=(st.bulls||[]).slice(0,3).sort((a,b)=>b.avg-a.avg).map((ob,i)=>({rank:i+1,point:ob.avg,side:"below" as const,detectorSide:"bull" as const,ob}));
-  const bears=(st.bears||[]).slice(0,3).sort((a,b)=>a.avg-b.avg).map((ob,i)=>({rank:i+1,point:ob.avg,side:"above" as const,detectorSide:"bear" as const,ob}));
+  const bulls=(st.bulls||[])
+    .filter(ob=>n(ob.avg)<price)
+    .sort((a,b)=>b.avg-a.avg)
+    .slice(0,3)
+    .map((ob,i)=>({rank:i+1,point:ob.avg,side:"below" as const,detectorSide:"bull" as const,ob}));
+  const bears=(st.bears||[])
+    .filter(ob=>n(ob.avg)>price)
+    .sort((a,b)=>a.avg-b.avg)
+    .slice(0,3)
+    .map((ob,i)=>({rank:i+1,point:ob.avg,side:"above" as const,detectorSide:"bear" as const,ob}));
   return{referencePrice:price,below:bulls,above:bears,complete:bulls.length===3&&bears.length===3};
 }
 function publicLevel(x:Level){return{rank:x.rank,point:x.point,side:x.side,detector_side:x.detectorSide,origin_time:x.ob.originTime,confirm_time:x.ob.confirmTime,zone_bottom:x.ob.bottom,zone_top:x.ob.top}}
