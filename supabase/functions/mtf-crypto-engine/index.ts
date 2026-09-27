@@ -94,6 +94,7 @@ function publicLevel(x:Level){return{rank:x.rank,point:x.point,side:x.side,detec
 function captureEvalReference(st:DetectorState,b:Bar){
   const pre=ladderFromState(st,b.o);
   st.lastEval={
+    strategyVersion:VERSION,
     barOpen:b.t,
     barClose:n(b.closeTime)||b.t+HOUR,
     ladder:{reference_price:b.o,below:pre.below.map(publicLevel),above:pre.above.map(publicLevel)},
@@ -218,7 +219,7 @@ async function snapshotOne(sym:string){
   const temp={...base,ladder:publicLadder};
   return{symbol:sym,pair,ready:ladder.complete,reason:ladder.complete?null:"less_than_3x3_active_obs",price:live.c,live1h:{t:live.t,h:live.h,l:live.l,c:live.c},
     lastClosed1h:{t:lastClosed.t,closeTime:lastClosed.closeTime,h:lastClosed.h,l:lastClosed.l,o:lastClosed.o,c:lastClosed.c,v:lastClosed.v},historyProcessed:st.processed,
-    ladder:publicLadder,signalReference:st.lastEval||null,context:c1,macroContext:base.macroContext,eligibility:{LONG:directionEligibility("LONG",temp),SHORT:directionEligibility("SHORT",temp)},proximity:prox,
+    ladder:publicLadder,signalReference:st.lastEval?.strategyVersion===VERSION?st.lastEval:null,context:c1,macroContext:base.macroContext,eligibility:{LONG:directionEligibility("LONG",temp),SHORT:directionEligibility("SHORT",temp)},proximity:prox,
     stops:{LONG:stopFor("LONG",ladder,c1.atr14),SHORT:stopFor("SHORT",ladder,c1.atr14)},generatedAt:iso()};
 }
 async function structure(){
