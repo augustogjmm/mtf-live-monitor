@@ -264,7 +264,7 @@ function signalFromConfirmation(sym:string,dir:string,level:Level,snap:any,id:st
   return{market:"crypto",symbol:sym,underlying:sym,direction:dir,signal_time:iso(eventTime),entry:bar.c,stop:plan.stop,tp1:plan.tp1,tp2:plan.tp2,tp3:plan.tp3,source:"FORWARD",
     context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"1h",trigger_basis:"closed_1h_rejection_from_active_ob",
       entry_price_basis:"confirmation_close",entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
-      ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:"A_FAVOR",proximity:snap.proximity,
+      ladder_basis:"pre_confirmation_detector_state",ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:"A_FAVOR",proximity:snap.proximity,
       entry_policy:"D_4H_1H_same_trend_and_1H_structure_plus_2of3_momentum_and_rejection",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
       rr_min:MIN_RR,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
       protection_policy:"after_closed_1m_reaches_1R_move_active_stop_to_break_even_for_next_bar",
