@@ -311,7 +311,7 @@ function canonicalQ(s,live){
   const below=(s?.ladder?.below||[]).map(canonicalLevel),above=(s?.ladder?.above||[]).map(canonicalLevel);
   return {version:STRATEGY_VERSION,price,time:new Date(s.generatedAt||Date.now()).getTime(),ready:s.ready!==false,
     ladder:{referencePrice:price,below,above,complete:below.length===3&&above.length===3,exactAnalyzer:true},
-    context:s.context||{},macroContext:s.macroContext||{},stops:s.stops||{},
+    context:s.context||{},macroContext:s.macroContext||{},stops:s.stops||{},eligibility:live?.eligibility||s.eligibility||{},
     proximity:live?.proximity||s.proximity||null,s:live?.state||s?.proximity?.state||'WAIT',dir:(live?.proximity||s.proximity)?.nearest?.direction||'',canonical:true}
 }
 function runtimeLiveFor(sym){return runtimeLive.find(x=>x.symbol===sym)||null}
@@ -341,7 +341,7 @@ function cOperationalState(q,sym){
   const l=runtimeLiveFor(sym);
   if(!q||l?.state==='NO_ANALYSIS')return'ERROR';
   const st=l?.state||q?.proximity?.state||'WAIT',n=q?.proximity?.nearest;
-  if((st==='IN_ZONE'||st==='NEAR')&&n&&cryptoRelation(q,n.direction)==='CONTRA TENDENCIA')return'BLOCKED';
+  if((st==='IN_ZONE'||st==='NEAR')&&n&&cryptoRelation(q,n.direction)!=='A FAVOR')return'BLOCKED';
   if(st==='IN_ZONE')return'ZONE';
   if(st==='NEAR')return'NEAR';
   return'WAIT'
@@ -354,7 +354,7 @@ function cOperationalLabel(q,sym){
     return '<span class="signal-pill signal-'+dc+'">EN SEGUIMIENTO · <span class="dir-'+dc+'">'+dir+'</span> · '+ops.length+' entrada'+(ops.length>1?'s':'')+' activa'+(ops.length>1?'s':'')+' · '+mv+'</span>'
   }
   if(st==='ERROR')return'<span class="signal-pill signal-error">SIN ANÁLISIS</span>';
-  if(st==='BLOCKED'&&n)return'<span class="signal-pill signal-wait">NO ENTRAR · CONTRA TENDENCIA · '+n.direction+' '+n.rank+'</span>';
+  if(st==='BLOCKED'&&n){const g=q?.eligibility?.[n.direction]||{},why=Array.isArray(g.reasons)&&g.reasons.length?g.reasons.join(' + '):'filtros MTF';return'<span class="signal-pill signal-wait">NO ENTRAR · '+n.direction+' '+n.rank+' · '+why+'</span>'}
   if((st==='ZONE'||st==='NEAR')&&n){
     const dc=n.direction==='SHORT'?'short':'long',pct=Number.isFinite(+q.price)&&Number.isFinite(+n.point)&&+n.point?Math.abs(+q.price-+n.point)/Math.abs(+n.point)*100:NaN;
     return '<span class="signal-pill signal-near">'+(st==='ZONE'?'EN ZONA':'CERCA')+' · <span class="dir-'+dc+'">'+n.direction+'</span> '+n.rank+' · entrada '+F(n.point)+(Number.isFinite(pct)?' · falta '+pct.toFixed(2)+'%':'')+'</span>'
@@ -646,8 +646,8 @@ function drawVolume(canvas,bars){
 function drawMACD(canvas,bars){const{c,w,h}=pc(canvas),p={l:8,r:38,t:8,b:18},pw=w-p.l-p.r,ph=h-p.t-p.b,M=mac(bars.map(x=>x.c)),vals=[...M.L,...M.S].filter(Number.isFinite),lo=Math.min(0,...vals),hi=Math.max(0,...vals),rg=hi-lo||1,X=i=>p.l+(i+.5)*pw/bars.length,Y=v=>p.t+(hi-v)/rg*ph;c.clearRect(0,0,w,h);c.fillStyle='#000000';c.fillRect(0,0,w,h);c.strokeStyle='#464a4d';c.beginPath();c.moveTo(p.l,Y(0));c.lineTo(w-p.r,Y(0));c.stroke();const bw=Math.max(1,Math.min(5,pw/bars.length*.55));for(let i=0;i<bars.length;i++){if(!Number.isFinite(M.L[i])||!Number.isFinite(M.S[i]))continue;const d=M.L[i]-M.S[i];c.fillStyle=d>=0?'rgba(54,212,155,.55)':'rgba(255,104,124,.55)';const yy=Y(d),z=Y(0);c.fillRect(X(i)-bw/2,Math.min(yy,z),bw,Math.max(1,Math.abs(z-yy)))}linePath(c,M.L,bars,X,Y,'#9281f7',1.4);linePath(c,M.S,bars,X,Y,'#f6c552',1.4)}
 function clipBars(b,r){return!r||r>=b.length?b:b.slice(-r)}
 function cAudit(q,x){
-  const c=q.context||{},m=q.macroContext||{},n=q.proximity?.nearest,p=cryptoPlan(q);
-  return `<h4>Contexto macro</h4><div class="detail-grid">${metric('1H',trendBadge(m.h1?.trend||'RANGO'))}${metric('4H',trendBadge(m.h4?.trend||'RANGO'))}${metric('Diario',trendBadge(m.d1?.trend||'RANGO'))}${metric('Macro',trendBadge(m.trend||'RANGO'))}${metric('Próxima',n?`${n.direction} ${n.rank}`:'—')}${metric('Relación',p?.relation||'—',p?.relation==='A FAVOR'?'g':p?.relation==='CONTRA TENDENCIA'?'r':'y')}</div><div class="audit-section small">1H · ATR14 ${F(c.atr14)} · EMA10 ${F(c.ema10)} · EMA55 ${F(c.ema55)} · EMA200 ${F(c.ema200)}<br>MACD ${F(c.macd)} · Señal ${F(c.signal)} · Volumen ${Number.isFinite(+c.volumeRatio)?(+c.volumeRatio).toFixed(2)+'x':'—'}<br>Stop compra ${F(q.stops?.LONG)} · Stop Short ${F(q.stops?.SHORT)}</div>`
+  const c=q.context||{},m=q.macroContext||{},n=q.proximity?.nearest,p=cryptoPlan(q),g=n?q?.eligibility?.[n.direction]:null;
+  return `<h4>Contexto MTF v3.7</h4><div class="detail-grid">${metric('1H',trendBadge(m.h1?.trend||'RANGO'))}${metric('4H',trendBadge(m.h4?.trend||'RANGO'))}${metric('Diario',trendBadge(m.d1?.trend||'RANGO'))}${metric('Estructura 1H',c.structure||'RANGO')}${metric('Próxima',n?`${n.direction} ${n.rank}`:'—')}${metric('Habilitación',g?.eligible?'A FAVOR':'BLOQUEADA',g?.eligible?'g':'y')}</div><div class="audit-section small">RSI14 ${F(c.rsi14)} · ATR14 ${F(c.atr14)} · EMA10 ${F(c.ema10)} · EMA55 ${F(c.ema55)} · EMA200 ${F(c.ema200)}<br>MACD ${F(c.macd)} · Señal ${F(c.signal)} · Hist. ${F(c.histogram)} · Volumen ${Number.isFinite(+c.volumeRatio)?(+c.volumeRatio).toFixed(2)+'x':'—'}<br>Entrada sólo después de rechazo confirmado al cierre de 1H · stop = borde del OB + 0,30 ATR · RR mínimo 1,8 · BE desde +1R.</div>`
 }
 function regulatedRisk(q){
   const d=String(q?.context?.trend||'RANGO'),w=String(q?.macroContext?.w1?.trend||'RANGO');
@@ -827,9 +827,11 @@ function ladderCell(levels,prefix,dir=''){
 function trendClass(t){return t==='ALCISTA'?'g':t==='BAJISTA'?'r':'y'}
 function trendBadge(t){return `<span class="badge ${trendClass(t)}">${t||'—'}</span>`}
 function cryptoRelation(q,dir){
+  const gate=q?.eligibility?.[dir];
+  if(gate)return gate.eligible===true?'A FAVOR':'BLOQUEADO';
   const t=q?.macroContext?.trend||q?.context?.trend||'RANGO';
-  if(t==='RANGO')return'RANGO';
-  return (dir==='LONG'&&t==='ALCISTA')||(dir==='SHORT'&&t==='BAJISTA')?'A FAVOR':'CONTRA TENDENCIA'
+  if(t==='RANGO')return'BLOQUEADO';
+  return (dir==='LONG'&&t==='ALCISTA')||(dir==='SHORT'&&t==='BAJISTA')?'A FAVOR':'BLOQUEADO'
 }
 function cryptoPlan(q){
   const n=q?.proximity?.nearest;if(!n)return null;
