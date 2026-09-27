@@ -420,9 +420,9 @@ begin
   limit 1;
 
   if v_sql is not null then
-    v_sql := replace(v_sql,'OB-LADDER-v3.7','OB-LADDER-v3.7.2');
-    v_sql := replace(v_sql,'MTF_PULLBACK_CONFIRM_V3_7','MTF_PULLBACK_CONFIRM_V3_7_2');
-    v_sql := replace(v_sql,'3.7.0','3.7.2');
+    v_sql := replace(v_sql,'OB-LADDER-v3.7.1','OB-LADDER-v3.7.2');
+    v_sql := replace(v_sql,'OB-LADDER-v3.7.2.1','OB-LADDER-v3.7.2');
+    v_sql := replace(v_sql,'''status_schema'',''3.7.1''','''status_schema'',''3.7.2''');
     execute v_sql;
   end if;
 end $$;
