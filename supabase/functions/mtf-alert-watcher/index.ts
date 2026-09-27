@@ -426,6 +426,7 @@ async function syncPreEntryAlerts(marketGuard:any){
     for(const a of current){
       if(prevKeys.has(a.key))continue;
       const made=await createEvent({
+        strategy_version:a.market==="crypto"?STRATEGY_VERSION:REGULATED_STRATEGY_VERSION,
         group_key:"PREALERT:"+a.key,event_type:"SYSTEM",market:a.market,symbol:a.symbol,underlying:a.underlying,direction:a.direction,
         signal_time:new Date().toISOString(),signal_ids:[],price:a.price,entry:a.entry,stop:null,tp1:null,tp2:null,tp3:null,move_pct:null,detected_at:new Date().toISOString(),
         payload:{alert_kind:a.kind,entry_rank:a.rank,distance_atr:a.distanceAtr,distance_pct:a.distancePct,zone_bottom:a.zoneBottom,zone_top:a.zoneTop,context:a.context,macro_context:a.macro,trend_relation:a.relation,risk_profile:a.risk||null},
