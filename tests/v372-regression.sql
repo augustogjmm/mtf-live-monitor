@@ -43,6 +43,10 @@ begin
   if (public.mtf_stats_snapshot()->>'collection_label') not like 'v3.7.2 crypto%' then
     raise exception 'v3.7.2: stats snapshot not on causal cohort';
   end if;
+
+  if coalesce(public.mtf_system_status()#>>'{build,strategy_version}','') <> 'OB-LADDER-v3.7.2' then
+    raise exception 'v3.7.2: system status build version mismatch';
+  end if;
 end $$;
 
 select public.mtf_stats_snapshot() as stats_snapshot;
