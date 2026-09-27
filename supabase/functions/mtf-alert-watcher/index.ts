@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
-const STRATEGY_VERSION = "OB-LADDER-v3.7";
+const STRATEGY_VERSION = "OB-LADDER-v3.7.1";
 const REGULATED_STRATEGY_VERSION = "OB-LADDER-v3.6";
 const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
 const ACTIVE_STRATEGY_VERSIONS = [LEGACY_STRATEGY_VERSION, REGULATED_STRATEGY_VERSION, STRATEGY_VERSION];
@@ -542,13 +542,13 @@ Deno.serve(async(req:Request)=>{
       for(const s of a)excursionStart.set(s.id,{best:n((s as any).best_r)||0,worst:n((s as any).worst_r)||0});
       for(const b of bars){
         for(const s of a){
-          if(b.t<=entryBarEnd(s))continue;
+          if(b.t<entryBarEnd(s))continue;
           const originalStop=n(s.context?.initial_stop),R=Math.abs(n(s.entry)-(Number.isFinite(originalStop)?originalStop:n(s.stop)));if(!(R>0))continue;
           const fav=isLong?(b.h-n(s.entry))/R:(n(s.entry)-b.l)/R,adv=isLong?(b.l-n(s.entry))/R:(n(s.entry)-b.h)/R;
           (s as any).best_r=Math.max(n((s as any).best_r)||0,fav);
           (s as any).worst_r=Math.min(n((s as any).worst_r)||0,adv);
         }
-        if(Number.isFinite(setupEligibleAfter)&&setupEligibleAfter>0&&b.t<=setupEligibleAfter)continue;
+        if(Number.isFinite(setupEligibleAfter)&&setupEligibleAfter>0&&b.t<setupEligibleAfter)continue;
         if(isLegacy){
           const hardStop=isLong?b.l<=n(rep.stop):b.h>=n(rep.stop),
             t1=isLong?b.h>=n(rep.tp1):b.l<=n(rep.tp1),
