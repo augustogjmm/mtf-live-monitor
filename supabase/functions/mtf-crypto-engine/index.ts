@@ -4,9 +4,9 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
-const VERSION="OB-LADDER-v3.7";
+const VERSION="OB-LADDER-v3.7.1";
 const LEGACY_VERSION="OB-LADDER-v3.6";
-const ENGINE="MTF_PULLBACK_CONFIRM_V3_7";
+const ENGINE="MTF_PULLBACK_CONFIRM_V3_7_1";
 const MIN_RR=1.8;
 const ATR_STOP_BUFFER=.30;
 const STABLES=new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
@@ -15,7 +15,7 @@ const HOUR=3600000;
 
 type Bar={t:number;o:number;h:number;l:number;c:number;v:number;closeTime?:number};
 type OB={origin:number;confirm:number;originTime:number;confirmTime:number;top:number;bottom:number;avg:number};
-type DetectorState={os:number;bulls:OB[];bears:OB[];tail:Bar[];processed:number;lastOpen:number|null};
+type DetectorState={os:number;bulls:OB[];bears:OB[];tail:Bar[];processed:number;lastOpen:number|null;lastEval?:any};
 type Level={rank:number;point:number;side:"below"|"above";detectorSide:"bull"|"bear";ob:OB};
 
 const n=(v:any)=>Number(v);
@@ -83,12 +83,21 @@ function ladderFromState(st:DetectorState,price:number){
   return{referencePrice:price,below:bulls,above:bears,complete:bulls.length===3&&bears.length===3};
 }
 function publicLevel(x:Level){return{rank:x.rank,point:x.point,side:x.side,detector_side:x.detectorSide,origin_time:x.ob.originTime,confirm_time:x.ob.confirmTime,zone_bottom:x.ob.bottom,zone_top:x.ob.top}}
+function captureEvalReference(st:DetectorState,b:Bar){
+  const pre=ladderFromState(st,b.o);
+  st.lastEval={
+    barOpen:b.t,
+    barClose:n(b.closeTime)||b.t+HOUR,
+    ladder:{reference_price:b.o,below:pre.below.map(publicLevel),above:pre.above.map(publicLevel)},
+    complete:pre.complete
+  };
+}
 async function rebuild(sym:string){
   const pair=sym+"USDT",st=emptyState();let start=0,pages=0,last=-1;
   while(pages<160){
     const rows=await klines(pair,"1h",1000,start);if(!rows.length)break;
     const now=Date.now(),closed=rows.filter(x=>(x.closeTime||0)<now);
-    for(const b of closed){if(st.lastOpen!=null&&b.t<=st.lastOpen)continue;step(st,b)}
+    for(const b of closed){if(st.lastOpen!=null&&b.t<=st.lastOpen)continue;captureEvalReference(st,b);step(st,b)}
     pages++;
     const maxOpen=Math.max(...rows.map(x=>x.t));
     if(maxOpen<=last)break;last=maxOpen;start=maxOpen+HOUR;
@@ -108,7 +117,7 @@ async function catchup(sym:string,row:any){
   const st:DetectorState=clone(row.state||emptyState()),pair=sym+"USDT";let start=(st.lastOpen??0)+HOUR,pages=0;
   while(start<Date.now()&&pages<8){
     const rows=await klines(pair,"1h",1000,start),closed=rows.filter(x=>(x.closeTime||0)<Date.now());
-    let advanced=false;for(const b of closed){if(st.lastOpen!=null&&b.t<=st.lastOpen)continue;step(st,b);advanced=true}
+    let advanced=false;for(const b of closed){if(st.lastOpen!=null&&b.t<=st.lastOpen)continue;captureEvalReference(st,b);step(st,b);advanced=true}
     pages++;if(!rows.length||rows.length<1000||!advanced)break;start=(st.lastOpen??start)+HOUR;
   }
   if(JSON.stringify(st)!==JSON.stringify(row.state)){
@@ -201,7 +210,7 @@ async function snapshotOne(sym:string){
   const temp={...base,ladder:publicLadder};
   return{symbol:sym,pair,ready:ladder.complete,reason:ladder.complete?null:"less_than_3x3_active_obs",price:live.c,live1h:{t:live.t,h:live.h,l:live.l,c:live.c},
     lastClosed1h:{t:lastClosed.t,closeTime:lastClosed.closeTime,h:lastClosed.h,l:lastClosed.l,o:lastClosed.o,c:lastClosed.c,v:lastClosed.v},historyProcessed:st.processed,
-    ladder:publicLadder,context:c1,macroContext:base.macroContext,eligibility:{LONG:directionEligibility("LONG",temp),SHORT:directionEligibility("SHORT",temp)},proximity:prox,
+    ladder:publicLadder,signalReference:st.lastEval||null,context:c1,macroContext:base.macroContext,eligibility:{LONG:directionEligibility("LONG",temp),SHORT:directionEligibility("SHORT",temp)},proximity:prox,
     stops:{LONG:stopFor("LONG",ladder,c1.atr14),SHORT:stopFor("SHORT",ladder,c1.atr14)},generatedAt:iso()};
 }
 async function structure(){
@@ -288,9 +297,10 @@ async function live(createEntries=true){
     if(!lastH1&&latestClose>0)lastH1=latestClose;
 
     if(!legacy.length&&!opens.length&&createEntries&&previousObserved&&latestClosed&&latestClose>n(prev?.last_h1_close)){
-      const fresh=await snapshotOne(sym);
-      if(fresh.ready){
-        const ladder={below:(fresh.ladder?.below||[]).map(levelFromPublic),above:(fresh.ladder?.above||[]).map(levelFromPublic)};
+      const fresh=await snapshotOne(sym),ref=fresh?.signalReference;
+      if(fresh.ready&&ref&&n(ref.barClose)===latestClose){
+        const ladder={below:(ref.ladder?.below||[]).map(levelFromPublic),above:(ref.ladder?.above||[]).map(levelFromPublic)};
+        const signalSnap={...fresh,ladder:ref.ladder};
         const candidates=[
           ...ladder.below.map((x:Level)=>({dir:"LONG",level:x})),
           ...ladder.above.map((x:Level)=>({dir:"SHORT",level:x}))
@@ -298,14 +308,18 @@ async function live(createEntries=true){
          .sort((a:any,b:any)=>a.level.rank-b.level.rank);
         for(const candidate of candidates){
           const gate=directionEligibility(candidate.dir,fresh);if(!gate.eligible)continue;
-          const plan=tradePlan(candidate.dir,candidate.level,fresh,n((latestClosed as Bar).c));if(!plan)continue;
-          const id=setupId(sym,candidate.dir,latestClose),row=signalFromConfirmation(sym,candidate.dir,candidate.level,fresh,id,latestClosed as Bar,plan);
+          const plan=tradePlan(candidate.dir,candidate.level,signalSnap,n((latestClosed as Bar).c));if(!plan)continue;
+          const id=setupId(sym,candidate.dir,latestClose),row=signalFromConfirmation(sym,candidate.dir,candidate.level,signalSnap,id,latestClosed as Bar,plan);
           const ins=await insertLeg(row);
           if(ins){opens.push(ins);created.push({symbol:sym,direction:candidate.dir,rank:candidate.level.rank,setup_id:id,bar_close:latestClose,entry:row.entry,stop:row.stop,tp1:row.tp1,rr:plan.rr});break}
         }
+        lastH1=Math.max(lastH1||0,latestClose);
       }
+    } else if(!previousObserved&&latestClose>0){
+      lastH1=latestClose;
+    } else if(latestClose>0&&latestClose<=n(prev?.last_h1_close)){
+      lastH1=Math.max(lastH1||0,latestClose);
     }
-    if(latestClose>0)lastH1=Math.max(lastH1||0,latestClose);
     const operational=legacy.length?legacy:opens;
     const eligible=snap0.eligibility||{};
     liveStates.push({
