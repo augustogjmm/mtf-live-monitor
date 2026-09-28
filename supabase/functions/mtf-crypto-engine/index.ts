@@ -45,16 +45,28 @@ async function currentPrices(){
   for(const x of a||[]){const p=n(x.price);if(p>0)m.set(String(x.symbol),p)}
   return m;
 }
+async function hasMatureContext(sym:string){
+  const pair=sym+"USDT";
+  try{
+    const now=Date.now(),d1=await klines(pair,"1d",210),closed=d1.filter(x=>(x.closeTime||0)<now);
+    return closed.length>=210;
+  }catch{return false}
+}
 async function universe(){
   let eligible=new Set<string>();
   try{const j=await binance("/api/v3/exchangeInfo");for(const x of j?.symbols||[])if(x?.status==="TRADING"&&x?.quoteAsset==="USDT"&&x?.isSpotTradingAllowed!==false)eligible.add(String(x.symbol).toUpperCase())}catch{}
-  const out:string[]=[];
+  const candidates:string[]=[];
   try{
     const j=await fetchJson("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false",{},15000);
-    for(const x of j||[]){const s=String(x.symbol||"").toUpperCase(),p=s+"USDT";if(!s||STABLES.has(s)||out.includes(s)||!eligible.has(p))continue;out.push(s);if(out.length===20)break}
+    for(const x of j||[]){const s=String(x.symbol||"").toUpperCase(),p=s+"USDT";if(!s||STABLES.has(s)||candidates.includes(s)||!eligible.has(p))continue;candidates.push(s);if(candidates.length===60)break}
   }catch{}
-  for(const s of FALLBACK){if(out.length===20)break;if(!out.includes(s)&&eligible.has(s+"USDT"))out.push(s)}
-  if(out.length<20)for(const p of eligible){if(out.length===20)break;const s=p.endsWith("USDT")?p.slice(0,-4):"";if(s&&!STABLES.has(s)&&!out.includes(s))out.push(s)}
+  for(const s of FALLBACK)if(!candidates.includes(s)&&eligible.has(s+"USDT"))candidates.push(s);
+  if(candidates.length<60)for(const p of eligible){const s=p.endsWith("USDT")?p.slice(0,-4):"";if(s&&!STABLES.has(s)&&!candidates.includes(s))candidates.push(s);if(candidates.length===60)break}
+  const out:string[]=[];
+  for(let i=0;i<candidates.length&&out.length<20;i+=8){
+    const batch=candidates.slice(i,i+8),mature=await Promise.all(batch.map(async s=>({s,ok:await hasMatureContext(s)})));
+    for(const x of mature){if(x.ok)out.push(x.s);if(out.length===20)break}
+  }
   return out.slice(0,20);
 }
 
@@ -217,7 +229,7 @@ async function snapshotOne(sym:string){
   const live=h1[h1.length-1];if(!live)return{symbol:sym,ready:false,reason:"missing_live_1h"};
   const h1c=h1.filter(x=>(x.closeTime||0)<now),h4c=h4.filter(x=>(x.closeTime||0)<now),d1c=d1.filter(x=>(x.closeTime||0)<now),lastClosed=h1c[h1c.length-1];
   const ladder=ladderFromState(st,live.c),c1=context(h1c),c4=context(h4c),cd=context(d1c);
-  if(!c1.ready||!c4.ready||!cd.ready||!lastClosed)return{symbol:sym,ready:false,reason:"context_insufficient",ladder};
+  if(!c1.ready||!c4.ready||!cd.ready||!lastClosed)return{symbol:sym,pair,ready:false,reason:"context_insufficient",price:live.c,historyProcessed:st.processed,contextBars:{h1:h1c.length,h4:h4c.length,d1:d1c.length,required:210},ladder:{reference_price:live.c,below:ladder.below.map(publicLevel),above:ladder.above.map(publicLevel)},generatedAt:iso()};
   const trends=[c1.trend,c4.trend,cd.trend],bull=trends.filter(x=>x==="ALCISTA").length,bear=trends.filter(x=>x==="BAJISTA").length,macro=bull>=2?"ALCISTA":bear>=2?"BAJISTA":"RANGO";
   const publicLadder={reference_price:live.c,below:ladder.below.map(publicLevel),above:ladder.above.map(publicLevel)},base={context:c1,macroContext:{trend:macro,h1:c1,h4:c4,d1:cd}};
   const prox=proximity(ladder,live.c,c1.atr14,false);
