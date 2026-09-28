@@ -196,15 +196,41 @@ async function insertPlan(symbol:string,underlying:string,diag:any,plan:any){
  }).select("*").single();
  if(error){if(String((error as any)?.code||"")==="23505")return null;throw error}return data;
 }
-async function audit(symbol:string,underlying:string,signalTime:number,decision:string,reason:string,context:any){
- try{await sb.from("mtf_decision_audit").upsert({
-  strategy_version:VERSION,cycle_id:"adr:"+iso(),market:"merval",symbol,underlying,direction:"LONG",signal_time:iso(signalTime),
+async function audit(cycleId:string,symbol:string,underlying:string,signalTime:number,decision:string,reason:string,context:any){
+ const {error}=await sb.from("mtf_decision_audit").upsert({
+  strategy_version:VERSION,cycle_id:cycleId,market:"merval",symbol,underlying,direction:"LONG",signal_time:iso(signalTime),
   evaluated_at:iso(),decision,reason,context
- },{onConflict:"strategy_version,market,symbol,signal_time"})}catch(_){}
+ },{onConflict:"strategy_version,cycle_id,market,symbol,signal_time"});
+ if(error)throw error;
+}
+function selftest(){
+ const ob:OB={origin:1,confirm:2,originTime:1000,confirmTime:2000,bottom:90,top:100,avg:95},
+       bear=(point:number):any=>({rank:1,point,ob:{origin:3,confirm:4,originTime:3000,confirmTime:4000,bottom:point-1,top:point+1,avg:point}}),
+       base:any={entry_allowed:true,context:{atr14:4},raw:{bulls:[{rank:1,point:95,ob}],bears:[bear(112)]}},
+       valid:Bar={t:5000,o:94,h:99,l:92,c:97,v:100},
+       poorWick:Bar={t:5000,o:94.8,h:99,l:94.5,c:97,v:100},
+       chase:Bar={t:5000,o:94,h:104,l:92,c:103,v:100};
+ const good=confirmationPlan(valid,base),
+       blocked=confirmationPlan(valid,{...base,entry_allowed:false}),
+       wick=confirmationPlan(poorWick,base),
+       lowRR=confirmationPlan(valid,{...base,raw:{...base.raw,bears:[bear(104)]}}),
+       chased=confirmationPlan(chase,base);
+ const tests=[
+  {name:"valid_confirmation_passes",ok:!!good&&good.rr>=MIN_RR},
+  {name:"context_blocked_rejected",ok:blocked===null},
+  {name:"poor_wick_rejected",ok:wick===null},
+  {name:"low_rr_rejected",ok:lowRR===null},
+  {name:"chase_rejected",ok:chased===null},
+  {name:"technical_invalidation_reference",ok:!!good&&Math.abs(good.invalidation-89)<1e-9},
+  {name:"entry_is_confirmation_close",ok:!!good&&good.entry===valid.c},
+  {name:"target_is_nearest_bearish_ob",ok:!!good&&good.tp1===112}
+ ];
+ return{ok:tests.every(x=>x.ok),strategy_version:VERSION,engine:ENGINE,tests,passed:tests.filter(x=>x.ok).length,total:tests.length};
 }
 async function pool<T,R>(a:T[],limit:number,fn:(x:T)=>Promise<R>){let i=0;const o:(R|null)[]=new Array(a.length).fill(null);await Promise.all(Array.from({length:Math.min(limit,a.length)},async()=>{while(i<a.length){const j=i++;try{o[j]=await fn(a[j])}catch(_){o[j]=null}}}));return o}
 
 async function run(mode:"baseline"|"live"){
+ const cycleId="adr:"+iso();
  const marketOpen=await usaOpen();if(mode==="live"&&!marketOpen)return{ok:true,strategy_version:VERSION,engine:ENGINE,skipped:"usa_not_open"};
  const {data:state}=await sb.from("mtf_state").select("meta").eq("market","adr_live").maybeSingle(),
        prev:any[]=state?.meta?.snapshot||[],prevMap=new Map(prev.map((x:any)=>[String(x.symbol),x])),
@@ -230,7 +256,7 @@ async function run(mode:"baseline"|"live"){
    const operational=inserted?[inserted]:active,latestPlan=plans.at(-1)||null;
    const stateName=operational.length?"OPEN":diag.entry_allowed?diag.proximity.state:"BLOCKED";
    const reason=operational.length?null:!diag.entry_allowed?"context_requires_daily_and_weekly_bullish":latestPlan?"confirmed_waiting_insert":"waiting_15m_recovery_confirmation";
-   await audit(item.symbol,item.underlying,last.t,inserted?"ENTRY":"NO_ENTRY",inserted?"confirmed_15m_recovery_rr_pass":reason,{diagnostic:diag,latest_plan:latestPlan?{rr:latestPlan.rr,entry:latestPlan.entry,tp1:latestPlan.tp1,bar:latestPlan.bar}:null});
+   await audit(cycleId,item.symbol,item.underlying,last.t,inserted?"ENTRY":"NO_ENTRY",inserted?"confirmed_15m_recovery_rr_pass":reason,{diagnostic:diag,latest_plan:latestPlan?{rr:latestPlan.rr,entry:latestPlan.entry,tp1:latestPlan.tp1,bar:latestPlan.bar}:null});
    return{ok:true,ready:true,market:"merval",symbol:item.symbol,underlying:item.underlying,name:"",price:last.c,t:last.t,source:"Yahoo 15m USD",
     state:stateName,reason,actionable:diag.entry_allowed&&!operational.length,entry_allowed:diag.entry_allowed,confirmation_required:true,
     confirmation_state:latestPlan?"CONFIRMED":"WAITING",planned_rr:latestPlan?.rr??null,technical_invalidation:latestPlan?.invalidation??null,
@@ -251,7 +277,9 @@ async function run(mode:"baseline"|"live"){
 
 Deno.serve(async(req:Request)=>{
  try{
-  const body=await req.json().catch(()=>({})),mode=String(body?.mode||"live").toLowerCase()==="baseline"?"baseline":"live";
+  const body=await req.json().catch(()=>({})),raw=String(body?.mode||"live").toLowerCase();
+  if(raw==="selftest")return new Response(JSON.stringify(selftest()),{headers:{"content-type":"application/json"}});
+  const mode=raw==="baseline"?"baseline":"live";
   return new Response(JSON.stringify(await run(mode as "baseline"|"live")),{headers:{"content-type":"application/json"}});
  }catch(e){
   return new Response(JSON.stringify({ok:false,strategy_version:VERSION,error:String((e as Error).message||e)}),{status:500,headers:{"content-type":"application/json"}});
