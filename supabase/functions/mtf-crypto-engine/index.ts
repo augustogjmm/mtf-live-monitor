@@ -48,7 +48,7 @@ async function currentPrices(){
 async function hasMatureContext(sym:string){
   const pair=sym+"USDT";
   try{
-    const now=Date.now(),d1=await klines(pair,"1d",210),closed=d1.filter(x=>(x.closeTime||0)<now);
+    const now=Date.now(),d1=await klines(pair,"1d",211),closed=d1.filter(x=>(x.closeTime||0)<now);
     return closed.length>=210;
   }catch{return false}
 }
