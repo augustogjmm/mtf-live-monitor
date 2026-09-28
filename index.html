@@ -1206,7 +1206,7 @@ function initScanSplitters(){
 }
 initScanSplitters();
 
-const UI_VERSION='3.8.4',BUILD_ID='MTF-Live-Monitor-3.8.4-CRYPTO-DIRECT-RUNTIME',JOB_NAMES={1:'Crypto structure',2:'Preparación CEDEAR',3:'Watcher / daemon',7:'CEDEAR live',8:'Crypto live',11:'ADR live v1'};let healthData=null,healthBusy=false;
+const UI_VERSION='3.8.4',BUILD_ID='MTF-Live-Monitor-3.8.4-RUNTIME-STABILITY',JOB_NAMES={1:'Crypto structure',2:'Preparación CEDEAR',3:'Watcher / daemon',7:'CEDEAR live',8:'Crypto live',11:'ADR live v1'};let healthData=null,healthBusy=false;
 function ageMs(v){const t=v?new Date(v).getTime():NaN;return Number.isFinite(t)?Date.now()-t:Infinity}
 function fmtAge(v){const a=ageMs(v);if(!Number.isFinite(a))return'—';const m=Math.max(0,Math.round(a/60000));if(m<2)return'ahora';if(m<60)return m+' min';const h=Math.floor(m/60),rm=m%60;if(h<36)return h+' h '+rm+' min';return Math.floor(h/24)+' d'}
 function dt(v){return v?new Date(v).toLocaleString('es-AR'):'—'}
