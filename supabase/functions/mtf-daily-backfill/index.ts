@@ -745,12 +745,12 @@ function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:
 async function processRegulatedLive(createEntries=true){
   const open=await bymaLiveOpen();
   if(createEntries&&!open)return{strategy_version:STRATEGY_VERSION,skipped:"byma_not_open"};
-  const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=4;
+  const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=2;
   const {data:prevRow}=await sb.from("mtf_state").select("meta").eq("market","regulated_live").maybeSingle();
   const prevSnapshot:any[]=prevRow?.meta?.snapshot||[],
         prevMap=new Map<string,any>(prevSnapshot.map((x:any)=>[String(x.market)+":"+String(x.symbol),x]));
 
-  const {data:cedears,error:ceErr}=await sb.from("mtf_cedear_work").select("*")
+  const {data:cedears,error:ceErr}=await sb.from("mtf_cedear_work").select("symbol,underlying,metrics,liquidity_rank")
     .eq("run_date",runDate).eq("eligible_liquid",true).order("liquidity_rank",{ascending:true});
   if(ceErr)throw ceErr;
 
@@ -880,7 +880,7 @@ async function processRegulatedLive(createEntries=true){
     }
   };
 
-  const results=await pool(batch,2,scanOne);
+  const results=await pool(batch,1,scanOne);
   const universeKeys=new Set(items.map((x:any)=>x.market+":"+x.sym)),
         merged=new Map<string,any>();
   for(const x of prevSnapshot){
