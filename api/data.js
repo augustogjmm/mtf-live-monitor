@@ -202,6 +202,7 @@ async function runtimeSnapshot(market='crypto'){
      structureStates:Array.isArray(structure)?structure:[],
      structureGeneratedAt:structureRows?.[0]?.meta?.generated_at||structureRows?.[0]?.last_run_at||null,
      liveStates:Array.isArray(live)?live:[],
+     funnel:liveRows?.[0]?.meta?.funnel||null,
      liveGeneratedAt:liveRows?.[0]?.meta?.generated_at||liveRows?.[0]?.last_run_at||null,
      generatedAt:new Date().toISOString()
    };
