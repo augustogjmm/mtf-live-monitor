@@ -754,8 +754,9 @@ async function processRegulatedLive(createEntries=true){
     .eq("run_date",runDate).eq("eligible_liquid",true).order("liquidity_rank",{ascending:true});
   if(ceErr)throw ceErr;
 
-  let merval:any[]=[];
-  try{merval=await mervalUniverse()}catch(e){errors.push({market:"merval",error:String((e as Error).message||e)})}
+  // ADR live entries are isolated in mtf-adr-engine (ADR-OB-v1.0).
+  // Keep this worker CEDEAR-only to avoid duplicate/competing merval signals.
+  const merval:any[]=[];
 
   const items:any[]=[
     ...(cedears||[]).map((row:any)=>{
