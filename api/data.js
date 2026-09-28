@@ -228,13 +228,14 @@ async function telegramCanary(){throw Error('Canary público deshabilitado en v3
 async function supaAll(path,pageSize=1000,maxRows=20000){const out=[];for(let offset=0;offset<maxRows;offset+=pageSize){const sep=path.includes('?')?'&':'?';const batch=await supa(`${path}${sep}limit=${pageSize}&offset=${offset}`);out.push(...batch);if(batch.length<pageSize)break}return out}
 async function marketStatus(){try{const rows=await supa('/rest/v1/mtf_state?market=eq.market_guard&select=meta,last_run_at&limit=1'),row=rows?.[0],age=row?.last_run_at?Date.now()-new Date(row.last_run_at).getTime():Infinity;if(row?.meta&&age<180000)return row.meta;return{generatedAt:new Date().toISOString(),byma:{code:'UNKNOWN',text:'BYMA sin estado reciente'},usa:{code:'UNKNOWN',text:'USA sin estado reciente'},combined:{code:'STALE',text:'Estado de mercados desactualizado · no confiar en alertas intradía',actionable:false,validDaily:false}}}catch(e){return{generatedAt:new Date().toISOString(),byma:{code:'ERROR',text:'BYMA sin estado'},usa:{code:'ERROR',text:'USA sin estado'},combined:{code:'STALE',text:'No se pudo validar estado de mercados',actionable:false,validDaily:false}}}}
 async function statsSnapshot(){
- const [j,rr,cr]=await Promise.all([
+ const [j,rr,ar,cr]=await Promise.all([
    supa('/rest/v1/rpc/mtf_stats_snapshot',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),
    supa('/rest/v1/mtf_state?market=eq.regulated_live&select=meta&limit=1').catch(()=>[]),
+   supa('/rest/v1/mtf_state?market=eq.adr_live&select=meta&limit=1').catch(()=>[]),
    supa('/rest/v1/mtf_state?market=eq.crypto_live&select=meta&limit=1').catch(()=>[])
  ]);
  const names=new Map(),prices=new Map();
- for(const x of rr?.[0]?.meta?.snapshot||[]){
+ for(const x of [...(rr?.[0]?.meta?.snapshot||[]),...(ar?.[0]?.meta?.snapshot||[])]){
    const key=String(x.market||'')+':'+String(x.symbol||'');
    if(x?.symbol&&x?.name)names.set(key,String(x.name));
    if(x?.symbol&&Number.isFinite(+x.price))prices.set(key,+x.price);
