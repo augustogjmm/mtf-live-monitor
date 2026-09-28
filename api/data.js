@@ -67,16 +67,22 @@ async function bootstrapCedearServer(){
  return{scheduled:true,mode:'scheduler_owned',note:'Universo CEDEAR administrado por pg_cron/Supabase; bootstrap público deshabilitado'};
 }
 async function cedearPanelSnapshot(){
- try{const snap=await latestCedearServerSnapshot(),items=Array.isArray(snap?.items)?snap.items:[];if(items.length)return{rawCount:items.length,normalizedCount:items.length,total:items.length,items,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico por monto BYMA`,snapshot:true,snapshotDate:snap.run_date,universeRule:snap.universe_rule,updatedAt:snap.updated_at||null};}catch(_){ }
+ try{
+  const snap=await latestCedearServerSnapshot(),items=Array.isArray(snap?.items)?snap.items:[],liq=cedearLiquidityMeta(snap);
+  if(items.length)return{rawCount:items.length,normalizedCount:items.length,total:items.length,items,source:liq.sourceLabel,snapshot:true,snapshotDate:snap.run_date,universeRule:snap.universe_rule,updatedAt:snap.updated_at||null,...liq};
+ }catch(_){ }
  let bootstrapStatus=null;try{bootstrapStatus=await bootstrapCedearServer()}catch(e){return{rawCount:0,normalizedCount:0,total:0,items:[],snapshot:false,bootstrap:true,bootstrapInProgress:true,bootstrapError:String(e?.message||e),source:'Bootstrap CEDEAR servidor'}}
- try{const snap=await latestCedearServerSnapshot(),items=Array.isArray(snap?.items)?snap.items:[];if(items.length)return{rawCount:items.length,normalizedCount:items.length,total:items.length,items,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico por monto BYMA`,snapshot:true,snapshotDate:snap.run_date,universeRule:snap.universe_rule,updatedAt:snap.updated_at||null,bootstrapCompleted:true};}catch(_){ }
+ try{
+  const snap=await latestCedearServerSnapshot(),items=Array.isArray(snap?.items)?snap.items:[],liq=cedearLiquidityMeta(snap);
+  if(items.length)return{rawCount:items.length,normalizedCount:items.length,total:items.length,items,source:liq.sourceLabel,snapshot:true,snapshotDate:snap.run_date,universeRule:snap.universe_rule,updatedAt:snap.updated_at||null,bootstrapCompleted:true,...liq};
+ }catch(_){ }
  return{rawCount:bootstrapStatus?.total||0,normalizedCount:0,total:0,items:[],snapshot:false,bootstrap:true,bootstrapInProgress:true,bootstrapStatus,source:'Reconstruyendo universo CEDEAR en servidor'};
 }
 async function cedearBatch(offset=0,limit=8){
  offset=Math.max(0,Math.floor(+offset||0));limit=Math.max(1,Math.min(25,Math.floor(+limit||8)));
- const snap=await latestCedearServerSnapshot(),all=Array.isArray(snap?.items)?snap.items:[],total=all.length;
- if(!total)return{items:[],total:0,rawCount:0,normalizedCount:0,offset,limit,historyOk:0,historyFailed:0,failureSample:[],done:false,snapshot:false,bootstrap:true,bootstrapInProgress:true,source:'Snapshot todavía no disponible'};
- const items=all.slice(offset,offset+limit);return{items,total,rawCount:total,normalizedCount:total,offset,limit,historyOk:items.length,historyFailed:0,failureSample:[],done:offset+limit>=total,snapshot:true,snapshotDate:snap.run_date,source:`Snapshot servidor · ${snap.run_date||'—'} · universo dinámico por monto BYMA`};
+ const snap=await latestCedearServerSnapshot(),all=Array.isArray(snap?.items)?snap.items:[],total=all.length,liq=cedearLiquidityMeta(snap);
+ if(!total)return{items:[],total:0,rawCount:0,normalizedCount:0,offset,limit,historyOk:0,historyFailed:0,failureSample:[],done:false,snapshot:false,bootstrap:true,bootstrapInProgress:true,source:'Snapshot todavía no disponible',...liq};
+ const items=all.slice(offset,offset+limit);return{items,total,rawCount:total,normalizedCount:total,offset,limit,historyOk:items.length,historyFailed:0,failureSample:[],done:offset+limit>=total,snapshot:true,snapshotDate:snap.run_date,source:liq.sourceLabel,...liq};
 }
 async function bymaEquityRows(endpoint){
  const body={T1:true,page_size:5000};
@@ -176,6 +182,18 @@ async function latestCedearServerSnapshot(){
  const j=await supa('/rest/v1/rpc/mtf_latest_cedear_snapshot',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
  return j||{};
 }
+function cedearLiquidityMeta(snap){
+ const items=Array.isArray(snap?.items)?snap.items:[],basis=String(snap?.liquidity_basis||'');
+ const inferredCurrent=items.some(x=>Number(x?.adtv20??x?.liquidity?.adtv20)>0);
+ const currentTurnoverValid=snap?.current_turnover_valid===true||(snap?.current_turnover_valid!==false&&basis!=='BYMA_LAST_VALID_UNIVERSE_FALLBACK'&&inferredCurrent);
+ const fallback=basis==='BYMA_LAST_VALID_UNIVERSE_FALLBACK'||(!currentTurnoverValid&&items.length>0);
+ const liquidityBasis=fallback?'BYMA_LAST_VALID_UNIVERSE_FALLBACK':'BYMA_CURRENT_TURNOVER';
+ const fallbackRunDate=fallback?(snap?.fallback_run_date||null):null;
+ const sourceLabel=fallback
+   ? `Snapshot servidor · ${snap?.run_date||'—'} · liquidez BYMA degradada · universo válido ${fallbackRunDate||'anterior'}`
+   : `Snapshot servidor · ${snap?.run_date||'—'} · universo dinámico por monto BYMA`;
+ return{liquidityBasis,currentTurnoverValid:!fallback,fallbackRunDate,sourceLabel};
+}
 function isOperationalOpen(x){
  const v=String(x?.strategy_version||x?.context?.strategy_version||''),s=String(x?.status||'');
  return v==='OB-LADDER-v3.5'?['OPEN','TP1','TP2'].includes(s):s==='OPEN';
@@ -227,7 +245,7 @@ async function runtimeSnapshot(market='crypto'){
    generatedAt:new Date().toISOString()
  };
 }
-async function statusSnapshot(){const [j,httpErrors,audit,adrCertification]=await Promise.all([supa('/rest/v1/rpc/mtf_system_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_http_error_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_audit_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_adr_certification_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).catch(()=>({}))]);return{...j,audit:audit||{},adrCertification:adrCertification||{},errors:{...(j.errors||{}),...(httpErrors||{})},ui_version:'3.8.0',build_id:'MTF-Live-Monitor-3.8.0-ADR-CERT-V1',api_generated_at:new Date().toISOString()}}
+async function statusSnapshot(){const [j,httpErrors,audit,adrCertification,cedearSnapshot]=await Promise.all([supa('/rest/v1/rpc/mtf_system_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_http_error_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_audit_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_adr_certification_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).catch(()=>({})),latestCedearServerSnapshot().catch(()=>({}))]);const liq=cedearLiquidityMeta(cedearSnapshot);return{...j,audit:audit||{},adrCertification:adrCertification||{},cedearLiquidity:{runDate:cedearSnapshot?.run_date||null,total:Number(cedearSnapshot?.total)||0,universeRule:cedearSnapshot?.universe_rule||null,...liq},errors:{...(j.errors||{}),...(httpErrors||{})},ui_version:'3.8.1',build_id:'MTF-Live-Monitor-3.8.1-CEDEAR-FALLBACK-CERT',api_generated_at:new Date().toISOString()}}
 async function telegramCanary(){throw Error('Canary público deshabilitado en v3.8.0')}
 async function supaAll(path,pageSize=1000,maxRows=20000){const out=[];for(let offset=0;offset<maxRows;offset+=pageSize){const sep=path.includes('?')?'&':'?';const batch=await supa(`${path}${sep}limit=${pageSize}&offset=${offset}`);out.push(...batch);if(batch.length<pageSize)break}return out}
 async function marketStatus(){try{const rows=await supa('/rest/v1/mtf_state?market=eq.market_guard&select=meta,last_run_at&limit=1'),row=rows?.[0],age=row?.last_run_at?Date.now()-new Date(row.last_run_at).getTime():Infinity;if(row?.meta&&age<180000)return row.meta;return{generatedAt:new Date().toISOString(),byma:{code:'UNKNOWN',text:'BYMA sin estado reciente'},usa:{code:'UNKNOWN',text:'USA sin estado reciente'},combined:{code:'STALE',text:'Estado de mercados desactualizado · no confiar en alertas intradía',actionable:false,validDaily:false}}}catch(e){return{generatedAt:new Date().toISOString(),byma:{code:'ERROR',text:'BYMA sin estado'},usa:{code:'ERROR',text:'USA sin estado'},combined:{code:'STALE',text:'No se pudo validar estado de mercados',actionable:false,validDaily:false}}}}
@@ -262,4 +280,4 @@ async function statsSnapshot(){
    generatedAt:j?.generated_at||new Date().toISOString()
  };
 }
-module.exports=async function handler(req,res){try{const op=String(req.query?.op||'');if(op==='stats'){res.setHeader('cache-control','no-store');return res.status(200).json(await statsSnapshot())}if(op==='runtime'){res.setHeader('cache-control','no-store');return res.status(200).json(await runtimeSnapshot(String(req.query?.market||'crypto')))}if(op==='status'){res.setHeader('cache-control','no-store');return res.status(200).json(await statusSnapshot())}if(op==='canary'){res.setHeader('cache-control','no-store');return res.status(403).json({error:'Canary público deshabilitado en v3.8.0'})}res.setHeader('cache-control','s-maxage=120, stale-while-revalidate=600');if(op==='health')return res.status(200).json({ok:true,strategy_version:'OB-LADDER-v3.7.3',regulated_strategy_version:'OB-LADDER-v3.6',adr_strategy_version:'ADR-OB-v1.0',ui_version:'3.8.0',build_id:'MTF-Live-Monitor-3.8.0-ADR-CERT-V1'});if(op==='market-status'){res.setHeader('cache-control','s-maxage=20, stale-while-revalidate=20');return res.status(200).json(await marketStatus())}if(op==='cedears-panel'||op==='cedears')return res.status(200).json(await cedearPanelSnapshot());if(op==='cedears-batch')return res.status(200).json(await cedearBatch(req.query?.offset,req.query?.limit));if(op==='merval-panel')return res.status(200).json(await mervalPanelSnapshot());if(op==='merval-history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await mervalHistory(sym))}if(op==='history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await history(sym))}return res.status(400).json({error:'op inválido'})}catch(e){return res.status(500).json({error:String(e?.message||e)})}}
+module.exports=async function handler(req,res){try{const op=String(req.query?.op||'');if(op==='stats'){res.setHeader('cache-control','no-store');return res.status(200).json(await statsSnapshot())}if(op==='runtime'){res.setHeader('cache-control','no-store');return res.status(200).json(await runtimeSnapshot(String(req.query?.market||'crypto')))}if(op==='status'){res.setHeader('cache-control','no-store');return res.status(200).json(await statusSnapshot())}if(op==='canary'){res.setHeader('cache-control','no-store');return res.status(403).json({error:'Canary público deshabilitado en v3.8.0'})}res.setHeader('cache-control','s-maxage=120, stale-while-revalidate=600');if(op==='health')return res.status(200).json({ok:true,strategy_version:'OB-LADDER-v3.7.3',regulated_strategy_version:'OB-LADDER-v3.6',adr_strategy_version:'ADR-OB-v1.0',ui_version:'3.8.1',build_id:'MTF-Live-Monitor-3.8.1-CEDEAR-FALLBACK-CERT'});if(op==='market-status'){res.setHeader('cache-control','s-maxage=20, stale-while-revalidate=20');return res.status(200).json(await marketStatus())}if(op==='cedears-panel'||op==='cedears')return res.status(200).json(await cedearPanelSnapshot());if(op==='cedears-batch')return res.status(200).json(await cedearBatch(req.query?.offset,req.query?.limit));if(op==='merval-panel')return res.status(200).json(await mervalPanelSnapshot());if(op==='merval-history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await mervalHistory(sym))}if(op==='history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await history(sym))}return res.status(400).json({error:'op inválido'})}catch(e){return res.status(500).json({error:String(e?.message||e)})}}
