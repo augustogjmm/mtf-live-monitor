@@ -2,7 +2,7 @@
 
 ## Scope
 
-This certificate covers the CEDEAR liquidity-universe resilience fix in MTF Live Monitor 3.8.1. It certifies implementation correctness and observability only; it does not certify trading profitability or signal quality.
+This certificate covers the CEDEAR liquidity-universe resilience fix in MTF Live Monitor 3.8.2. It certifies implementation correctness and observability only; it does not certify trading profitability or signal quality.
 
 ## Incident reproduced
 
@@ -35,7 +35,7 @@ mtf_latest_cedear_snapshot() exposes:
 - fallback_run_date
 - universe_rule
 
-The API propagates this metadata. The CEDEAR scanner shows the fallback date instead of a misleading current BYMA amount, and Status Page reports a WARNING while the market is expected to be active and the fallback is in use.
+The API propagates this metadata. The CEDEAR scanner shows the fallback date instead of a misleading current BYMA amount. Status Page reports a WARNING while the market is expected to be active and the fallback is in use, and it also remains WARNING while CEDEAR coverage is below 100%, exposing analyzed/universe counts, cursor, batch size, retry queue and estimated cycles remaining.
 
 A fallback is a degraded-but-controlled operating mode, not a healthy current-data state.
 
@@ -48,6 +48,7 @@ A fallback is a degraded-but-controlled operating mode, not a healthy current-da
 - ADR v1 certified logic is unchanged.
 - Crypto v3.7.3 logic is unchanged.
 - CEDEAR v3.6 signal rules are unchanged; this change is data-resilience and observability only.
+- Runtime scanner behavior remains chunked at 4 CEDEAR per minute; batch size was deliberately not increased without throttle evidence.
 
 ## Certification status
 
