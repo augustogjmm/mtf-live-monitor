@@ -253,7 +253,9 @@ function eventText(e:any){
       `Entrada: <b>${fmt(e.entry)}</b>`,
       riskLine,
       `Salida del sistema (TP1): ${fmt(e.tp1)} · <b>+${Math.abs(pct(dir,e.entry,e.tp1)).toFixed(2)}%</b>`,
-      Number.isFinite(plannedRR)?`R:R planificado: <b>${plannedRR.toFixed(2)}R</b> · protección BE desde +1R`:"",
+      Number.isFinite(plannedRR)?(e.market==="crypto"
+        ?`R:R planificado: <b>${plannedRR.toFixed(2)}R</b> · protección BE desde +1R`
+        :`R:R planificado: <b>${plannedRR.toFixed(2)}R</b> · invalidación técnica ${fmt(e.stop)} (referencia, sin stop automático)`):"",
       `Confirmada: ${baTime(e.detected_at||e.created_at||e.signal_time)}`,
       `Vela base: ${baTime(e.signal_time)}`
     ].join("\n");
