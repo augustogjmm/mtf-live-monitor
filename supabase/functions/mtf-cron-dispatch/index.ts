@@ -53,6 +53,9 @@ Deno.serve(async (req: Request) => {
   } else if (action === "adr-baseline") {
     target = "mtf-adr-engine";
     targetBody = { mode:"baseline" };
+  } else if (action === "adr-selftest") {
+    target = "mtf-adr-engine";
+    targetBody = { mode:"selftest" };
   } else if (action === "crypto-rebuild") {
     target = "mtf-crypto-engine";
     targetBody = { mode:"rebuild", symbol:String(body.symbol||"").toUpperCase() };
