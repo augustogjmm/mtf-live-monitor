@@ -725,7 +725,12 @@ async function showZChart(sym){
   document.querySelectorAll('[data-zrange]').forEach(b=>{b.classList.toggle('on',+b.dataset.zrange===cfg.range);b.onclick=()=>{cfg.range=+b.dataset.zrange;resetChartNav('z',sym);showZChart(sym)}});
   const full=NB(x.hist?.['1d']||[]),vw=chartWindow('z',sym,full),bars=vw.bars,
         active=zRuntimeOpensFor(zMarket(x),sym,'LONG').sort((a,b)=>(+a.context?.entry_rank||0)-(+b.context?.entry_rank||0)),levels=[];
-  if(active.length)levels.push(...frozenSetupChartLevels(active,false));
+  if(active.length&&x.kind==='MERVAL_ADR'){
+    const a=active[0],t=Math.min(...active.map(o=>new Date(o.signal_time).getTime()).filter(Number.isFinite));
+    levels.push({label:'ENTRADA',v:+a.entry,color:'#169400',width:2.6,originTime:t});
+    if(Number.isFinite(+a.tp1))levels.push({label:'TP1',v:+a.tp1,color:'#42b7ff',width:2,originTime:t});
+    if(Number.isFinite(+(a.context?.technical_invalidation??a.stop)))levels.push({label:'INV REF',v:+(a.context?.technical_invalidation??a.stop),color:'#ff6b6b',dash:true,width:1.4,originTime:t});
+  }else if(active.length)levels.push(...frozenSetupChartLevels(active,false));
   else{
     for(const v of q.ladder?.below||[])levels.push({label:'L'+v.rank,v:v.point,color:'#169400',originTime:v.ob?.originTime});
     for(const v of q.ladder?.above||[])levels.push({label:'TP'+v.rank,v:v.point,color:'#42b7ff',originTime:v.ob?.originTime});
@@ -996,17 +1001,26 @@ function detailZ(sym){
   }
   const li=x.liquidity||{},ops=zRuntimeOpensFor(market,sym,'LONG').sort((a,b)=>(+a.context?.entry_rank||0)-(+b.context?.entry_rank||0)),frozen=canonicalLadderSnapshot(ops[0]?.context?.ladder_snapshot||null),
         d=q.context||{},w=q.macroContext?.w1||{},risk=regulatedRisk(q),lo=ops.length?(frozen?.below||[]):(q.ladder?.below||[]),hi=ops.length?(frozen?.above||[]):(q.ladder?.above||[]),near=q.proximity?.nearest,plan=regulatedPlan(q),
+        isAdr=x.kind==='MERVAL_ADR'||q.version===ADR_STRATEGY_VERSION,
         liqMetric=x.kind==='CEDEAR'?`#${x.rank||'—'} · Monto BYMA ${FM(x.currentVolumeAmount??li.currentVolumeAmount??x.adtv20??li.adtv20)}`:`Panel ${x.sourcePanel||'BYMA'} · ${FM(x.currentVolumeAmount)}`;
-  const entries=lo.map(v=>`<div class="check"><span class="ico g">${v.rank}</span><span><b class="dir-long">COMPRA ${v.rank}</b> · precio de compra <b>${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · falta ${entryGapText(q,v)}</span></div>`).join('')||'<div class="small">Sin compra OB activa.</div>';
-  const exits=hi.map(v=>`<div class="check"><span class="ico r">${v.rank}</span><span><b>TP${v.rank}</b> · <b>${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)}</span></div>`).join('')||'<div class="small">Sin salida OB activa actualmente.</div>';
+  const entries=(isAdr
+    ?lo.map(v=>`<div class="check"><span class="ico g">${v.rank}</span><span><b>OB diario candidato ${v.rank}</b> · centro ${F(v.point)} · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · <b>no compra por simple toque</b></span></div>`)
+    :lo.map(v=>`<div class="check"><span class="ico g">${v.rank}</span><span><b class="dir-long">COMPRA ${v.rank}</b> · precio de compra <b>${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)} · falta ${entryGapText(q,v)}</span></div>`)).join('')||'<div class="small">Sin OB alcista activo.</div>';
+  const exits=(isAdr
+    ?hi.map(v=>`<div class="check"><span class="ico r">${v.rank}</span><span><b>OB bajista objetivo ${v.rank}</b> · centro <b>${F(v.point)}</b> · sólo se convierte en TP1 si es el primero válido sobre la entrada y RR ≥ 1,8</span></div>`)
+    :hi.map(v=>`<div class="check"><span class="ico r">${v.rank}</span><span><b>TP${v.rank}</b> · <b>${F(v.point)}</b> · zona ${F(v.ob.bottom)}–${F(v.ob.top)}</span></div>`)).join('')||'<div class="small">Sin salida OB activa actualmente.</div>';
   let follow='';
   if(ops.length){
-    const a=ops[0],snap=frozen||canonicalLadderSnapshot(a.context?.ladder_snapshot||{})||{},entryLevels=snap.below||[],used=new Map(ops.map(o=>[+o.context?.entry_rank,o])),
-          stage=ops.some(o=>o.status==='TP2')?'TP2 ALCANZADO':ops.some(o=>o.status==='TP1')?'TP1 ALCANZADO':'ABIERTO';
-    const rows=entryLevels.map(p=>{const op=used.get(+p.rank);if(op){const mv=liveMovePct('LONG',op.entry,q.price);return `<div class="check"><span class="ico ${mv>=0?'g':'r'}">${p.rank}</span><span><b class="dir-long">COMPRA ${p.rank}</b> · <b>COMPRA EJECUTADA</b> ${F(op.entry)} · actual ${F(q.price)} · <b class="${mv>=0?'g':'r'}">${mv>=0?'+':''}${mv.toFixed(2)}%</b> · ${op.status}</span></div>`}return `<div class="check"><span class="ico y">${p.rank}</span><span><b>COMPRA ${p.rank}</b> · <b>COMPRA PENDIENTE</b> ${F(p.point)} · ${stage==='ABIERTO'?'esperando toque de la línea exacta':'no se agrega después de TP1'}</span></div>`}).join('');
-    follow=`<div class="box"><b>Seguimiento de la operación</b><div class="detail-grid" style="margin-top:8px">${metric('Tipo','<span class="dir-long">COMPRA</span>')}${metric('Compras ejecutadas',String(ops.length))}${metric('Estado',stage,stage==='ABIERTO'?'y':'g')}${metric('Precio actual',F(q.price))}${metric('Riesgo de contexto',risk.risk,risk.cls)}${metric('Gestión','Sin stop automático')}${metric('Salida TP1',(a.hit1?'✓ ':'')+F(a.tp1),a.hit1?'g':'')}${metric('Referencia TP2',F(a.tp2))}${metric('Referencia TP3',F(a.tp3))}</div><div style="margin-top:10px">${rows}</div></div>`
+    const a=ops[0],mv=liveMovePct('LONG',a.entry,q.price);
+    if(isAdr){
+      follow=`<div class="box"><b>Seguimiento ADR v1.0</b><div class="detail-grid" style="margin-top:8px">${metric('Entrada confirmada',F(a.entry))}${metric('Precio actual',F(q.price))}${metric('Avance',(mv>=0?'+':'')+mv.toFixed(2)+'%',mv>=0?'g':'r')}${metric('RR planificado',Number.isFinite(+a.context?.planned_rr)?(+a.context.planned_rr).toFixed(2)+'R':'—')}${metric('Invalidación técnica',F(a.context?.technical_invalidation??a.stop))}${metric('Gestión','Sin stop automático')}${metric('Salida final TP1',F(a.tp1))}${metric('Estado',a.status,a.status==='OPEN'?'y':'g')}</div><div class="small" style="margin-top:8px">Una sola entrada por activo. No existen E2/E3 en ADR v1.0.</div></div>`;
+    }else{
+      const snap=frozen||canonicalLadderSnapshot(a.context?.ladder_snapshot||{})||{},entryLevels=snap.below||[],used=new Map(ops.map(o=>[+o.context?.entry_rank,o])),
+            stage=ops.some(o=>o.status==='TP2')?'TP2 ALCANZADO':ops.some(o=>o.status==='TP1')?'TP1 ALCANZADO':'ABIERTO';
+      const rows=entryLevels.map(p=>{const op=used.get(+p.rank);if(op){const m=liveMovePct('LONG',op.entry,q.price);return `<div class="check"><span class="ico ${m>=0?'g':'r'}">${p.rank}</span><span><b class="dir-long">COMPRA ${p.rank}</b> · <b>COMPRA EJECUTADA</b> ${F(op.entry)} · actual ${F(q.price)} · <b class="${m>=0?'g':'r'}">${m>=0?'+':''}${m.toFixed(2)}%</b> · ${op.status}</span></div>`}return `<div class="check"><span class="ico y">${p.rank}</span><span><b>COMPRA ${p.rank}</b> · <b>COMPRA PENDIENTE</b> ${F(p.point)} · ${stage==='ABIERTO'?'esperando toque de la línea exacta':'no se agrega después de TP1'}</span></div>`}).join('');
+      follow=`<div class="box"><b>Seguimiento de la operación</b><div class="detail-grid" style="margin-top:8px">${metric('Tipo','<span class="dir-long">COMPRA</span>')}${metric('Compras ejecutadas',String(ops.length))}${metric('Estado',stage,stage==='ABIERTO'?'y':'g')}${metric('Precio actual',F(q.price))}${metric('Riesgo de contexto',risk.risk,risk.cls)}${metric('Gestión','Sin stop automático')}${metric('Salida TP1',(a.hit1?'✓ ':'')+F(a.tp1),a.hit1?'g':'')}${metric('Referencia TP2',F(a.tp2))}${metric('Referencia TP3',F(a.tp3))}</div><div style="margin-top:10px">${rows}</div></div>`;
+    }
   }
-  const isAdr=x.kind==='MERVAL_ADR'||q.version===ADR_STRATEGY_VERSION;
   const zoneNote=!ops.length&&plan?.state==='IN_ZONE'?(isAdr
     ?`<div class="note"><b>EN ZONA no es compra.</b> ADR v1.0 espera una vela 15m cerrada que cruce el centro del OB y cierre nuevamente por encima con rechazo alcista; además debe conservar RR ≥ 1,8. Un simple toque no genera operación.</div>`
     :`<div class="note"><b>EN ZONA no es entrada.</b> El precio está dentro del Order Block de COMPRA ${plan.rank}; la operación sólo se ejecuta cuando toca la línea exacta <b>${F(plan.entry)}</b>. Falta ${entryGapText(q,near)}.</div>`):'';
