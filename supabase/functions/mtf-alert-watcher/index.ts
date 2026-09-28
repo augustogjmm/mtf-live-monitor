@@ -7,8 +7,9 @@ const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
 const STRATEGY_VERSION = "OB-LADDER-v3.7.3";
 const PREVIOUS_CRYPTO_STRATEGY_VERSION = "OB-LADDER-v3.7.2";
 const REGULATED_STRATEGY_VERSION = "OB-LADDER-v3.6";
+const ADR_STRATEGY_VERSION = "ADR-OB-v1.0";
 const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
-const ACTIVE_STRATEGY_VERSIONS = [LEGACY_STRATEGY_VERSION, REGULATED_STRATEGY_VERSION, PREVIOUS_CRYPTO_STRATEGY_VERSION, STRATEGY_VERSION];
+const ACTIVE_STRATEGY_VERSIONS = [LEGACY_STRATEGY_VERSION, REGULATED_STRATEGY_VERSION, ADR_STRATEGY_VERSION, PREVIOUS_CRYPTO_STRATEGY_VERSION, STRATEGY_VERSION];
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession:false, autoRefreshToken:false } });
 
 type Signal = {
@@ -466,13 +467,14 @@ Deno.serve(async(req:Request)=>{
     const since=config.last_watcher_at?new Date(config.last_watcher_at).getTime():Math.max(activated,now-60000);
     const dirFilter=String(config.entry_direction||"LONG");
 
-    let q=sb.from("mtf_signals").select("*").in("strategy_version",[REGULATED_STRATEGY_VERSION,STRATEGY_VERSION]).eq("source","FORWARD").gte("created_at",new Date(Math.max(activated,since-120000)).toISOString());
+    let q=sb.from("mtf_signals").select("*").in("strategy_version",[REGULATED_STRATEGY_VERSION,ADR_STRATEGY_VERSION,STRATEGY_VERSION]).eq("source","FORWARD").gte("created_at",new Date(Math.max(activated,since-120000)).toISOString());
     if(dirFilter!=="BOTH")q=q.eq("direction",dirFilter);
     const {data:newSignals,error:newErr}=await q;
     if(newErr)throw newErr;
     const eligibleNew=((newSignals||[]) as Signal[]).filter((s:any)=>
       (s.market==="crypto"&&String(s.strategy_version)===STRATEGY_VERSION)||
-      (s.market!=="crypto"&&String(s.strategy_version)===REGULATED_STRATEGY_VERSION)
+      (s.market==="cedear"&&String(s.strategy_version)===REGULATED_STRATEGY_VERSION)||
+      (s.market==="merval"&&[REGULATED_STRATEGY_VERSION,ADR_STRATEGY_VERSION].includes(String(s.strategy_version)))
     );
     const entryGroups=new Map<string,Signal[]>();
     for(const s of eligibleNew){const k=entryGroupKey(s);if(!entryGroups.has(k))entryGroups.set(k,[]);entryGroups.get(k)!.push(s)}
@@ -496,6 +498,7 @@ Deno.serve(async(req:Request)=>{
       const v=String(s.strategy_version);
       if(v===LEGACY_STRATEGY_VERSION)return ["OPEN","TP1","TP2"].includes(String(s.status));
       if(s.market==="crypto")return [PREVIOUS_CRYPTO_STRATEGY_VERSION,STRATEGY_VERSION].includes(v)&&String(s.status)==="OPEN";
+      if(s.market==="merval")return [REGULATED_STRATEGY_VERSION,ADR_STRATEGY_VERSION].includes(v)&&String(s.status)==="OPEN";
       return v===REGULATED_STRATEGY_VERSION&&String(s.status)==="OPEN";
     });
 
@@ -526,7 +529,11 @@ Deno.serve(async(req:Request)=>{
             signalStart=Math.min(...a.map((x:any)=>new Date(x.signal_time).getTime()).filter((x:number)=>Number.isFinite(x)&&x>0)),
             fetchFrom=Number.isFinite(signalStart)?Math.max(since,signalStart):since,
             dataKey=rep.market+":"+(rep.market==="crypto"?rep.symbol:(rep.underlying||rep.symbol))+":"+Math.floor(fetchFrom/60000);
-      if(rep.market==="merval"&&!liveState.bothOpen){checked++;continue;}
+      if(rep.market==="merval"){
+        const adrV1=String(rep.strategy_version)===ADR_STRATEGY_VERSION;
+        if(adrV1&&String(marketGuard?.usa?.code||"")!=="OPEN"){checked++;continue;}
+        if(!adrV1&&!liveState.bothOpen){checked++;continue;}
+      }
       if(rep.market==="cedear"&&String(marketGuard?.byma?.code||"")!=="OPEN"){checked++;continue;}
       let bars=cache.get(dataKey);
       if(!bars){
