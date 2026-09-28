@@ -4,10 +4,11 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
-const STRATEGY_VERSION = "OB-LADDER-v3.7.2";
+const STRATEGY_VERSION = "OB-LADDER-v3.7.3";
+const PREVIOUS_CRYPTO_STRATEGY_VERSION = "OB-LADDER-v3.7.2";
 const REGULATED_STRATEGY_VERSION = "OB-LADDER-v3.6";
 const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
-const ACTIVE_STRATEGY_VERSIONS = [LEGACY_STRATEGY_VERSION, REGULATED_STRATEGY_VERSION, STRATEGY_VERSION];
+const ACTIVE_STRATEGY_VERSIONS = [LEGACY_STRATEGY_VERSION, REGULATED_STRATEGY_VERSION, PREVIOUS_CRYPTO_STRATEGY_VERSION, STRATEGY_VERSION];
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession:false, autoRefreshToken:false } });
 
 type Signal = {
@@ -494,7 +495,7 @@ Deno.serve(async(req:Request)=>{
     const opens=((allOpenCandidates||[]) as Signal[]).filter((s:any)=>{
       const v=String(s.strategy_version);
       if(v===LEGACY_STRATEGY_VERSION)return ["OPEN","TP1","TP2"].includes(String(s.status));
-      if(s.market==="crypto")return v===STRATEGY_VERSION&&String(s.status)==="OPEN";
+      if(s.market==="crypto")return [PREVIOUS_CRYPTO_STRATEGY_VERSION,STRATEGY_VERSION].includes(v)&&String(s.status)==="OPEN";
       return v===REGULATED_STRATEGY_VERSION&&String(s.status)==="OPEN";
     });
 
@@ -518,7 +519,7 @@ Deno.serve(async(req:Request)=>{
     let checked=0,createdLevels=0;
     for(const [k,a] of openGroups){
       const rep=a[0], isLegacy=String(rep.strategy_version)===LEGACY_STRATEGY_VERSION,
-            isV37Crypto=rep.market==="crypto"&&String(rep.strategy_version)===STRATEGY_VERSION,
+            isV37Crypto=rep.market==="crypto"&&[PREVIOUS_CRYPTO_STRATEGY_VERSION,STRATEGY_VERSION].includes(String(rep.strategy_version)),
             setupEntry=avgEntry(a), initialStop=n(rep.context?.initial_stop), setupRisk=Math.abs(setupEntry-(Number.isFinite(initialStop)?initialStop:n(rep.stop))),
             setupPayload={setup_id:rep.context?.setup_id,strategy_version:rep.strategy_version,entries:a.map((x:any)=>({rank:x.context?.entry_rank,entry:x.entry,status:x.status})),context:rep.context?.context,macro_context:rep.context?.macro_context,trend_relation:rep.context?.trend_relation,planned_rr:rep.context?.planned_rr}, seen=prior.get(k)||new Set<string>(),
             setupEligibleAfter=Math.min(...a.map(entryBarEnd).filter((x:number)=>x>0)),
