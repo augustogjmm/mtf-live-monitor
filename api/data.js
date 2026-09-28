@@ -109,9 +109,13 @@ function normalizeEquities(leading,general){
 async function mervalPanelSnapshot(){
  try{
   const [leading,general]=await Promise.all([bymaEquityRows('leading-equity'),bymaEquityRows('general-equity')]);
-  const items=normalizeEquities(leading,general);
+  const liveItems=normalizeEquities(leading,general),bySym=new Map(liveItems.map(x=>[String(x.symbol).toUpperCase(),x]));
+  for(const [symbol,adr] of Object.entries(MERVAL_ADR)){
+    if(!bySym.has(symbol))bySym.set(symbol,{symbol,name:MERVAL_NAMES[symbol]||symbol,sourcePanel:'ADR',favorite:true,adr,method:'ADR',series:adr,currentVolumeAmount:0,trade:NaN,volume:0,cachedUniverse:true});
+  }
+  const items=[...bySym.values()].filter(x=>x?.method==='ADR'&&x?.adr);
   if(!items.length)throw Error('BYMA no devolvió ADR argentinos disponibles');
-  return {source:'BYMA universo local + ADR directos USD',count:items.length,leadingCount:items.filter(x=>x.sourcePanel==='Líder').length,favoriteCount:items.filter(x=>x.favorite).length,items,snapshot:false};
+  return {source:'BYMA universo local + universo ADR certificado',count:items.length,leadingCount:items.filter(x=>x.sourcePanel==='Líder').length,favoriteCount:items.filter(x=>x.favorite).length,items,snapshot:false};
  }catch(liveError){
   try{
    const snap=await supa('/rest/v1/rpc/mtf_latest_merval_snapshot',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
