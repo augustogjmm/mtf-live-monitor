@@ -401,7 +401,7 @@ async function yahooDailyRaw(symbol:string){
  let last:any;
  for(const host of ["https://query1.finance.yahoo.com","https://query2.finance.yahoo.com"]){
   try{
-   const u=`${host}/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&period1=0&period2=${Math.floor(Date.now()/1000)}&includePrePost=false&events=div%2Csplits`;
+   const period2=Math.floor(Date.now()/1000),period1=Math.floor((Date.now()-10*365.25*24*60*60*1000)/1000),u=`${host}/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&period1=${period1}&period2=${period2}&includePrePost=false&events=div%2Csplits`;
    const j=await fetchJson(u,{headers:{"user-agent":"Mozilla/5.0","accept":"application/json"}},18000),z=j?.chart?.result?.[0],q=z?.indicators?.quote?.[0]||{},meta=z?.meta||{};
    if(!z?.timestamp?.length)throw new Error("Yahoo sin datos");
    const bars:DailyBar[]=[];
