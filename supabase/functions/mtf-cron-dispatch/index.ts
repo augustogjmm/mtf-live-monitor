@@ -47,6 +47,12 @@ Deno.serve(async (req: Request) => {
   else if (action === "regulated-baseline") {
     target = "mtf-daily-backfill";
     targetBody = { market:"cedear", regulated_baseline:true };
+  } else if (action === "adr-live") {
+    target = "mtf-adr-engine";
+    targetBody = { mode:"live" };
+  } else if (action === "adr-baseline") {
+    target = "mtf-adr-engine";
+    targetBody = { mode:"baseline" };
   } else if (action === "crypto-rebuild") {
     target = "mtf-crypto-engine";
     targetBody = { mode:"rebuild", symbol:String(body.symbol||"").toUpperCase() };
