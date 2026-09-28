@@ -941,7 +941,24 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
 
   const {data:metricRows,error:allMetricErr}=await sb.from("mtf_cedear_work").select("symbol,underlying,metrics").eq("run_date",runDate).eq("metrics_done",true).not("metrics","is",null);
   if(allMetricErr)throw allMetricErr;
-  const liquid=selectLiquidUniverse((metricRows||[]).map((r:any)=>({symbol:r.symbol,underlying:r.underlying,liquidity:r.metrics})));
+  let liquid=selectLiquidUniverse((metricRows||[]).map((r:any)=>({symbol:r.symbol,underlying:r.underlying,liquidity:r.metrics}))),
+      liquidityBasis="BYMA_CURRENT_TURNOVER";
+  if(!liquid.length&&(metricRows||[]).length){
+    const {data:lastValid}=await sb.from("mtf_cedear_work").select("run_date").lt("run_date",runDate).eq("eligible_liquid",true)
+      .order("run_date",{ascending:false}).limit(1).maybeSingle();
+    if(lastValid?.run_date){
+      const {data:prevRows,error:prevErr}=await sb.from("mtf_cedear_work")
+        .select("symbol,underlying,liquidity_rank,metrics").eq("run_date",lastValid.run_date).eq("eligible_liquid",true)
+        .order("liquidity_rank",{ascending:true});
+      if(prevErr)throw prevErr;
+      liquid=(prevRows||[]).map((r:any)=>({
+        symbol:r.symbol,underlying:r.underlying||underlyingFor(r.symbol),liquidity:r.metrics||{},
+        eligible_liquid:true,liquidity_rank:r.liquidity_rank,
+        liquidity_rule:"FALLBACK_LAST_VALID_BYMA_UNIVERSE",fallback_run_date:lastValid.run_date
+      }));
+      if(liquid.length)liquidityBasis="BYMA_LAST_VALID_UNIVERSE_FALLBACK";
+    }
+  }
   await sb.from("mtf_cedear_work").update({eligible_liquid:false,liquidity_rank:null,tier:null,score:null,coverage_pct:null,updated_at:new Date().toISOString()}).eq("run_date",runDate);
   if(liquid.length){
     const patch=liquid.map((x:any)=>({run_date:runDate,symbol:x.symbol,underlying:underlyingFor(x.symbol),eligible_liquid:true,liquidity_rank:x.liquidity_rank,tier:null,score:null,coverage_pct:null,updated_at:new Date().toISOString()}));
@@ -949,7 +966,7 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
   }
 
   if(prepareOnly){
-    return{strategy_version:STRATEGY_VERSION,prepare:true,complete:true,phase:"ready",liquidity_basis:"BYMA_CURRENT_TURNOVER",run_date:runDate,total,liquid_universe:liquid.length,pending:0};
+    return{strategy_version:STRATEGY_VERSION,prepare:true,complete:true,phase:"ready",liquidity_basis:liquidityBasis,run_date:runDate,total,liquid_universe:liquid.length,pending:0};
   }
 
   const {data:signalBatch,error:signalErr}=await sb.from("mtf_cedear_work")
