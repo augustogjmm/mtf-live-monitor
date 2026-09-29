@@ -208,6 +208,41 @@ function openSummary(rows){
    adr:a.filter(x=>x.market==='merval').length
  };
 }
+function cryptoClosedBarDiagnostic(structure){
+ const out={checked:0,ready:0,touched:0,rejections:0,qualified:0,rr_pass:0,barClose:null,details:[]};
+ const n=x=>Number(x),finite=x=>Number.isFinite(n(x));
+ for(const s of Array.isArray(structure)?structure:[]){
+  if(!s?.ready)continue;out.ready++;
+  const b=s.lastClosed1h,ref=s.signalReference;
+  if(!b||!ref||!finite(b.closeTime)||n(b.closeTime)!==n(ref.barClose))continue;
+  out.checked++;if(!out.barClose||n(b.closeTime)>out.barClose)out.barClose=n(b.closeTime);
+  const range=n(b.h)-n(b.l);if(!(range>0))continue;
+  let touched=false,rejected=false,qualified=false,rrPass=false;
+  for(const [dir,levels,targets] of [
+   ['LONG',ref.ladder?.below||[],ref.ladder?.above||[]],
+   ['SHORT',ref.ladder?.above||[],ref.ladder?.below||[]]
+  ]){
+   for(const l of levels){
+    if(![b.o,b.h,b.l,b.c,l.point,l.zone_top,l.zone_bottom].every(finite))continue;
+    const overlap=n(b.l)<=n(l.zone_top)&&n(b.h)>=n(l.zone_bottom);
+    if(!overlap)continue;touched=true;
+    const reject=dir==='LONG'
+     ?n(b.l)<=n(l.point)&&n(b.c)>n(l.point)&&n(b.c)>n(b.o)&&(Math.min(n(b.o),n(b.c))-n(b.l))/range>=.20
+     :n(b.h)>=n(l.point)&&n(b.c)<n(l.point)&&n(b.c)<n(b.o)&&(n(b.h)-Math.max(n(b.o),n(b.c)))/range>=.20;
+    if(!reject)continue;rejected=true;
+    const gate=s.eligibility?.[dir];if(gate?.eligible!==true)continue;qualified=true;
+    const atr=n(s.context?.atr14),stop=dir==='LONG'?n(l.zone_bottom)-.30*atr:n(l.zone_top)+.30*atr,
+          risk=Math.abs(n(b.c)-stop);
+    if(!(atr>0&&risk>0)||(dir==='LONG'&&stop>=n(b.c))||(dir==='SHORT'&&stop<=n(b.c)))continue;
+    if(targets.some(t=>finite(t.point)&&(dir==='LONG'?n(t.point)>n(b.c):n(t.point)<n(b.c))&&Math.abs(n(t.point)-n(b.c))/risk>=1.8))rrPass=true;
+   }
+  }
+  if(touched)out.touched++;if(rejected)out.rejections++;if(qualified)out.qualified++;if(rrPass)out.rr_pass++;
+  if(touched||rejected||qualified)out.details.push({symbol:s.symbol,touched,rejected,qualified,rr_pass:rrPass});
+ }
+ if(out.barClose)out.barClose=new Date(out.barClose).toISOString();
+ return out;
+}
 async function runtimeSnapshot(market='crypto'){
  if(market==='crypto'){
    const [opens,structureRows,liveRows]=await Promise.all([
@@ -225,6 +260,7 @@ async function runtimeSnapshot(market='crypto'){
      structureGeneratedAt:structureRows?.[0]?.meta?.generated_at||structureRows?.[0]?.last_run_at||null,
      liveStates:Array.isArray(live)?live:[],
      funnel:liveRows?.[0]?.meta?.funnel||null,
+     lastClosedDiagnostic:cryptoClosedBarDiagnostic(structure),
      liveGeneratedAt:liveRows?.[0]?.meta?.generated_at||liveRows?.[0]?.last_run_at||null,
      generatedAt:new Date().toISOString()
    };
@@ -245,7 +281,7 @@ async function runtimeSnapshot(market='crypto'){
    generatedAt:new Date().toISOString()
  };
 }
-async function statusSnapshot(){const [j,httpErrors,audit,adrCertification,cedearSnapshot]=await Promise.all([supa('/rest/v1/rpc/mtf_system_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_http_error_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_audit_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_adr_certification_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).catch(()=>({})),latestCedearServerSnapshot().catch(()=>({}))]);const liq=cedearLiquidityMeta(cedearSnapshot);return{...j,audit:audit||{},adrCertification:adrCertification||{},cedearLiquidity:{runDate:cedearSnapshot?.run_date||null,total:Number(cedearSnapshot?.total)||0,universeRule:cedearSnapshot?.universe_rule||null,...liq},errors:{...(j.errors||{}),...(httpErrors||{})},ui_version:'3.8.7',build_id:'MTF-Live-Monitor-3.8.7-SETUP-VISIBILITY',api_generated_at:new Date().toISOString()}}
+async function statusSnapshot(){const [j,httpErrors,audit,adrCertification,cedearSnapshot]=await Promise.all([supa('/rest/v1/rpc/mtf_system_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_http_error_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_audit_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_adr_certification_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).catch(()=>({})),latestCedearServerSnapshot().catch(()=>({}))]);const liq=cedearLiquidityMeta(cedearSnapshot);return{...j,audit:audit||{},adrCertification:adrCertification||{},cedearLiquidity:{runDate:cedearSnapshot?.run_date||null,total:Number(cedearSnapshot?.total)||0,universeRule:cedearSnapshot?.universe_rule||null,...liq},errors:{...(j.errors||{}),...(httpErrors||{})},ui_version:'3.8.8',build_id:'MTF-Live-Monitor-3.8.8-CLOSED-BAR-DIAGNOSTIC',api_generated_at:new Date().toISOString()}}
 async function telegramCanary(){throw Error('Canary público deshabilitado en v3.8.0')}
 async function supaAll(path,pageSize=1000,maxRows=20000){const out=[];for(let offset=0;offset<maxRows;offset+=pageSize){const sep=path.includes('?')?'&':'?';const batch=await supa(`${path}${sep}limit=${pageSize}&offset=${offset}`);out.push(...batch);if(batch.length<pageSize)break}return out}
 async function marketStatus(){try{const rows=await supa('/rest/v1/mtf_state?market=eq.market_guard&select=meta,last_run_at&limit=1'),row=rows?.[0],age=row?.last_run_at?Date.now()-new Date(row.last_run_at).getTime():Infinity;if(row?.meta&&age<180000)return row.meta;return{generatedAt:new Date().toISOString(),byma:{code:'UNKNOWN',text:'BYMA sin estado reciente'},usa:{code:'UNKNOWN',text:'USA sin estado reciente'},combined:{code:'STALE',text:'Estado de mercados desactualizado · no confiar en alertas intradía',actionable:false,validDaily:false}}}catch(e){return{generatedAt:new Date().toISOString(),byma:{code:'ERROR',text:'BYMA sin estado'},usa:{code:'ERROR',text:'USA sin estado'},combined:{code:'STALE',text:'No se pudo validar estado de mercados',actionable:false,validDaily:false}}}}
@@ -280,4 +316,4 @@ async function statsSnapshot(){
    generatedAt:j?.generated_at||new Date().toISOString()
  };
 }
-module.exports=async function handler(req,res){try{const op=String(req.query?.op||'');if(op==='stats'){res.setHeader('cache-control','no-store');return res.status(200).json(await statsSnapshot())}if(op==='runtime'){res.setHeader('cache-control','no-store');return res.status(200).json(await runtimeSnapshot(String(req.query?.market||'crypto')))}if(op==='status'){res.setHeader('cache-control','no-store');return res.status(200).json(await statusSnapshot())}if(op==='canary'){res.setHeader('cache-control','no-store');return res.status(403).json({error:'Canary público deshabilitado en v3.8.0'})}res.setHeader('cache-control','s-maxage=120, stale-while-revalidate=600');if(op==='health')return res.status(200).json({ok:true,strategy_version:'OB-LADDER-v3.7.3',regulated_strategy_version:'OB-LADDER-v3.6',adr_strategy_version:'ADR-OB-v1.0',ui_version:'3.8.7',build_id:'MTF-Live-Monitor-3.8.7-SETUP-VISIBILITY'});if(op==='market-status'){res.setHeader('cache-control','s-maxage=20, stale-while-revalidate=20');return res.status(200).json(await marketStatus())}if(op==='cedears-panel'||op==='cedears')return res.status(200).json(await cedearPanelSnapshot());if(op==='cedears-batch')return res.status(200).json(await cedearBatch(req.query?.offset,req.query?.limit));if(op==='merval-panel')return res.status(200).json(await mervalPanelSnapshot());if(op==='merval-history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await mervalHistory(sym))}if(op==='history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await history(sym))}return res.status(400).json({error:'op inválido'})}catch(e){return res.status(500).json({error:String(e?.message||e)})}}
+module.exports=async function handler(req,res){try{const op=String(req.query?.op||'');if(op==='stats'){res.setHeader('cache-control','no-store');return res.status(200).json(await statsSnapshot())}if(op==='runtime'){res.setHeader('cache-control','no-store');return res.status(200).json(await runtimeSnapshot(String(req.query?.market||'crypto')))}if(op==='status'){res.setHeader('cache-control','no-store');return res.status(200).json(await statusSnapshot())}if(op==='canary'){res.setHeader('cache-control','no-store');return res.status(403).json({error:'Canary público deshabilitado en v3.8.0'})}res.setHeader('cache-control','s-maxage=120, stale-while-revalidate=600');if(op==='health')return res.status(200).json({ok:true,strategy_version:'OB-LADDER-v3.7.3',regulated_strategy_version:'OB-LADDER-v3.6',adr_strategy_version:'ADR-OB-v1.0',ui_version:'3.8.8',build_id:'MTF-Live-Monitor-3.8.8-CLOSED-BAR-DIAGNOSTIC'});if(op==='market-status'){res.setHeader('cache-control','s-maxage=20, stale-while-revalidate=20');return res.status(200).json(await marketStatus())}if(op==='cedears-panel'||op==='cedears')return res.status(200).json(await cedearPanelSnapshot());if(op==='cedears-batch')return res.status(200).json(await cedearBatch(req.query?.offset,req.query?.limit));if(op==='merval-panel')return res.status(200).json(await mervalPanelSnapshot());if(op==='merval-history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await mervalHistory(sym))}if(op==='history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await history(sym))}return res.status(400).json({error:'op inválido'})}catch(e){return res.status(500).json({error:String(e?.message||e)})}}
