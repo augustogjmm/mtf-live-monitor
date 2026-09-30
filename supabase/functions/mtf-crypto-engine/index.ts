@@ -322,31 +322,41 @@ async function live(createEntries=true){
       if(currentGate?.contextOk){funnel.context_allowed++;if(currentGate?.structureOk){funnel.structure_allowed++;if(Number(currentGate?.momentumScore||0)>=2)funnel.momentum_allowed++;}}
       if(currentGate?.eligible)funnel.eligible_current++;
     }
-    let lastH1=n(prev?.last_h1_close)||0,lastM1=n(prev?.last_m1_close)||0,latestM1:Bar|null=null;
-    try{const rows=await klines(pair,"1m",3),closed=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now());latestM1=closed[closed.length-1]||null;}catch{}
-    const m1Close=latestM1?(n(latestM1.closeTime)||latestM1.t+60000):0;
-    // Baseline on first observation; do not backfill a trade from a candle already closed.
-    if(!lastM1&&m1Close>0)lastM1=m1Close;
-    if(createEntries&&prev&&n(prev.last_m1_close)>0&&latestM1&&m1Close>n(prev.last_m1_close)){
-      funnel.confirmation_bars_checked++;
-      if(!legacy.length&&!opens.length){
-        const candidates=[
-          ...prox0.below.filter((x:Level)=>directionEligibility("LONG",snap0).eligible&&touched(latestM1 as Bar,x)).map((level:Level)=>({dir:"LONG",level})),
-          ...prox0.above.filter((x:Level)=>directionEligibility("SHORT",snap0).eligible&&touched(latestM1 as Bar,x)).map((level:Level)=>({dir:"SHORT",level}))
-        ].sort((a:any,b:any)=>a.level.rank-b.level.rank);
-        funnel.rejection_hits+=candidates.length;
-        for(const candidate of candidates){
-          const gate=directionEligibility(candidate.dir,snap0),plan=tradePlan(candidate.dir,candidate.level,snap0,candidate.level.point);
-          if(!plan)continue;
-          funnel.rr_pass++;
-          const id=setupId(sym,candidate.dir,m1Close),row=signalFromConfirmation(sym,candidate.dir,candidate.level,snap0,id,latestM1,plan),
-                ins=await insertLeg(row);
-          if(ins){opens.push(ins);funnel.entries++;created.push({symbol:sym,direction:candidate.dir,rank:candidate.level.rank,
-            setup_id:id,entry:row.entry,stop:row.stop,tp1:row.tp1,rr:plan.rr,trend_relation:gate.relation});break}
+    let lastH1=n(prev?.last_h1_close)||0,lastM1=n(prev?.last_m1_close)||0;
+    let minuteBars:Bar[]=[];
+    try{const rows=await klines(pair,"1m",12);
+      minuteBars=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now()).sort((x:Bar,y:Bar)=>x.t-y.t);}catch{}
+    // Baseline on first observation; replay only bars strictly newer than the persisted watermark.
+    if(!lastM1&&minuteBars.length)lastM1=n(minuteBars[minuteBars.length-1].closeTime)||minuteBars[minuteBars.length-1].t+60000;
+    const freshBars=minuteBars.filter((bar:Bar)=>(n(bar.closeTime)||bar.t+60000)>lastM1);
+    for(const bar of freshBars){
+      const barClose=n(bar.closeTime)||bar.t+60000;
+      if(createEntries&&prev&&n(prev.last_m1_close)>0){
+        funnel.confirmation_bars_checked++;
+        if(!legacy.length&&!opens.length){
+          const candidates=[
+            ...prox0.below.filter((x:Level)=>directionEligibility("LONG",snap0).eligible&&touched(bar,x))
+              .map((level:Level)=>({dir:"LONG",level})),
+            ...prox0.above.filter((x:Level)=>directionEligibility("SHORT",snap0).eligible&&touched(bar,x))
+              .map((level:Level)=>({dir:"SHORT",level}))
+          ].sort((a:any,b:any)=>a.level.rank-b.level.rank);
+          funnel.rejection_hits+=candidates.length;
+          for(const candidate of candidates){
+            const gate=directionEligibility(candidate.dir,snap0),
+                  plan=tradePlan(candidate.dir,candidate.level,snap0,candidate.level.point);
+            if(!plan)continue;
+            funnel.rr_pass++;
+            const id=setupId(sym,candidate.dir,barClose),
+                  row=signalFromConfirmation(sym,candidate.dir,candidate.level,snap0,id,bar,plan),
+                  ins=await insertLeg(row);
+            if(ins){opens.push(ins);funnel.entries++;created.push({symbol:sym,direction:candidate.dir,
+              rank:candidate.level.rank,setup_id:id,entry:row.entry,stop:row.stop,tp1:row.tp1,
+              rr:plan.rr,trend_relation:gate.relation});break}
+          }
         }
       }
-      lastM1=m1Close;
-    }else if(m1Close>0)lastM1=Math.max(lastM1,m1Close);
+      lastM1=Math.max(lastM1,barClose);
+    }
     try{const rows=await klines(pair,"1h",2),closed=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now());
       const bar=closed[closed.length-1];if(bar)lastH1=Math.max(lastH1,n(bar.closeTime)||bar.t+HOUR);}catch{}
     const operational=legacy.length?legacy:opens;
