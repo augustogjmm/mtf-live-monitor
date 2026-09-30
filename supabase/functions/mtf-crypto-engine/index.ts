@@ -304,6 +304,7 @@ async function live(createEntries=true){
   if(stErr)throw stErr;if(prevErr)throw prevErr;
   const snaps:any[]=st?.meta?.snapshot||[];if(!snaps.length)return{ready:false,reason:"missing_structure_snapshot"};
   const prevMap=new Map<string,any>((prevRow?.meta?.snapshot||[]).map((x:any)=>[String(x.symbol),x]));
+  let hourlyConfirmation:any=prevRow?.meta?.hourlyConfirmation||null;
   const prices=await currentPrices(),liveStates:any[]=[],created:any[]=[],
         funnel:any={assets:snaps.length,ready:0,near_or_zone:0,context_allowed:0,structure_allowed:0,momentum_allowed:0,eligible_current:0,confirmation_bars_checked:0,rejection_hits:0,rr_pass:0,entries:0};
   for(const snap0 of snaps){
@@ -333,6 +334,10 @@ async function live(createEntries=true){
     if(!legacy.length&&!opens.length&&createEntries&&previousObserved&&latestClosed&&latestClose>n(prev?.last_h1_close)){
       const fresh=await snapshotOne(sym),ref=fresh?.signalReference;
       funnel.confirmation_bars_checked++;
+      let outcome="reference_unavailable";
+      if(!ref?.complete)outcome="pre_candle_ladder_incomplete";
+      else if(fresh?.context?.ready!==true||fresh?.macroContext?.h4?.ready!==true||fresh?.macroContext?.d1?.ready!==true)outcome="context_unavailable";
+      else if(n(ref.barClose)!==latestClose)outcome="reference_bar_mismatch";
       if(ref?.complete===true&&fresh?.context?.ready===true&&fresh?.macroContext?.h4?.ready===true&&fresh?.macroContext?.d1?.ready===true&&n(ref.barClose)===latestClose){
         const ladder={below:(ref.ladder?.below||[]).map(levelFromPublic),above:(ref.ladder?.above||[]).map(levelFromPublic)};
         const signalSnap={...fresh,ladder:ref.ladder};
@@ -342,16 +347,19 @@ async function live(createEntries=true){
         ].filter((x:any)=>rejectsZone(latestClosed as Bar,x.level,x.dir))
          .sort((a:any,b:any)=>a.level.rank-b.level.rank);
         funnel.rejection_hits+=candidates.length;
+        outcome=candidates.length?"rejection_but_filters_failed":"no_rejection";
         for(const candidate of candidates){
           const gate=directionEligibility(candidate.dir,fresh);if(!gate.eligible)continue;
-          const plan=tradePlan(candidate.dir,candidate.level,signalSnap,n((latestClosed as Bar).c));if(!plan)continue;
+          const plan=tradePlan(candidate.dir,candidate.level,signalSnap,n((latestClosed as Bar).c));if(!plan){outcome="rr_failed";continue;}
           funnel.rr_pass++;
           const id=setupId(sym,candidate.dir,latestClose),row=signalFromConfirmation(sym,candidate.dir,candidate.level,signalSnap,id,latestClosed as Bar,plan);
           const ins=await insertLeg(row);
-          if(ins){opens.push(ins);funnel.entries++;created.push({symbol:sym,direction:candidate.dir,rank:candidate.level.rank,setup_id:id,bar_close:latestClose,entry:row.entry,stop:row.stop,tp1:row.tp1,rr:plan.rr,trend_relation:gate.relation});break}
+          if(ins){outcome="entry_created";opens.push(ins);funnel.entries++;created.push({symbol:sym,direction:candidate.dir,rank:candidate.level.rank,setup_id:id,bar_close:latestClose,entry:row.entry,stop:row.stop,tp1:row.tp1,rr:plan.rr,trend_relation:gate.relation});break}else outcome="entry_insert_skipped";
         }
         lastH1=Math.max(lastH1||0,latestClose);
       }
+      if(!hourlyConfirmation||latestClose>n(hourlyConfirmation.barClose))hourlyConfirmation={barClose:latestClose,assets:{}};
+      if(latestClose===n(hourlyConfirmation.barClose))hourlyConfirmation.assets[sym]=outcome;
     } else if(!previousObserved&&latestClose>0){
       lastH1=latestClose;
     } else if(latestClose>0&&latestClose<=n(prev?.last_h1_close)){
@@ -367,7 +375,7 @@ async function live(createEntries=true){
       baseline:!createEntries,updated_at:iso()
     });
   }
-  const meta={strategy_version:VERSION,engine:ENGINE,generated_at:iso(),baseline:!createEntries,funnel,snapshot:liveStates};
+  const meta={strategy_version:VERSION,engine:ENGINE,generated_at:iso(),baseline:!createEntries,funnel,hourlyConfirmation,snapshot:liveStates};
   const {error}=await sb.from("mtf_state").upsert({
     market:"crypto_live",last_processed_at:iso(),last_run_at:iso(),meta,updated_at:iso()
   },{onConflict:"market"});if(error)throw error;
