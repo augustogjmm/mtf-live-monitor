@@ -189,7 +189,7 @@ function trendRelation(direction:"LONG"|"SHORT",trend:string){
 }
 function regulatedRiskProfile(diag:any){
   const d=String(diag?.context?.trend||"RANGO"),w=String(diag?.macroContext?.w1?.trend||diag?.macroContext?.trend||"RANGO");
-  if(d==="ALCISTA"&&w==="ALCISTA")return{relation:"A_FAVOR",risk:"MENOR",daily:d,weekly:w};
+  if(w==="ALCISTA"&&d!=="BAJISTA")return{relation:"A_FAVOR",risk:d==="ALCISTA"?"MENOR":"INTERMEDIO",daily:d,weekly:w};
   if(d==="BAJISTA"&&w==="BAJISTA")return{relation:"CONTRA_TENDENCIA",risk:"MAYOR",daily:d,weekly:w};
   return{relation:"INTERMEDIA",risk:"INTERMEDIO",daily:d,weekly:w};
 }
@@ -227,7 +227,7 @@ function ladderSignal(direction:"LONG"|"SHORT",level:LadderLevel,diag:any,timefr
     proximity:diag.proximity,context:diag.context,macro_context:diag.macroContext,
     trend_relation:timeframe==="1d"?regulatedRiskProfile(diag).relation:trendRelation(direction,diag.macroContext?.trend||diag.context.trend),
     risk_profile:timeframe==="1d"?regulatedRiskProfile(diag).risk:null,
-    entry_policy:timeframe==="1d"?"require_D1_and_W1_ALCISTA_each_leg":"block_CONTRA_TENDENCIA_allow_A_FAVOR_or_RANGO_each_leg",
+    entry_policy:timeframe==="1d"?"require_W1_ALCISTA_and_D1_not_BAJISTA_each_leg":"block_CONTRA_TENDENCIA_allow_A_FAVOR_or_RANGO_each_leg",
     exit_policy:timeframe==="1d"?"TP1_ONLY_NO_SL":"TP1_OR_SL",stop_policy:timeframe==="1d"?"NONE":"STRUCTURAL"}};
 }
 
@@ -732,7 +732,7 @@ async function bymaLiveOpen(){
 function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:number;o?:number;h?:number;l?:number;c?:number}){
   if(!daily?.length||daily.length<55)return{ready:false,reason:"insufficient_daily_history_lt55"};
   const bars:Bar[]=daily.map(v=>({t:v.t,o:v.open,h:v.high,l:v.low,c:v.close,v:v.volume}));
-  const ladder=detectorLadder(bars,livePrice),context=contextOnly(bars),weeklyBars=weeksFromDaily(daily,daily.at(-1)!.t);
+  const ladder=detectorLadder(bars,n(liveBar?.o)>0?n(liveBar?.o):livePrice),context=contextOnly(bars),weeklyBars=weeksFromDaily(daily,daily.at(-1)!.t);
   if(weeklyBars.length<55)return{ready:false,reason:"insufficient_weekly_history_lt55"};
   const weekly=contextOnly(weeklyBars);
   if(!context.ready||!weekly.ready)return{ready:false,reason:"context_not_mature"};
@@ -863,7 +863,7 @@ async function processRegulatedLive(createEntries=true){
       const operational=legacy.length?legacy:active;
       return{
         ok:true,ready:true,actionable:structureReady&&regulatedRiskProfile(diag).relation==="A_FAVOR"&&!legacy.length,market,symbol:sym,underlying,
-        reason:!structureReady?`setup_incomplete_${below.length}x${above.length}`:(regulatedRiskProfile(diag).relation==="A_FAVOR"?null:"context_requires_daily_and_weekly_bullish"),
+        reason:!structureReady?`setup_incomplete_${below.length}x${above.length}`:(regulatedRiskProfile(diag).relation==="A_FAVOR"?null:"context_requires_weekly_bullish_and_daily_not_bearish"),
         price:live.price,t:live.t,name:live.name||prev?.name||"",bar:displayTrigger,fresh_trigger:triggers.length>0,source:live.source,
         state:operational.length?"OPEN":diag.proximity?.state,
         proximity:diag.proximity,
