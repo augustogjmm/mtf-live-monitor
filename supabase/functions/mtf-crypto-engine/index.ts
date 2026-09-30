@@ -333,7 +333,7 @@ async function live(createEntries=true){
     if(!legacy.length&&!opens.length&&createEntries&&previousObserved&&latestClosed&&latestClose>n(prev?.last_h1_close)){
       const fresh=await snapshotOne(sym),ref=fresh?.signalReference;
       funnel.confirmation_bars_checked++;
-      if(fresh.ready&&ref&&n(ref.barClose)===latestClose){
+      if(ref?.complete===true&&fresh?.context?.ready===true&&fresh?.macroContext?.h4?.ready===true&&fresh?.macroContext?.d1?.ready===true&&n(ref.barClose)===latestClose){
         const ladder={below:(ref.ladder?.below||[]).map(levelFromPublic),above:(ref.ladder?.above||[]).map(levelFromPublic)};
         const signalSnap={...fresh,ladder:ref.ladder};
         const candidates=[
