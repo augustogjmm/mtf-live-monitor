@@ -440,6 +440,185 @@ main{padding:0 10px 20px!important;overflow-x:hidden!important;min-height:100vh;
 .reference-detail{padding-bottom:0!important}
 .cc-detail-body{position:relative!important}
 main{background:linear-gradient(180deg,#030b15 0%,#020914 100%)!important}
+
+/* v6.3 fidelity pass: internal framing, state treatment and card construction */
+.cc-head h2{font-size:15px!important;letter-spacing:.005em!important}
+.cc-panel:before{background:
+  radial-gradient(circle at 20% 0,rgba(31,114,155,.035),transparent 30%),
+  radial-gradient(circle,rgba(255,255,255,.010) .55px,transparent .65px);
+  background-size:100% 100%,3px 3px!important;opacity:.65!important}
+
+/* Oportunidades: state is icon + colored text in the reference, not a filled pill */
+.opportunities-table .cc-status{
+  display:inline-flex!important;align-items:center!important;gap:6px!important;
+  padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;font:700 9px/1 "Roboto Condensed",Inter,sans-serif!important
+}
+.opportunities-table .cc-status:before{
+  content:"";width:11px;height:11px;flex:0 0 11px;border-radius:50%;
+  box-shadow:inset 0 0 0 3px rgba(2,12,19,.78),0 0 0 1px currentColor
+}
+.opportunities-table .cc-status.zone,.opportunities-table .cc-status.open{color:#20e89b!important}
+.opportunities-table .cc-status.zone:before,.opportunities-table .cc-status.open:before{background:#20e89b}
+.opportunities-table .cc-status.near{color:#ffbd35!important}
+.opportunities-table .cc-status.near:before{background:#ffbd35}
+.opportunities-table .cc-status.wait,.opportunities-table .cc-status.blocked{color:#b5c3cf!important}
+.opportunities-table .cc-status.wait:before,.opportunities-table .cc-status.blocked:before{background:#8094a6}
+.opportunities-table .cc-status.short,.opportunities-table .cc-status.error{color:#b5c3cf!important}
+.opportunities-table .cc-status.short:before,.opportunities-table .cc-status.error:before{background:#8094a6}
+.opportunities-table td:nth-child(6){background:linear-gradient(180deg,rgba(9,27,39,.46),rgba(4,17,28,.16))!important;text-align:center}
+.opportunities-table td:nth-child(7){font-size:14px!important;letter-spacing:1px}
+.opportunities-table td:nth-child(9){font-weight:800!important;font-size:10px!important}
+
+/* Inset table frames are visible in the approved console */
+.reference-ops .cc-table-wrap,.reference-radar .cc-table-wrap{
+  margin:0 10px!important;border:1px solid #142f45!important;border-radius:6px!important;overflow:hidden!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.012),0 2px 8px rgba(0,0,0,.10)
+}
+.reference-ops .cc-table th,.reference-ops .cc-table td,
+.reference-radar .cc-table th,.reference-radar .cc-table td{
+  border-right:1px solid rgba(18,48,69,.72)!important
+}
+.reference-ops .cc-table th:last-child,.reference-ops .cc-table td:last-child,
+.reference-radar .cc-table th:last-child,.reference-radar .cc-table td:last-child{border-right:0!important}
+.reference-ops .cc-table-wrap{height:84px!important}
+.reference-radar .cc-table-wrap{height:322px!important}
+.reference-radar .cc-table tbody tr:last-child td{border-bottom:0!important}
+
+/* Operation row uses a subtle emerald field, not a flat green block */
+.operations-table tbody tr{
+  background:linear-gradient(90deg,rgba(11,72,62,.56),rgba(5,38,38,.46) 58%,rgba(4,20,29,.72))!important
+}
+.operations-table td:first-child{box-shadow:inset 5px 0 0 #2ce7a1}
+
+/* Detail mini-tables have true cell divisions */
+.detail-gridline{padding:0!important}
+.detail-gridline>span,.detail-gridline>b,.detail-gridline>em{
+  min-height:24px;display:flex;align-items:center;padding:0 8px
+}
+.detail-gridline>span,.detail-gridline>b{border-right:1px solid #15344b}
+.detail-gridline>em{justify-content:flex-end}
+
+/* Indicator cards are individually boxed in the reference */
+.gauge-card{
+  height:82px!important;margin-bottom:8px!important;padding:10px 10px!important;
+  border:1px solid #142f45!important;border-radius:6px!important;
+  background:linear-gradient(180deg,#061521,#04101a)!important
+}
+.gauge-card:last-child{margin-bottom:0!important}
+.gauge-ring{right:9px!important;top:22px!important}
+
+/* Multi-timeframe cards: two diagonal arrows, then clean label text */
+.cc-trend{grid-template-columns:34px 1fr!important}
+.cc-trend:before{
+  content:"↗\A↗"!important;white-space:pre!important;font-size:20px!important;line-height:.78!important;
+  grid-row:1/3!important;align-self:center!important
+}
+.cc-trend b{font-size:10px!important;font-weight:700!important}
+.cc-trend b .cc-up,.cc-trend b .cc-down,.cc-trend b .cc-flat{font-size:10px!important}
+
+/* Tighten reference spacing */
+.reference-radar .cc-head{padding-left:13px!important}
+.reference-chart{border-color:#233041!important}
+.detail-note{font-size:9px!important;line-height:1.35!important}
+
+/* Context-specific badges exactly as the reference uses them */
+.operations-table .cc-status.open{
+  color:#48efae!important;background:rgba(9,59,47,.28)!important;
+  border:1px solid #1cbd82!important;border-radius:5px!important;
+  box-shadow:inset 0 0 10px rgba(27,226,149,.04)!important;padding:6px 10px!important
+}
+.live-clock b{
+  display:inline-flex!important;align-items:center!important;height:25px!important;
+  padding:0 10px!important;border-radius:12px!important;
+  background:linear-gradient(180deg,rgba(5,48,34,.82),rgba(3,31,24,.82))!important;
+  box-shadow:inset 0 1px 0 rgba(74,255,179,.05)!important
+}
+.live-clock .live-dot{margin-right:-2px!important}
+.timeline-point.current{
+  width:9px!important;height:9px!important;border-radius:2px!important;transform:translate(-50%,-50%) rotate(45deg)!important
+}
+
+/* Filter button geometry measured from the reference */
+.cc-filterbar{display:flex!important;grid-template-columns:none!important;justify-content:flex-start!important;gap:6px!important}
+.cc-filterbar button:nth-child(1){width:112px!important;flex:0 0 112px!important}
+.cc-filterbar button:nth-child(2){width:95px!important;flex:0 0 95px!important}
+.cc-filterbar button:nth-child(3){width:92px!important;flex:0 0 92px!important}
+.cc-filterbar button:nth-child(4){width:112px!important;flex:0 0 112px!important}
+.radar-filters button:nth-child(1){width:101px!important;min-width:101px!important}
+.radar-filters button:nth-child(2){width:92px!important;min-width:92px!important}
+.radar-filters button:nth-child(3){width:93px!important;min-width:93px!important}
+.radar-filters button:nth-child(4){width:116px!important;min-width:116px!important}
+
+.detail-section.stop{margin-top:9px!important}
+.detail-section.stop h4{
+  display:flex!important;align-items:center!important;gap:8px!important;
+  margin:0!important;color:#eef5f9!important
+}
+.detail-section.stop h4 strong{margin-left:auto;color:#ff5a64!important;font-size:10px!important}
+.detail-section.stop h4 em{font-style:normal;color:#ff5a64!important;font-size:9px!important}
+.gauge-card{overflow:hidden!important;position:relative!important}
+.gauge-ring{
+  right:-12px!important;top:21px!important;width:44px!important;height:44px!important;
+  box-shadow:0 0 8px rgba(0,0,0,.18)!important
+}
+.gauge-ring:after{inset:6px!important;background:#061421!important}
+
+/* Color calibration sampled directly from the approved screenshot */
+body,main{background:#040d17!important}
+.cc-panel{background:linear-gradient(180deg,#040f19 0%,#030d17 100%)!important}
+.cc-tools button.on,.detail-direction{
+  background:linear-gradient(180deg,#2cec98 0%,#18c078 100%)!important;
+  border-color:#39eea4!important
+}
+.cc-status.zone,.cc-status.open{
+  background:linear-gradient(180deg,#24dc80 0%,#12c078 100%)!important
+}
+.cc-status.near{
+  background:linear-gradient(180deg,#f8b03c 0%,#e59a26 100%)!important
+}
+.cc-status.wait,.cc-status.blocked{
+  background:linear-gradient(180deg,#72869a 0%,#536779 100%)!important
+}
+.reference-detail{margin-bottom:-5px!important}
+
+/* Header coordinates measured from the 1536px master */
+.command-header{
+  grid-template-columns:309px minmax(610px,1fr) auto!important;
+  padding:0 12px 0 26px!important;
+  background:linear-gradient(180deg,#07101c 0%,#040c17 100%)!important
+}
+.command-brand strong{font-size:31px!important}
+.command-nav #tc{width:76px!important;min-width:76px!important;padding-left:0!important;padding-right:0!important}
+.command-nav #tz{width:78px!important;min-width:78px!important;padding-left:0!important;padding-right:0!important;margin-right:13px!important}
+@media(min-width:1121px) and (max-width:1600px){
+  .command-header{grid-template-columns:309px minmax(560px,1fr) auto!important;padding-left:26px!important}
+  .command-brand strong{font-size:31px!important}
+}
+
+/* Typography scale calibrated to the reference screenshot */
+.cc-head h2{font-size:16px!important}
+.cc-filterbar button,.radar-filters button{font-size:10.5px!important}
+.cc-table th{font-size:9.5px!important}
+.cc-table td{font-size:11.5px!important}
+.opportunities-table td{font-size:11.5px!important}
+.opportunities-table td strong{font-size:13.5px!important}
+.opportunities-table .cc-status{font-size:10.5px!important}
+.opportunities-table td:nth-child(9){font-size:12px!important}
+.reference-ops .cc-table th{font-size:9.5px!important}
+.reference-ops .cc-table td{font-size:11.5px!important}
+.reference-radar .radar-table th{font-size:9.2px!important}
+.reference-radar .radar-table td{font-size:10.8px!important}
+.reference-radar .radar-table thead .subhead th{font-size:8.8px!important}
+.market-kpi span{font-size:9.5px!important}
+.market-statline{font-size:9.5px!important}
+.reset-metrics .mini-metric span{font-size:8.8px!important}
+.reset-metrics .mini-metric b{font-size:11.5px!important}
+.detail-section h4{font-size:9.8px!important}
+.detail-gridline{font-size:10.3px!important}
+.indicators-title{font-size:9.8px!important}
+.gauge-card span,.gauge-card small{font-size:9.5px!important}
+.detail-note{font-size:9.6px!important}
 </style>
 </head><body><main>
 
@@ -1718,4 +1897,4 @@ pollZBackendCycle().catch(()=>{});
 
 loadC();
 })();
-</script><script src="/command-center.js?v=6.2.0"></script></main></body></html>
+</script><script src="/command-center.js?v=6.3.0"></script></main></body></html>
