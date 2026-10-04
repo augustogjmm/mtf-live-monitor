@@ -300,7 +300,8 @@ async function globalQuote(symbol){
  let value=n(live?.price);if(!(value>0))value=n(meta.regularMarketPrice);if(!(value>0)&&bars.length)value=n(bars.at(-1)?.close);
  let prev=n(meta.chartPreviousClose??meta.previousClose);if(!(prev>0)&&bars.length>1)prev=n(bars.at(-2)?.close);
  const changePct=value>0&&prev>0?(value/prev-1)*100:null;
- return{symbol,value:Number.isFinite(value)?value:null,changePct:Number.isFinite(changePct)?changePct:null,asOf:live?.t?new Date(live.t).toISOString():null};
+ const sparkline=bars.slice(-48).map(b=>n(b?.close)).filter(Number.isFinite);
+ return{symbol,value:Number.isFinite(value)?value:null,changePct:Number.isFinite(changePct)?changePct:null,asOf:live?.t?new Date(live.t).toISOString():null,sparkline};
 }
 async function globalContext(){
  const jobs=await Promise.allSettled([
@@ -324,7 +325,7 @@ async function globalContext(){
   ],
   macro:{
    btcDominance:{label:'BTC.D',value:Number.isFinite(btcDom)?btcDom:null,changePct:null,unit:'%'},
-   dxy:{label:'DXY',value:dxy?.value??null,changePct:dxy?.changePct??null,unit:''},
+   dxy:{label:'DXY',value:dxy?.value??null,changePct:dxy?.changePct??null,unit:'',sparkline:dxy?.sparkline??[]},
    us10y:{label:'US10Y',value:us10y?.value??null,changePct:us10y?.changePct??null,unit:'%'},
    vix:{label:'VIX',value:vix?.value??null,changePct:vix?.changePct??null,unit:''},
    sp500:{label:'S&P 500',value:ny?.value??null,changePct:ny?.changePct??null,unit:''}
