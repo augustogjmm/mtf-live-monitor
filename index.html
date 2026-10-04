@@ -392,6 +392,13 @@ main{padding:0 10px 20px!important;overflow-x:hidden!important;min-height:100vh;
 
 @media(min-width:1121px) and (max-width:1600px){.reference-dashboard{grid-template-columns:minmax(0,533fr) minmax(0,194fr) minmax(0,369fr) minmax(0,388fr)!important}.command-header{grid-template-columns:320px minmax(570px,1fr) auto!important}.command-brand strong{font-size:27px!important}.command-nav button{padding-left:10px!important;padding-right:10px!important}}
 @media(max-width:1120px){.reference-dashboard{display:flex!important;flex-direction:column!important}.reference-context,.reference-opps,.reference-markets,.reference-ops,.reference-radar,.reference-chart,.reference-detail{height:auto!important;min-height:280px!important;margin-top:0!important}.reference-markets{min-height:319px!important}.reference-detail{min-height:650px!important}.command-header{height:auto!important;grid-template-columns:1fr!important;padding:12px!important}.command-right{display:flex!important;flex-wrap:wrap!important}.header-health{display:flex!important}.cc-detail-body{overflow:auto!important}.detail-columns{height:auto!important}}
+
+.cc-map .world-land path{fill:url(#ccMapDots)!important;stroke:#176f9d!important;stroke-width:.6!important;stroke-dasharray:none!important}
+.session-box span em{display:block;font-style:normal;color:#9eb0bd;font-weight:500;line-height:1.2}.session-box span strong{display:block;margin-top:3px;font:800 11px/1 Inter!important}
+.risk-banner{justify-content:center!important}.risk-banner span{font:800 10px/1.55 Inter!important;letter-spacing:.01em!important}.risk-banner small{display:none!important}
+.bell{display:inline-block;position:relative;width:9px;height:10px;margin-left:7px;border:1px solid #668399;border-radius:5px 5px 3px 3px;vertical-align:-2px;opacity:.9}.bell:before{content:"";position:absolute;left:3px;top:-3px;width:2px;height:3px;border-radius:2px;background:#668399}.bell:after{content:"";position:absolute;left:2px;bottom:-3px;width:3px;height:2px;border-radius:0 0 3px 3px;background:#668399}
+.operations-table th,.operations-table td,.radar-table th,.radar-table td{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.reference-chart .cc-chart-meta .cc-trend b span{font-weight:800!important}
 </style>
 </head><body><main>
 
@@ -430,10 +437,22 @@ main{padding:0 10px 20px!important;overflow-x:hidden!important;min-height:100vh;
       <div class="cc-context-body">
         <div class="context-map-zone">
           <div class="cc-map">
-            <svg viewBox="0 0 1000 410" preserveAspectRatio="none" aria-label="Mapa mundial de sesiones">
-              <path d="M35 115L86 70l82 4 65 45 35 64-45 34-76-3-34 31-57-18-32-54zM180 247l42 12 33 57-20 83-28-14-11-64-28-41z"/>
-              <path d="M412 78l74-22 55 20 30 43-27 27 7 42-44 25-36-33-62-8-24-45zM482 210l57 9 42 42-14 80-45 56-31-46-14-63z"/>
-              <path d="M585 81l110-38 127 20 115 58-23 50-84 2-35 45-67-21-45 26-66-22-50-55zM789 284l58-5 59 37-27 46-71 0-38-32z"/>
+            <svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet" aria-label="Mapa mundial de sesiones">
+              <defs>
+                <pattern id="ccMapDots" width="8" height="8" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="1.35" fill="#1a87b8"/>
+                </pattern>
+              </defs>
+              <g class="world-land">
+                <path d="M35 83L70 58l48-9 35-21 48 4 23 17 34-4 20 14-13 22 16 21-28 15-26 27-37 4-31 21-43-7-20-31-45-12-26-26z"/>
+                <path d="M202 171l30 8 22 25 14 38-17 45-19 23-11-37-18-28-9-40z"/>
+                <path d="M420 68l27-17 36 3 26 14 21 2 13 15-12 17 19 14-13 21-33 0-22-15-34 5-28-14-8-26z"/>
+                <path d="M465 139l45 3 36 25 13 37-14 43-32 45-28-24-10-40-19-31-7-35z"/>
+                <path d="M548 72l57-23 70-10 83 8 57 19 60 9 70 32 22 25-24 21-53 2-36 20-63-6-35 21-39-15-53 11-46-18-50-6-35-27-31-24z"/>
+                <path d="M804 217l43-8 38 13 30 25-13 31-41 6-34-16-31-26z"/>
+                <path d="M349 42l23-14 20 8-7 17-26 8z"/>
+                <path d="M711 192l16-9 17 8-4 15-20 4z"/>
+              </g>
             </svg>
           </div>
           <div class="session-strip">
@@ -513,7 +532,7 @@ main{padding:0 10px 20px!important;overflow-x:hidden!important;min-height:100vh;
     <article class="cc-panel cc-ops reference-ops" id="ccActiveOps">
       <div class="cc-head"><h2 id="ccOpsTitle">OPERACIONES ACTIVAS (0)</h2></div>
       <div class="cc-table-wrap">
-        <table class="cc-table operations-table">
+        <table class="cc-table operations-table"><colgroup><col style="width:9%"><col style="width:7%"><col style="width:10%"><col style="width:10%"><col style="width:9%"><col style="width:10%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:3%"></colgroup>
           <thead><tr><th>ACTIVO</th><th>DIR</th><th>ENTRADA</th><th>ACTUAL</th><th>VAR %</th><th>R ACTUAL</th><th>TP1</th><th>TP2</th><th>TP3</th><th>SL</th><th>ESTADO</th><th></th></tr></thead>
           <tbody id="ccOpsBody"><tr><td colspan="12">Consultando operaciones…</td></tr></tbody>
         </table>
@@ -532,7 +551,7 @@ main{padding:0 10px 20px!important;overflow-x:hidden!important;min-height:100vh;
         </div>
       </div>
       <div class="cc-table-wrap">
-        <table class="cc-table radar-table">
+        <table class="cc-table radar-table"><colgroup><col style="width:13%"><col style="width:11%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:13%"><col style="width:12%"></colgroup>
           <thead><tr><th>ACTIVO</th><th>PRECIO</th><th colspan="3">TENDENCIA</th><th>OB1</th><th>OB2</th><th>OB3</th><th>ESTADO</th><th>ACCIÓN</th></tr>
           <tr class="subhead"><th></th><th></th><th id="ccTrendHead1">1H</th><th id="ccTrendHead2">4H</th><th id="ccTrendHead3">1D</th><th></th><th></th><th></th><th></th><th></th></tr></thead>
           <tbody id="ccRadarBody"></tbody>
