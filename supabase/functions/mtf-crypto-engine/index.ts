@@ -7,8 +7,8 @@ const sb=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,auto
 const VERSION="OB-LADDER-v3.7.3";
 const LEGACY_VERSION="OB-LADDER-v3.7.2";
 const ENGINE="MTF_OB_TREND_RESTORED_V3_7_3";
-const MIN_RR=1.8;
-const ATR_STOP_BUFFER=.30;
+const MIN_RR=1.0;
+const ATR_STOP_BUFFER=.25;
 const STABLES=new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const FALLBACK=["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
 const HOUR=3600000;
@@ -212,12 +212,14 @@ function tradePlan(direction:string,level:Level,snap:any,entry:number){
         raw=direction==="LONG"?snap?.ladder?.above:snap?.ladder?.below;
   if(!(atr>0)||!entries?.length||!raw?.length)return null;
   const third=levelFromPublic(entries[Math.min(2,entries.length-1)]),
-        stop=direction==="LONG"?third.ob.bottom-.25*atr:third.ob.top+.25*atr,
+        stop=direction==="LONG"?third.ob.bottom-ATR_STOP_BUFFER*atr:third.ob.top+ATR_STOP_BUFFER*atr,
         risk=Math.abs(entry-stop);
   if(!(risk>0)||(direction==="LONG"&&stop>=entry)||(direction==="SHORT"&&stop<=entry))return null;
   const targets=raw.map(levelFromPublic).filter((x:Level)=>direction==="LONG"?x.point>entry:x.point<entry);
   if(!targets.length)return null;
-  return{stop,risk,rr:Math.abs(targets[0].point-entry)/risk,tp1:targets[0].point,
+  const rr=Math.abs(targets[0].point-entry)/risk;
+  if(!(rr>=MIN_RR))return null;
+  return{stop,risk,rr,tp1:targets[0].point,
     tp2:targets[1]?.point??targets[0].point,tp3:targets[2]?.point??targets[targets.length-1].point,
     target_rank:targets[0].rank};
 }
@@ -241,7 +243,7 @@ async function snapshotOne(sym:string){
 async function structure(){
   let base=await universe();
   const [{data:openRows,error:openErr},{data:prevStructure,error:prevStructErr}]=await Promise.all([
-    sb.from("mtf_signals").select("symbol,strategy_version,status").in("strategy_version",[LEGACY_VERSION,VERSION]).eq("market","crypto").in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]),
+    sb.from("mtf_signals").select("symbol,strategy_version,status").eq("strategy_version",VERSION).eq("market","crypto").eq("source","FORWARD").eq("status","OPEN"),
     sb.from("mtf_state").select("meta").eq("market","crypto_structure").maybeSingle()
   ]);
   if(openErr)throw openErr;if(prevStructErr)throw prevStructErr;
@@ -252,7 +254,7 @@ async function structure(){
     base=(prevBase.length>=15?prevBase:FALLBACK.slice(0,20));universeFallback=true;
   }
   base=[...new Set(base)].slice(0,20);
-  const operationalRows=(openRows||[]).filter((x:any)=>String(x.strategy_version)===LEGACY_VERSION?["OPEN","TP1","TP2"].includes(String(x.status)):String(x.status)==="OPEN");
+  const operationalRows=openRows||[];
   const carried=[...new Set(operationalRows.map((x:any)=>String(x.symbol||"").toUpperCase()).filter(Boolean))].filter((s:string)=>!base.includes(s));
   const syms=[...base,...carried],out:any[]=[];let rebuilt=0;
   for(const sym of syms){
@@ -273,13 +275,11 @@ function touched(bar:Bar,x:Level){return bar.l<=x.point&&bar.h>=x.point}
 async function openSignals(sym:string){
   const {data,error}=await sb.from("mtf_signals").select("*").eq("strategy_version",VERSION).eq("market","crypto").eq("symbol",sym).eq("status","OPEN").order("signal_time");if(error)throw error;return data||[];
 }
-async function legacyOperationalSignals(sym:string){
-  const {data,error}=await sb.from("mtf_signals").select("*").eq("strategy_version",LEGACY_VERSION).eq("market","crypto").eq("symbol",sym)
-    .in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]).order("signal_time");
-  if(error)throw error;return data||[];
-}
+async function legacyOperationalSignals(_sym:string){return[];}
 async function insertLeg(row:any){
-  const legacy=await legacyOperationalSignals(String(row?.symbol||""));if(legacy.length)return null;
+  const symbol=String(row?.symbol||"");
+  const legacy=await legacyOperationalSignals(symbol);if(legacy.length)return null;
+  const current=await openSignals(symbol);if(current.length)return null;
   const {data,error}=await sb.from("mtf_signals").insert({...row,strategy_version:VERSION,status:"OPEN",best_r:0,worst_r:0,hit1:false,hit2:false,hit3:false,created_at:iso(),updated_at:iso()}).select("*").single();
   if(error){if(String((error as any)?.code)==="23505")return null;throw error}return data;
 }
@@ -290,8 +290,8 @@ function signalFromConfirmation(sym:string,dir:string,level:Level,snap:any,id:st
     context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"1m",trigger_basis:"1m_range_crosses_active_1h_OB_point",
       entry_price_basis:"OB_center_line",entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
       ladder_basis:"pre_confirmation_detector_state",ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:gate.relation,proximity:snap.proximity,
-      entry_policy:"OB_touch_plus_H1_trend_without_opposing_macro; indicators_context_only",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
-      rr_min:null,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
+      entry_policy:"OB_touch_plus_H1_trend_without_opposing_macro_plus_RR1; indicators_context_only",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
+      rr_min:MIN_RR,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
       protection_policy:"after_closed_1m_reaches_1R_move_active_stop_to_break_even_for_next_bar",
       trigger_bar:{t:bar.t,closeTime:eventTime,o:bar.o,h:bar.h,l:bar.l,c:bar.c,v:bar.v},stop_basis:"third_entry_OB_far_edge_plus_0_25_ATR"}};
 }
@@ -306,6 +306,11 @@ async function live(createEntries=true){
   let hourlyConfirmation:any=prevRow?.meta?.hourlyConfirmation||null;
   const prices=await currentPrices(),liveStates:any[]=[],created:any[]=[],
         funnel:any={assets:snaps.length,ready:0,near_or_zone:0,context_allowed:0,structure_allowed:0,momentum_allowed:0,eligible_current:0,confirmation_bars_checked:0,rejection_hits:0,rr_pass:0,entries:0};
+  const {data:currentOpenRows,error:currentOpenErr}=await sb.from("mtf_signals").select("*")
+    .eq("strategy_version",VERSION).eq("market","crypto").eq("source","FORWARD").eq("status","OPEN").order("signal_time");
+  if(currentOpenErr)throw currentOpenErr;
+  const openBySymbol=new Map<string,any[]>();
+  for(const row of currentOpenRows||[]){const s=String(row.symbol||"");if(!openBySymbol.has(s))openBySymbol.set(s,[]);openBySymbol.get(s)!.push(row)}
   for(const snap0 of snaps){
     const sym=String(snap0.symbol),pair=sym+"USDT",prev=prevMap.get(sym)||null;
     if(!snap0.ready){
@@ -313,7 +318,7 @@ async function live(createEntries=true){
       continue;
     }
     funnel.ready++;
-    const price=prices.get(pair)??n(snap0.price),legacy=await legacyOperationalSignals(sym);let opens=await openSignals(sym);
+    const price=prices.get(pair)??n(snap0.price),legacy:any[]=[];let opens=[...(openBySymbol.get(sym)||[])];
     const prox0={below:(snap0.ladder?.below||[]).map(levelFromPublic),above:(snap0.ladder?.above||[]).map(levelFromPublic)};
     const prox=proximity(prox0,price,n(snap0.context?.atr14),false),
           nearestDir=String(prox?.nearest?.direction||""),currentGate=nearestDir?(snap0?.eligibility?.[nearestDir]||directionEligibility(nearestDir,snap0)):null;

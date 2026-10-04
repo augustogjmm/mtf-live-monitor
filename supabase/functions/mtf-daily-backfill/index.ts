@@ -7,6 +7,7 @@ const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: fa
 
 const BYMA = "https://open.bymadata.com.ar/vanoms-be-core/rest/api/bymadata/free";
 const STRATEGY_VERSION = "OB-LADDER-v3.6";
+const MIN_RR = 1.0;
 const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
 const STABLES = new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const CRYPTO_FALLBACK = ["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
@@ -266,8 +267,20 @@ async function flushAudit(rows:any[]){
   }
  }catch(e){console.error("audit_write_failed",String((e as Error).message||e));}
 }
+function compactDiagnostic(d:any){
+ if(!d||typeof d!=="object")return null;
+ const nearest=d?.proximity?.nearest||null;
+ return{
+  ready:d.ready!==false,reason:d.reason||null,qualifiedDirection:d.qualifiedDirection||null,referencePrice:n(d.referencePrice),
+  proximity:d.proximity?{state:d.proximity.state||null,threshold_atr:d.proximity.threshold_atr??d.proximity.thresholdAtr??null,nearest:nearest?{direction:nearest.direction||null,rank:nearest.rank??null,point:n(nearest.point),distance_atr:n(nearest.distance_atr??nearest.distanceAtr),in_zone:!!nearest.in_zone}:null}:null,
+  trend:d?.context?.trend||null,weeklyTrend:d?.macroContext?.w1?.trend||d?.macroContext?.trend||null,atr14:n(d?.context?.atr14),
+  touches:{long:Array.isArray(d?.touches?.long)?d.touches.long.length:0,short:Array.isArray(d?.touches?.short)?d.touches.short.length:0}
+ };
+}
 function auditRow(cycleId:string,market:"crypto"|"cedear"|"merval",symbol:string,underlying:string|null,direction:string|null,signalTime:number,decision:string,reason:string,context:any){
- return{strategy_version:STRATEGY_VERSION,cycle_id:cycleId,market,symbol,underlying,direction,signal_time:iso(signalTime),evaluated_at:new Date().toISOString(),decision,reason,context};
+ const compact={...(context||{})};
+ if(compact.diagnostic)compact.diagnostic=compactDiagnostic(compact.diagnostic);
+ return{strategy_version:STRATEGY_VERSION,cycle_id:cycleId,market,symbol,underlying,direction,signal_time:iso(signalTime),evaluated_at:new Date().toISOString(),decision,reason,context:compact};
 }
 function panelAmount(r:any){const a=n(r.volumeAmount);if(a>0)return a;const tv=n(r.tradeVolume);if(tv>0)return tv;const v=n(r.volume),p=n(r.trade??r.closingPrice);return Number.isFinite(v)&&Number.isFinite(p)?v*p:0;}
 function rowsFrom(o:any){if(Array.isArray(o))return o;if(Array.isArray(o?.data))return o.data;if(Array.isArray(o?.content))return o.content;return[];}
@@ -649,6 +662,9 @@ async function getState(market:string){const{data,error}=await sb.from("mtf_stat
 async function setState(market:string,lastProcessed:number,meta:any){const current=await getState(market),merged={...(current?.meta||{}),...meta},{error}=await sb.from("mtf_state").upsert({market,last_processed_at:iso(lastProcessed),last_run_at:new Date().toISOString(),meta:merged,updated_at:new Date().toISOString()});if(error)throw error;}
 
 async function insertSignal(s:SignalInsert){
+ const entry=n(s.entry),stop=n(s.stop),tp1=n(s.tp1),risk=Math.abs(entry-stop),reward=s.direction==="SHORT"?entry-tp1:tp1-entry,rr=risk>0&&reward>0?reward/risk:NaN;
+ if(!(rr>=MIN_RR))return null;
+ s={...s,context:{...(s.context||{}),minimum_rr:MIN_RR,planned_rr:rr,rr_gate:"TP1_vs_SL"}};
  const setupId=String((s.context as any)?.setup_id||""),rank=Number((s.context as any)?.entry_rank||0);
  const legacy=await legacyOperationalSignals(String(s.market),String(s.symbol));if(legacy.length)return null;
  const {data:opens,error:openErr}=await sb.from("mtf_signals").select("*")

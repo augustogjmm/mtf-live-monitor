@@ -123,7 +123,7 @@ function healthCompact(){
  var d=CC.status||{},st=d.states||{},guard=at(st,['market_guard','meta','combined'],{}),regulatedExpected=guard.actionable===true,cryptoLive=at(st,['crypto_live','last_run_at'],null),cryptoStruct=at(st,['crypto_structure','last_run_at'],null),reg=at(st,['regulated_live','last_run_at'],null),db=at(d,['database','last_write'],null),watch=at(d,['alerts','last_watcher_at'],null);
  var crypto=levelFromAge(cryptoLive,180000,360000);if(age(cryptoStruct)>20*60000)crypto='error';else if(age(cryptoStruct)>10*60000&&crypto==='ok')crypto='warning';
  var cedear=regulatedExpected?levelFromAge(reg,8*60000,20*60000):(reg?'ok':'stale'),data=guard.code==='STALE'||guard.code==='ERROR'?'stale':'ok',apiFresh=age(d.api_generated_at||d.generated_at)<3*60000,database=apiFresh?'ok':(db?levelFromAge(db,30*60000,90*60000):'error'),telegram=!at(d,['alerts','telegram_linked'],false)?'error':levelFromAge(watch,4*60000,12*60000);
- var jobs=d.jobs||[],scheduler=jobs.some(function(j){return j.active===false||String(j.last_status).toLowerCase()==='failed'})?'error':jobs.some(function(j){return Number(j.failures_24h)>0})?'warning':'ok';
+ var jobs=d.jobs||[],inactive=jobs.some(function(x){return x.active===false}),failedNow=jobs.some(function(x){return String(x.last_status||'').toLowerCase()==='failed'}),unrecovered=jobs.some(function(x){var f=x.last_failure?new Date(x.last_failure).getTime():0,s=x.last_end?new Date(x.last_end).getTime():0;return f>0&&f>s}),scheduler=inactive||failedNow?'error':unrecovered?'warning':'ok';
  return{scanner:scheduler,data:data,db:database,telegram:telegram,watcher:telegram,crypto:crypto,cedear:cedear}
 }
 

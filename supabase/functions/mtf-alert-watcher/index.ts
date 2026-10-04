@@ -9,7 +9,7 @@ const PREVIOUS_CRYPTO_STRATEGY_VERSION = "OB-LADDER-v3.7.2";
 const REGULATED_STRATEGY_VERSION = "OB-LADDER-v3.6";
 const ADR_STRATEGY_VERSION = "ADR-OB-v1.0";
 const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
-const ACTIVE_STRATEGY_VERSIONS = [LEGACY_STRATEGY_VERSION, REGULATED_STRATEGY_VERSION, ADR_STRATEGY_VERSION, PREVIOUS_CRYPTO_STRATEGY_VERSION, STRATEGY_VERSION];
+const ACTIVE_STRATEGY_VERSIONS = [REGULATED_STRATEGY_VERSION, ADR_STRATEGY_VERSION, STRATEGY_VERSION];
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession:false, autoRefreshToken:false } });
 
 type Signal = {
@@ -299,7 +299,7 @@ function eventText(e:any){
 }
 async function telegramConfig(config:any){
   if(!TELEGRAM_BOT_TOKEN)return {token:"",chatId:"",linked:false,reason:"TELEGRAM_BOT_TOKEN no configurado"};
-  let chatId=String(config.telegram_chat_id||"");
+  let chatId=String(config.telegram_public_chat_id||config.telegram_chat_id||"");
   if(chatId)return {token:TELEGRAM_BOT_TOKEN,chatId,linked:true};
   try{
     const j=await fetchJson(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=100&timeout=0`,{},10000);
@@ -498,9 +498,8 @@ Deno.serve(async(req:Request)=>{
     if(openErr)throw openErr;
     const opens=((allOpenCandidates||[]) as Signal[]).filter((s:any)=>{
       const v=String(s.strategy_version);
-      if(v===LEGACY_STRATEGY_VERSION)return ["OPEN","TP1","TP2"].includes(String(s.status));
-      if(s.market==="crypto")return [PREVIOUS_CRYPTO_STRATEGY_VERSION,STRATEGY_VERSION].includes(v)&&String(s.status)==="OPEN";
-      if(s.market==="merval")return [REGULATED_STRATEGY_VERSION,ADR_STRATEGY_VERSION].includes(v)&&String(s.status)==="OPEN";
+      if(s.market==="crypto")return v===STRATEGY_VERSION&&String(s.status)==="OPEN";
+      if(s.market==="merval")return v===ADR_STRATEGY_VERSION&&String(s.status)==="OPEN";
       return v===REGULATED_STRATEGY_VERSION&&String(s.status)==="OPEN";
     });
 
@@ -523,8 +522,8 @@ Deno.serve(async(req:Request)=>{
     const cache=new Map<string,Bar[]>();
     let checked=0,createdLevels=0;
     for(const [k,a] of openGroups){
-      const rep=a[0], isLegacy=String(rep.strategy_version)===LEGACY_STRATEGY_VERSION,
-            isV37Crypto=rep.market==="crypto"&&[PREVIOUS_CRYPTO_STRATEGY_VERSION,STRATEGY_VERSION].includes(String(rep.strategy_version)),
+      const rep=a[0], isLegacy=false,
+            isV37Crypto=rep.market==="crypto"&&String(rep.strategy_version)===STRATEGY_VERSION,
             setupEntry=avgEntry(a), initialStop=n(rep.context?.initial_stop), setupRisk=Math.abs(setupEntry-(Number.isFinite(initialStop)?initialStop:n(rep.stop))),
             setupPayload={setup_id:rep.context?.setup_id,strategy_version:rep.strategy_version,entries:a.map((x:any)=>({rank:x.context?.entry_rank,entry:x.entry,status:x.status})),context:rep.context?.context,macro_context:rep.context?.macro_context,trend_relation:rep.context?.trend_relation,planned_rr:rep.context?.planned_rr}, seen=prior.get(k)||new Set<string>(),
             setupEligibleAfter=Math.min(...a.map(entryBarEnd).filter((x:number)=>x>0)),

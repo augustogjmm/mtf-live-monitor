@@ -196,10 +196,23 @@ async function insertPlan(symbol:string,underlying:string,diag:any,plan:any){
  }).select("*").single();
  if(error){if(String((error as any)?.code||"")==="23505")return null;throw error}return data;
 }
+function compactAuditContext(context:any){
+ const d=context?.diagnostic||context?.diag||null,nearest=d?.proximity?.nearest||null;
+ return{
+  ...(context||{}),
+  ...(d?{diagnostic:{
+    ready:d.ready!==false,reason:d.reason||null,entry_allowed:d.entry_allowed??null,
+    trend:d?.context?.trend||null,weeklyTrend:d?.macroContext?.w1?.trend||d?.macroContext?.trend||null,
+    proximity:d.proximity?{state:d.proximity.state||null,nearest:nearest?{rank:nearest.rank??null,point:n(nearest.point),distance_atr:n(nearest.distance_atr??nearest.distanceAtr),in_zone:!!nearest.in_zone}:null}:null
+  }}:{})
+ };
+}
 async function audit(cycleId:string,symbol:string,underlying:string,signalTime:number,decision:string,reason:string,context:any){
+ const compact=compactAuditContext(context);
+ if(compact.diag)delete compact.diag;
  const {error}=await sb.from("mtf_decision_audit").upsert({
   strategy_version:VERSION,cycle_id:cycleId,market:"merval",symbol,underlying,direction:"LONG",signal_time:iso(signalTime),
-  evaluated_at:iso(),decision,reason,context
+  evaluated_at:iso(),decision,reason,context:compact
  },{onConflict:"strategy_version,cycle_id,market,symbol,signal_time"});
  if(error)throw error;
 }
