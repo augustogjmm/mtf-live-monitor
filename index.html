@@ -440,6 +440,87 @@ main{padding:0 10px 20px!important;overflow-x:hidden!important;min-height:100vh;
 .reference-detail{padding-bottom:0!important}
 .cc-detail-body{position:relative!important}
 main{background:linear-gradient(180deg,#030b15 0%,#020914 100%)!important}
+
+/* v6.3 fidelity pass: internal framing, state treatment and card construction */
+.cc-head h2{font-size:15px!important;letter-spacing:.005em!important}
+.cc-panel:before{background:
+  radial-gradient(circle at 20% 0,rgba(31,114,155,.035),transparent 30%),
+  radial-gradient(circle,rgba(255,255,255,.010) .55px,transparent .65px);
+  background-size:100% 100%,3px 3px!important;opacity:.65!important}
+
+/* Oportunidades: state is icon + colored text in the reference, not a filled pill */
+.opportunities-table .cc-status{
+  display:inline-flex!important;align-items:center!important;gap:6px!important;
+  padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;font:700 9px/1 "Roboto Condensed",Inter,sans-serif!important
+}
+.opportunities-table .cc-status:before{
+  content:"";width:11px;height:11px;flex:0 0 11px;border-radius:50%;
+  box-shadow:inset 0 0 0 3px rgba(2,12,19,.78),0 0 0 1px currentColor
+}
+.opportunities-table .cc-status.zone,.opportunities-table .cc-status.open{color:#20e89b!important}
+.opportunities-table .cc-status.zone:before,.opportunities-table .cc-status.open:before{background:#20e89b}
+.opportunities-table .cc-status.near{color:#ffbd35!important}
+.opportunities-table .cc-status.near:before{background:#ffbd35}
+.opportunities-table .cc-status.wait,.opportunities-table .cc-status.blocked{color:#b5c3cf!important}
+.opportunities-table .cc-status.wait:before,.opportunities-table .cc-status.blocked:before{background:#8094a6}
+.opportunities-table .cc-status.short,.opportunities-table .cc-status.error{color:#b5c3cf!important}
+.opportunities-table .cc-status.short:before,.opportunities-table .cc-status.error:before{background:#8094a6}
+.opportunities-table td:nth-child(6){background:linear-gradient(180deg,rgba(9,27,39,.46),rgba(4,17,28,.16))!important;text-align:center}
+.opportunities-table td:nth-child(7){font-size:14px!important;letter-spacing:1px}
+.opportunities-table td:nth-child(9){font-weight:800!important;font-size:10px!important}
+
+/* Inset table frames are visible in the approved console */
+.reference-ops .cc-table-wrap,.reference-radar .cc-table-wrap{
+  margin:0 10px!important;border:1px solid #142f45!important;border-radius:6px!important;overflow:hidden!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.012),0 2px 8px rgba(0,0,0,.10)
+}
+.reference-ops .cc-table th,.reference-ops .cc-table td,
+.reference-radar .cc-table th,.reference-radar .cc-table td{
+  border-right:1px solid rgba(18,48,69,.72)!important
+}
+.reference-ops .cc-table th:last-child,.reference-ops .cc-table td:last-child,
+.reference-radar .cc-table th:last-child,.reference-radar .cc-table td:last-child{border-right:0!important}
+.reference-ops .cc-table-wrap{height:84px!important}
+.reference-radar .cc-table-wrap{height:322px!important}
+.reference-radar .cc-table tbody tr:last-child td{border-bottom:0!important}
+
+/* Operation row uses a subtle emerald field, not a flat green block */
+.operations-table tbody tr{
+  background:linear-gradient(90deg,rgba(11,72,62,.56),rgba(5,38,38,.46) 58%,rgba(4,20,29,.72))!important
+}
+.operations-table td:first-child{box-shadow:inset 5px 0 0 #2ce7a1}
+
+/* Detail mini-tables have true cell divisions */
+.detail-gridline{padding:0!important}
+.detail-gridline>span,.detail-gridline>b,.detail-gridline>em{
+  min-height:24px;display:flex;align-items:center;padding:0 8px
+}
+.detail-gridline>span,.detail-gridline>b{border-right:1px solid #15344b}
+.detail-gridline>em{justify-content:flex-end}
+
+/* Indicator cards are individually boxed in the reference */
+.gauge-card{
+  height:82px!important;margin-bottom:8px!important;padding:10px 10px!important;
+  border:1px solid #142f45!important;border-radius:6px!important;
+  background:linear-gradient(180deg,#061521,#04101a)!important
+}
+.gauge-card:last-child{margin-bottom:0!important}
+.gauge-ring{right:9px!important;top:22px!important}
+
+/* Multi-timeframe cards: two diagonal arrows, then clean label text */
+.cc-trend{grid-template-columns:34px 1fr!important}
+.cc-trend:before{
+  content:"↗\A↗"!important;white-space:pre!important;font-size:20px!important;line-height:.78!important;
+  grid-row:1/3!important;align-self:center!important
+}
+.cc-trend b{font-size:10px!important;font-weight:700!important}
+.cc-trend b .cc-up,.cc-trend b .cc-down,.cc-trend b .cc-flat{font-size:10px!important}
+
+/* Tighten reference spacing */
+.reference-radar .cc-head{padding-left:13px!important}
+.reference-chart{border-color:#233041!important}
+.detail-note{font-size:9px!important;line-height:1.35!important}
 </style>
 </head><body><main>
 
@@ -1718,4 +1799,4 @@ pollZBackendCycle().catch(()=>{});
 
 loadC();
 })();
-</script><script src="/command-center.js?v=6.2.0"></script></main></body></html>
+</script><script src="/command-center.js?v=6.3.0"></script></main></body></html>
