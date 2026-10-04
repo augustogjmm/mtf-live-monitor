@@ -155,11 +155,13 @@ async function yahooLiveRaw(sym){
  let last;
  for(const host of ['https://query1.finance.yahoo.com','https://query2.finance.yahoo.com']){
   try{
-   const u=`${host}/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d&includePrePost=false`;
+   const u=host+'/v8/finance/chart/'+encodeURIComponent(sym)+'?interval=5m&range=1d&includePrePost=false';
    const j=await json(u,{headers:{'user-agent':'Mozilla/5.0',accept:'application/json'}},18000),z=j?.chart?.result?.[0],q=z?.indicators?.quote?.[0]||{},ts=z?.timestamp||[];
    if(!z||!ts.length)throw Error('Yahoo live sin datos');
-   for(let i=ts.length-1;i>=0;i--){const p=n(q.close?.[i]);if(Number.isFinite(p)&&p>0)return{price:p,t:ts[i]*1000,source:'Yahoo 1m'}}
-   const p=n(z?.meta?.regularMarketPrice),t=n(z?.meta?.regularMarketTime)*1000;if(p>0)return{price:p,t,source:'Yahoo meta'};
+   const series=[];
+   for(let i=0;i<ts.length;i++){const p=n(q.close?.[i]);if(Number.isFinite(p)&&p>0)series.push({t:ts[i]*1000,p})}
+   if(series.length){const lastPoint=series.at(-1);return{price:lastPoint.p,t:lastPoint.t,source:'Yahoo 5m',series}}
+   const p=n(z?.meta?.regularMarketPrice),t=n(z?.meta?.regularMarketTime)*1000;if(p>0)return{price:p,t,source:'Yahoo meta',series:[]};
    throw Error('Yahoo live sin precio');
   }catch(e){last=e}
  }
@@ -282,7 +284,7 @@ async function runtimeSnapshot(market='crypto'){
    generatedAt:new Date().toISOString()
  };
 }
-async function statusSnapshot(){const [j,httpErrors,audit,adrCertification,cedearSnapshot]=await Promise.all([supa('/rest/v1/rpc/mtf_system_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_http_error_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_audit_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_adr_certification_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).catch(()=>({})),latestCedearServerSnapshot().catch(()=>({}))]);const liq=cedearLiquidityMeta(cedearSnapshot);return{...j,audit:audit||{},adrCertification:adrCertification||{},cedearLiquidity:{runDate:cedearSnapshot?.run_date||null,total:Number(cedearSnapshot?.total)||0,universeRule:cedearSnapshot?.universe_rule||null,...liq},errors:{...(j.errors||{}),...(httpErrors||{})},ui_version:'6.0.0',build_id:'MTF-Market-Command-Center-6.0.0-PIXEL-MATCH',api_generated_at:new Date().toISOString()}}
+async function statusSnapshot(){const [j,httpErrors,audit,adrCertification,cedearSnapshot]=await Promise.all([supa('/rest/v1/rpc/mtf_system_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_http_error_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_audit_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),supa('/rest/v1/rpc/mtf_adr_certification_status',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).catch(()=>({})),latestCedearServerSnapshot().catch(()=>({}))]);const liq=cedearLiquidityMeta(cedearSnapshot);return{...j,audit:audit||{},adrCertification:adrCertification||{},cedearLiquidity:{runDate:cedearSnapshot?.run_date||null,total:Number(cedearSnapshot?.total)||0,universeRule:cedearSnapshot?.universe_rule||null,...liq},errors:{...(j.errors||{}),...(httpErrors||{})},ui_version:'7.0.0',build_id:'MTF-Market-Command-Center-7.0.0-FINAL-CONSOLE',api_generated_at:new Date().toISOString()}}
 async function telegramCanary(){throw Error('Canary público deshabilitado en v3.8.0')}
 async function supaAll(path,pageSize=1000,maxRows=20000){const out=[];for(let offset=0;offset<maxRows;offset+=pageSize){const sep=path.includes('?')?'&':'?';const batch=await supa(`${path}${sep}limit=${pageSize}&offset=${offset}`);out.push(...batch);if(batch.length<pageSize)break}return out}
 async function marketStatus(){try{const rows=await supa('/rest/v1/mtf_state?market=eq.market_guard&select=meta,last_run_at&limit=1'),row=rows?.[0],age=row?.last_run_at?Date.now()-new Date(row.last_run_at).getTime():Infinity;if(row?.meta&&age<180000)return row.meta;return{generatedAt:new Date().toISOString(),byma:{code:'UNKNOWN',text:'BYMA sin estado reciente'},usa:{code:'UNKNOWN',text:'USA sin estado reciente'},combined:{code:'STALE',text:'Estado de mercados desactualizado · no confiar en alertas intradía',actionable:false,validDaily:false}}}catch(e){return{generatedAt:new Date().toISOString(),byma:{code:'ERROR',text:'BYMA sin estado'},usa:{code:'ERROR',text:'USA sin estado'},combined:{code:'STALE',text:'No se pudo validar estado de mercados',actionable:false,validDaily:false}}}}
@@ -296,11 +298,17 @@ async function globalQuote(symbol){
  let raw=null,live=null;
  try{raw=await yahooRaw(symbol)}catch{}
  try{live=await yahooLiveRaw(symbol)}catch{}
- const meta=raw?.meta||{},bars=raw?.bars||[];
- let value=n(live?.price);if(!(value>0))value=n(meta.regularMarketPrice);if(!(value>0)&&bars.length)value=n(bars.at(-1)?.close);
- let prev=n(meta.chartPreviousClose??meta.previousClose);if(!(prev>0)&&bars.length>1)prev=n(bars.at(-2)?.close);
+ const meta=raw?.meta||{},bars=raw?.bars||[],tz=String(meta.exchangeTimezoneName||'America/New_York');
+ let value=n(live?.price),prev=NaN;
+ const last=bars.at(-1),before=bars.at(-2);
+ if(value>0){
+   const lastIsToday=!!last&&dateTZ(tz,last.closeTime)===dateTZ(tz);
+   prev=n(lastIsToday?before?.close:last?.close);
+ }else if(last){value=n(last.close);prev=n(before?.close)}
+ if(!(value>0))value=n(meta.regularMarketPrice);
+ if(!(prev>0))prev=n(meta.chartPreviousClose??meta.previousClose);
  const changePct=value>0&&prev>0?(value/prev-1)*100:null;
- const sparkline=bars.slice(-48).map(b=>n(b?.close)).filter(Number.isFinite);
+ const sparkline=Array.isArray(live?.series)&&live.series.length>1?live.series.slice(-72).map(x=>n(x.p)).filter(Number.isFinite):bars.slice(-48).map(b=>n(b?.close)).filter(Number.isFinite);
  return{symbol,value:Number.isFinite(value)?value:null,changePct:Number.isFinite(changePct)?changePct:null,asOf:live?.t?new Date(live.t).toISOString():null,sparkline};
 }
 async function globalContext(){
@@ -365,4 +373,4 @@ async function statsSnapshot(){
    generatedAt:j?.generated_at||new Date().toISOString()
  };
 }
-module.exports=async function handler(req,res){try{const op=String(req.query?.op||'');if(op==='stats'){res.setHeader('cache-control','no-store');return res.status(200).json(await statsSnapshot())}if(op==='runtime'){res.setHeader('cache-control','no-store');return res.status(200).json(await runtimeSnapshot(String(req.query?.market||'crypto')))}if(op==='status'){res.setHeader('cache-control','no-store');return res.status(200).json(await statusSnapshot())}if(op==='canary'){res.setHeader('cache-control','no-store');return res.status(403).json({error:'Canary público deshabilitado en v3.8.0'})}res.setHeader('cache-control','s-maxage=120, stale-while-revalidate=600');if(op==='health')return res.status(200).json({ok:true,strategy_version:'OB-LADDER-v3.7.3',regulated_strategy_version:'OB-LADDER-v3.6',adr_strategy_version:'ADR-OB-v1.0',ui_version:'6.0.0',build_id:'MTF-Market-Command-Center-6.0.0-PIXEL-MATCH'});if(op==='market-status'){res.setHeader('cache-control','s-maxage=20, stale-while-revalidate=20');return res.status(200).json(await marketStatus())}if(op==='global-context'){res.setHeader('cache-control','s-maxage=30, stale-while-revalidate=30');return res.status(200).json(await globalContext())}if(op==='cedears-panel'||op==='cedears')return res.status(200).json(await cedearPanelSnapshot());if(op==='cedears-batch')return res.status(200).json(await cedearBatch(req.query?.offset,req.query?.limit));if(op==='merval-panel')return res.status(200).json(await mervalPanelSnapshot());if(op==='merval-history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await mervalHistory(sym))}if(op==='history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await history(sym))}return res.status(400).json({error:'op inválido'})}catch(e){return res.status(500).json({error:String(e?.message||e)})}}
+module.exports=async function handler(req,res){try{const op=String(req.query?.op||'');if(op==='stats'){res.setHeader('cache-control','no-store');return res.status(200).json(await statsSnapshot())}if(op==='runtime'){res.setHeader('cache-control','no-store');return res.status(200).json(await runtimeSnapshot(String(req.query?.market||'crypto')))}if(op==='status'){res.setHeader('cache-control','no-store');return res.status(200).json(await statusSnapshot())}if(op==='canary'){res.setHeader('cache-control','no-store');return res.status(403).json({error:'Canary público deshabilitado en v3.8.0'})}res.setHeader('cache-control','s-maxage=120, stale-while-revalidate=600');if(op==='health')return res.status(200).json({ok:true,strategy_version:'OB-LADDER-v3.7.3',regulated_strategy_version:'OB-LADDER-v3.6',adr_strategy_version:'ADR-OB-v1.0',ui_version:'7.0.0',build_id:'MTF-Market-Command-Center-7.0.0-FINAL-CONSOLE'});if(op==='market-status'){res.setHeader('cache-control','s-maxage=20, stale-while-revalidate=20');return res.status(200).json(await marketStatus())}if(op==='global-context'){res.setHeader('cache-control','s-maxage=30, stale-while-revalidate=30');return res.status(200).json(await globalContext())}if(op==='cedears-panel'||op==='cedears')return res.status(200).json(await cedearPanelSnapshot());if(op==='cedears-batch')return res.status(200).json(await cedearBatch(req.query?.offset,req.query?.limit));if(op==='merval-panel')return res.status(200).json(await mervalPanelSnapshot());if(op==='merval-history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await mervalHistory(sym))}if(op==='history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await history(sym))}return res.status(400).json({error:'op inválido'})}catch(e){return res.status(500).json({error:String(e?.message||e)})}}
