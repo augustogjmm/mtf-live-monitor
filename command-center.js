@@ -205,7 +205,7 @@ function selectAsset(market,sym){
  var p;if(row.market==='CRYPTO'){p=json('https://api.binance.com/api/v3/klines?symbol='+encodeURIComponent(row.pair||row.sym+'USDT')+'&interval=1h&limit=60',18000).then(normalizeBinance)}else{var op=row.market==='MERVAL'?'merval-history':'history';p=json('/api/data?op='+op+'&symbol='+encodeURIComponent(row.sym),22000).then(function(x){return normalizeHistory(at(x,['data','1d'],[]))})}
  p.then(function(bars){if(seq!==CC.chartSeq)return;if(!bars.length)throw Error('sin velas');drawChart(canvas,bars,pack)}).catch(function(e){if(seq!==CC.chartSeq)return;var c=canvas.getContext('2d'),r=canvas.getBoundingClientRect();canvas.width=Math.max(400,r.width);canvas.height=Math.max(230,r.height);c.fillStyle='#02070d';c.fillRect(0,0,canvas.width,canvas.height);c.fillStyle='#7690a5';c.font='12px monospace';c.fillText('SIN DATOS DE GRÁFICO',15,28)})
 }
-function renderAll(){setContext();renderOpportunities();renderMarkets();renderOperations();renderRadar();renderHealth();if(CC.selected){var r=allRows().find(function(x){return x.market===CC.selected.market&&x.sym===CC.selected.sym});if(r)renderSelected(r)}else{var first=allRows()[0];if(first)selectAsset(first.market,first.sym)}}
+function renderAll(){setContext();renderOpportunities();renderMarkets();renderOperations();renderRadar();renderHealth();if(CC.selected){var r=allRows().find(function(x){return x.market===CC.selected.market&&x.sym===CC.selected.sym});if(r)renderSelected(r)}else{var first=allRows().find(function(x){return CC.market==='CRYPTO'?x.market==='CRYPTO':x.market!=='CRYPTO'});if(first)selectAsset(first.market,first.sym)}}
 function load(force){
  if(CC.busy&&!force)return Promise.resolve();CC.busy=true;var stamp=Date.now();
  var tasks=[
