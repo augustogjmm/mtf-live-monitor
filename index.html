@@ -413,6 +413,12 @@ main{padding:0 10px 20px!important;overflow-x:hidden!important;min-height:100vh;
 .reference-markets .cc-head h2:before{background:linear-gradient(180deg,#22e4e4,#11b9cf)!important}
 .reference-detail .cc-head h2:before{background:linear-gradient(180deg,#9aacbd,#677d91)!important;box-shadow:none!important}
 .mtf-title:before{content:"";display:inline-block;width:3px;height:14px;margin-right:7px;background:#456c4a;border-radius:1px}
+
+/* Win specificity against legacy v4 selectors that were still affecting the exact grid. */
+.reference-ops .operations-table th,.reference-ops .operations-table td{padding:10px 10px!important;font-size:8.8px!important}
+.reference-radar .radar-table{min-width:0!important}
+.reference-radar .radar-table th,.reference-radar .radar-table td{padding:6px 7px!important;font-size:8.4px!important}
+.reference-radar .radar-table thead .subhead th{padding:0 7px 5px!important;font-size:7.8px!important}
 </style>
 </head><body><main>
 
