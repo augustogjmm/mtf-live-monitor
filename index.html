@@ -669,7 +669,7 @@ function assetName(market,sym,provided='',underlying=''){const n=String(provided
 function assetCell(market,sym,provided='',underlying=''){const n=assetName(market,sym,provided,underlying);return `<b>${sym}</b>${n?`<span class=\"small\" style=\"display:block;margin-top:2px\">${n}</span>`:''}`;}
 function loadLocalSignals(){return []}
 let tab='c',C=[],Z=[],CM=new Map,ZM=new Map,selC='',selZ='',cFilter='all',zFilter='all',statsQuick='ALL',sig=[];
-let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],runtimeStructure=[],runtimeLive=[],runtimeFunnel=null,runtimeClosedDiagnostic=null,runtimeHourlyConfirmation=null,zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null,ZLIQUIDITY=null;const ZCACHE='mtf_usd_market_snapshot_v330_regulated_dw',STRATEGY_VERSION='OB-LADDER-v3.7.3',ADR_STRATEGY_VERSION='ADR-OB-v1.0',STATS_UI_BUILD='4.0.0';
+let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],runtimeStructure=[],runtimeLive=[],runtimeFunnel=null,runtimeClosedDiagnostic=null,runtimeHourlyConfirmation=null,zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null,ZLIQUIDITY=null;const ZCACHE='mtf_usd_market_snapshot_v330_regulated_dw',STRATEGY_VERSION='OB-LADDER-v3.7.3',ADR_STRATEGY_VERSION='ADR-OB-v1.0',STATS_UI_BUILD='6.0.0';
 try{localStorage.removeItem('mtf_usd_market_snapshot_v118');}catch{}
 const STATUS_SB_URL='https://swhfftkhqmbtmbnoskoj.supabase.co';
 const STATUS_SB_KEY='sb_publishable_EbjOQ0SprPfdKLTQ6zER0w_DGsf128M';
@@ -1625,7 +1625,7 @@ function initScanSplitters(){
 }
 initScanSplitters();
 
-const UI_VERSION='4.0.0',BUILD_ID='MTF-Market-Command-Center-4.0.0',JOB_NAMES={1:'Crypto structure',2:'Preparación CEDEAR',3:'Watcher / daemon',7:'CEDEAR live',8:'Crypto live',11:'ADR live v1'};let healthData=null,healthBusy=false;
+const UI_VERSION='6.0.0',BUILD_ID='MTF-Market-Command-Center-6.0.0-PIXEL-MATCH',JOB_NAMES={1:'Crypto structure',2:'Preparación CEDEAR',3:'Watcher / daemon',7:'CEDEAR live',8:'Crypto live',11:'ADR live v1'};let healthData=null,healthBusy=false;
 function ageMs(v){const t=v?new Date(v).getTime():NaN;return Number.isFinite(t)?Date.now()-t:Infinity}
 function fmtAge(v){const a=ageMs(v);if(!Number.isFinite(a))return'—';const m=Math.max(0,Math.round(a/60000));if(m<2)return'ahora';if(m<60)return m+' min';const h=Math.floor(m/60),rm=m%60;if(h<36)return h+' h '+rm+' min';return Math.floor(h/24)+' d'}
 function dt(v){return v?new Date(v).toLocaleString('es-AR'):'—'}
@@ -1710,4 +1710,4 @@ pollZBackendCycle().catch(()=>{});
 
 loadC();
 })();
-</script><script src="/command-center.js?v=6.0.0"></script></main></body></html>
+</script><script src="/command-center.js?v=6.1.0"></script></main></body></html>
