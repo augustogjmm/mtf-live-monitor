@@ -355,7 +355,7 @@ async function globalContext(){
 
 async function statsSnapshot(){
  const [j,rr,ar,cr]=await Promise.all([
-   supa('/rest/v1/rpc/mtf_stats_snapshot',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),
+   supa('/rest/v1/rpc/mtf_stats_snapshot_fast',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),
    supa('/rest/v1/mtf_state?market=eq.regulated_live&select=meta&limit=1').catch(()=>[]),
    supa('/rest/v1/mtf_state?market=eq.adr_live&select=meta&limit=1').catch(()=>[]),
    supa('/rest/v1/mtf_state?market=eq.crypto_live&select=meta&limit=1').catch(()=>[])
