@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
-const STRATEGY_VERSION = "OB-LADDER-v3.7.3";
+const STRATEGY_VERSION = "MACD-OB-v1.0";
 const PREVIOUS_CRYPTO_STRATEGY_VERSION = "OB-LADDER-v3.7.2";
 const REGULATED_STRATEGY_VERSION = "OB-LADDER-v3.6";
 const ADR_STRATEGY_VERSION = "ADR-OB-v1.0";
