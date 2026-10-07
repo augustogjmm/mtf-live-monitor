@@ -212,7 +212,8 @@ function proximityFor(ladder:any,price:number,atr14:number,regulated=false){
 }
 function structuralStop(direction:"LONG"|"SHORT",ladder:any,atr14:number){
   const side:LadderLevel[]=direction==="LONG"?ladder?.below||[]:ladder?.above||[];
-  if(side.length<1)return NaN;\n  const third=side[Math.min(2,side.length-1)],buffer=Number.isFinite(atr14)&&atr14>0?atr14*.25:Math.abs(third.point)*.0025;
+  if(side.length<1)return NaN;
+  const third=side[Math.min(2,side.length-1)],buffer=Number.isFinite(atr14)&&atr14>0?atr14*.25:Math.abs(third.point)*.0025;
   return direction==="LONG"?third.ob.bottom-buffer:third.ob.top+buffer;
 }
 
@@ -657,7 +658,9 @@ async function getState(market:string){const{data,error}=await sb.from("mtf_stat
 async function setState(market:string,lastProcessed:number,meta:any){const current=await getState(market),merged={...(current?.meta||{}),...meta},{error}=await sb.from("mtf_state").upsert({market,last_processed_at:iso(lastProcessed),last_run_at:new Date().toISOString(),meta:merged,updated_at:new Date().toISOString()});if(error)throw error;}
 
 async function insertSignal(s:SignalInsert){
- const entry=n(s.entry),stop=n(s.stop),tp1=n(s.tp1),risk=Math.abs(entry-stop),reward=s.direction==="SHORT"?entry-tp1:tp1-entry,rr=risk>0&&reward>0?reward/risk:NaN;\n if(s.market!=="cedear"&&!(rr>=MIN_RR))return null;\n s={...s,context:{...(s.context||{}),minimum_rr:s.market==="cedear"?null:MIN_RR,planned_rr:rr,rr_gate:s.market==="cedear"?"NONE":"TP1_vs_SL"}};
+ const entry=n(s.entry),stop=n(s.stop),tp1=n(s.tp1),risk=Math.abs(entry-stop),reward=s.direction==="SHORT"?entry-tp1:tp1-entry,rr=risk>0&&reward>0?reward/risk:NaN;
+ if(s.market!=="cedear"&&!(rr>=MIN_RR))return null;
+ s={...s,context:{...(s.context||{}),minimum_rr:s.market==="cedear"?null:MIN_RR,planned_rr:rr,rr_gate:s.market==="cedear"?"NONE":"TP1_vs_SL"}};
  const setupId=String((s.context as any)?.setup_id||""),rank=Number((s.context as any)?.entry_rank||0);
  const legacy=await legacyOperationalSignals(String(s.market),String(s.symbol));if(legacy.length)return null;
  const {data:opens,error:openErr}=await sb.from("mtf_signals").select("*")
@@ -929,7 +932,11 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
     .select("*").eq("run_date",runDate).eq("metrics_done",false).order("symbol").limit(40);
   if(metricErr)throw metricErr;
   if(metricBatch?.length){
-    const results=await pool(metricBatch,10,async(row:any)=>{\n      try{\n        const history=await bymaHistory(String(row.symbol).toUpperCase(),90);\n        const metrics=liqMetrics(row.raw||{},history);\n        (metrics as any).metricSource="BYMA_HISTORICAL_ADTV40";
+    const results=await pool(metricBatch,10,async(row:any)=>{
+      try{
+        const history=await bymaHistory(String(row.symbol).toUpperCase(),90);
+        const metrics=liqMetrics(row.raw||{},history);
+        (metrics as any).metricSource="BYMA_HISTORICAL_ADTV40";
         const {error}=await sb.from("mtf_cedear_work").update({
           metrics,metrics_done:true,attempts:0,last_error:null,updated_at:new Date().toISOString()
         }).eq("run_date",runDate).eq("symbol",row.symbol);
