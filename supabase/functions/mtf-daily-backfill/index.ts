@@ -253,8 +253,8 @@ function cedearDiagnosticAt(dailyAll,t){
   const idx=dailyAll.findIndex(x=>x.t===t),current=idx>=0?dailyAll[idx]:dailyAll.filter(x=>x.t<=t).at(-1);if(!current)return{ready:false,reason:"missing_trigger_bar"};
   const actualIdx=dailyAll.findIndex(x=>x.t===current.t),prior=dailyAll.slice(0,actualIdx);if(prior.length<55)return{ready:false,reason:"insufficient_daily_history"};
   const bars=prior.map(x=>({t:x.t,o:x.open,h:x.high,l:x.low,c:x.close,v:x.volume})),reference=current.close,ladder=detectorLadder(bars,reference),context=contextOnly(bars);
-  const weeklyBars=weeksFromDaily(dailyAll,current.t);if(weeklyBars.length<2)return{ready:false,reason:"insufficient_weekly_history_lt2"};
-  const weekly=contextOnly(weeklyBars),macroContext={trend:weekly.trend,d1:context,w1:weekly,dominant_timeframe:"1w"};
+  const weeklyBars=weeksFromDaily(dailyAll,current.t),weekly=weeklyBars.length>=55?contextOnly(weeklyBars):{ready:false,trend:"RANGO"},
+        macroContext={trend:weekly.trend,d1:context,w1:weekly,dominant_timeframe:"1w_informational"};
   const touches=ladder.below.filter(x=>x.ob.confirmTime<current.t&&zoneTouched({h:current.high,l:current.low},x));
   const stops={LONG:structuralStop("LONG",ladder,context.atr14)},proximity=proximityFor(ladder,reference,context.atr14,true);
   return{ready:true,qualifiedDirection:touches.length?"LONG":null,trigger:{t:current.t,o:current.open,h:current.high,l:current.low,c:current.close,v:current.volume},referencePrice:reference,ladder,context,macroContext,stops,proximity,touches:{long:touches}};
@@ -745,10 +745,9 @@ function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:
   if(!daily?.length||daily.length<55)return{ready:false,reason:"insufficient_daily_history_lt55"};
   const bars:Bar[]=daily.map(v=>({t:v.t,o:v.open,h:v.high,l:v.low,c:v.close,v:v.volume}));
   const ladder=detectorLadder(bars,n(liveBar?.o)>0?n(liveBar?.o):livePrice),context=contextOnly(bars),weeklyBars=weeksFromDaily(daily,daily.at(-1)!.t);
-  if(weeklyBars.length<55)return{ready:false,reason:"insufficient_weekly_history_lt55"};
-  const weekly=contextOnly(weeklyBars);
-  if(!context.ready||!weekly.ready)return{ready:false,reason:"context_not_mature"};
-  const macroContext={trend:weekly.trend,d1:context,w1:weekly,dominant_timeframe:"1w"};
+  const weekly=weeklyBars.length>=55?contextOnly(weeklyBars):{ready:false,trend:"RANGO"};
+  if(!context.ready)return{ready:false,reason:"daily_context_not_mature"};
+  const macroContext={trend:weekly.trend,d1:context,w1:weekly,dominant_timeframe:"1w_informational"};
   const trigger={t:n(liveBar?.t)||Date.now(),o:n(liveBar?.o)||livePrice,h:n(liveBar?.h)||livePrice,l:n(liveBar?.l)||livePrice,c:n(liveBar?.c)||livePrice,v:0};
   const touches=ladder.below.filter((x:LadderLevel)=>pointTouched(trigger,x));
   const stops={LONG:structuralStop("LONG",ladder,context.atr14)},proximity=proximityFor(ladder,livePrice,context.atr14,true);
@@ -757,7 +756,7 @@ function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:
 async function processRegulatedLive(createEntries=true){
   const open=await bymaLiveOpen();
   if(createEntries&&!open)return{strategy_version:STRATEGY_VERSION,skipped:"byma_not_open"};
-  const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=2;
+  const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=40;
   const {data:prevRow}=await sb.from("mtf_state").select("meta").eq("market","regulated_live").maybeSingle();
   const prevSnapshot:any[]=prevRow?.meta?.snapshot||[],
         prevMap=new Map<string,any>(prevSnapshot.map((x:any)=>[String(x.market)+":"+String(x.symbol),x]));
@@ -892,7 +891,7 @@ async function processRegulatedLive(createEntries=true){
     }
   };
 
-  const results=await pool(batch,1,scanOne);
+  const results=await pool(batch,6,scanOne);
   const universeKeys=new Set(items.map((x:any)=>x.market+":"+x.sym)),
         merged=new Map<string,any>();
   for(const x of prevSnapshot){
