@@ -929,10 +929,10 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
   const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),total=await ensureCedearWork(runDate),audit:any[]=[],cycleId="cedear:"+iso(now);
 
   const {data:metricBatch,error:metricErr}=await sb.from("mtf_cedear_work")
-    .select("*").eq("run_date",runDate).eq("metrics_done",false).order("symbol").limit(40);
+    .select("*").eq("run_date",runDate).eq("metrics_done",false).order("symbol").limit(100);
   if(metricErr)throw metricErr;
   if(metricBatch?.length){
-    const results=await pool(metricBatch,10,async(row:any)=>{
+    const results=await pool(metricBatch,20,async(row:any)=>{
       try{
         const history=await bymaHistory(String(row.symbol).toUpperCase(),90);
         const metrics=liqMetrics(row.raw||{},history);
