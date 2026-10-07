@@ -4,10 +4,9 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
-const VERSION="OB-LADDER-v3.7.3";
+const VERSION="MACD-OB-v1.0";
 const LEGACY_VERSION="OB-LADDER-v3.7.2";
-const ENGINE="MTF_OB_TREND_RESTORED_V3_7_3";
-const MIN_RR=1.0;
+const ENGINE="MTF_MACD_DIRECTION_OB_ENTRY_V1";
 const ATR_STOP_BUFFER=.25;
 const STABLES=new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const FALLBACK=["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
@@ -185,17 +184,15 @@ function proximity(ladder:any,price:number,atr:number,regulated=false){
 function stopFor(direction:string,ladder:any,atr:number){const a=direction==="LONG"?ladder.below:ladder.above;if(a.length<3)return NaN;const x=a[2],buf=atr>0?atr*.25:Math.abs(x.point)*.0025;return direction==="LONG"?x.ob.bottom-buf:x.ob.top+buf}
 function trendRelation(direction:string,trend:string){if(trend==="RANGO")return"RANGO";return(direction==="LONG"&&trend==="ALCISTA")||(direction==="SHORT"&&trend==="BAJISTA")?"A_FAVOR":"CONTRA_TENDENCIA"}
 function directionEligibility(direction:string,snap:any){
-  const want=direction==="LONG"?"ALCISTA":"BAJISTA",against=direction==="LONG"?"BAJISTA":"ALCISTA",
-    c1=snap?.context||{},macroTrend=String(snap?.macroContext?.trend||"RANGO"),
-    h1Trend=String(c1.trend||"RANGO"),eligible=h1Trend===want&&macroTrend!==against,
-    relation=eligible?"A_FAVOR":macroTrend===against?"CONTRA_TENDENCIA":"RANGO",
-    rsiOk=direction==="LONG"?n(c1.rsi14)>50:n(c1.rsi14)<50,
-    macdOk=direction==="LONG"?n(c1.macd)>n(c1.signal):n(c1.macd)<n(c1.signal),
-    volumeOk=n(c1.volumeRatio)>=1;
-  return{eligible,relation,contextOk:macroTrend!==against,macroTrend,h1Trend,
-    structureOk:true,momentumScore:[rsiOk,macdOk,volumeOk].filter(Boolean).length,
-    rsiOk,macdOk,volumeOk,indicatorsRole:"context_only",emaFilter:false,
-    reasons:eligible?[]:["trend_not_aligned"]};
+  const c1=snap?.context||{},macd=n(c1.macd),signal=n(c1.signal),
+        macdDirection=macd>signal?"LONG":macd<signal?"SHORT":"NEUTRAL",
+        eligible=macdDirection===direction;
+  return{eligible,relation:eligible?"MACD_ALIGNED":"MACD_OPPOSED",macd,signal,
+    histogram:Number.isFinite(macd)&&Number.isFinite(signal)?macd-signal:null,
+    macdDirection,contextOk:Number.isFinite(macd)&&Number.isFinite(signal),
+    structureOk:true,momentumScore:eligible?1:0,rsiOk:null,macdOk:eligible,volumeOk:null,
+    indicatorsRole:"MACD_defines_direction_OB_defines_entry",emaFilter:false,
+    reasons:eligible?[]:["macd_direction_mismatch"]};
 }
 function rejectsZone(bar:Bar,level:Level,direction:string){
   const range=Math.max(1e-12,bar.h-bar.l),overlap=bar.l<=level.ob.top&&bar.h>=level.ob.bottom;
@@ -218,7 +215,6 @@ function tradePlan(direction:string,level:Level,snap:any,entry:number){
   const targets=raw.map(levelFromPublic).filter((x:Level)=>direction==="LONG"?x.point>entry:x.point<entry);
   if(!targets.length)return null;
   const rr=Math.abs(targets[0].point-entry)/risk;
-  if(!(rr>=MIN_RR))return null;
   return{stop,risk,rr,tp1:targets[0].point,
     tp2:targets[1]?.point??targets[0].point,tp3:targets[2]?.point??targets[targets.length-1].point,
     target_rank:targets[0].rank};
@@ -289,9 +285,9 @@ function signalFromConfirmation(sym:string,dir:string,level:Level,snap:any,id:st
   return{market:"crypto",symbol:sym,underlying:sym,direction:dir,signal_time:iso(eventTime),entry:level.point,stop:plan.stop,tp1:plan.tp1,tp2:plan.tp2,tp3:plan.tp3,source:"FORWARD",
     context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"1m",trigger_basis:"1m_range_crosses_active_1h_OB_point",
       entry_price_basis:"OB_center_line",entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
-      ladder_basis:"pre_confirmation_detector_state",ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:gate.relation,proximity:snap.proximity,
-      entry_policy:"OB_touch_plus_H1_trend_without_opposing_macro_plus_RR1; indicators_context_only",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
-      rr_min:MIN_RR,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
+      ladder_basis:"pre_confirmation_detector_state",ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:gate.relation,macd_direction:gate.macdDirection,proximity:snap.proximity,
+      entry_policy:"H1_MACD_line_vs_signal_defines_direction; active_1H_OB_center_touch_defines_entry; no_RR_gate",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
+      rr_min:null,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
       protection_policy:"after_closed_1m_reaches_1R_move_active_stop_to_break_even_for_next_bar",
       trigger_bar:{t:bar.t,closeTime:eventTime,o:bar.o,h:bar.h,l:bar.l,c:bar.c,v:bar.v},stop_basis:"third_entry_OB_far_edge_plus_0_25_ATR"}};
 }
