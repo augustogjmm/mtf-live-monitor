@@ -319,7 +319,7 @@ async function bymaHistory(sym:string,days=260):Promise<DailyBar[]>{
  let last:any;
  for(let attempt=0;attempt<3;attempt++){
    try{
-     if(attempt)await new Promise(r=>setTimeout(r,250*attempt));
+     if(attempt)await new Promise(r=>setTimeout(r,750*attempt));
      const j=await fetchJson(url,{},18000);
      if(j?.s!=="ok"||!Array.isArray(j.t))throw new Error("respuesta histórica inválida");
      const out:DailyBar[]=[];
@@ -929,10 +929,10 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
   const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),total=await ensureCedearWork(runDate),audit:any[]=[],cycleId="cedear:"+iso(now);
 
   const {data:metricBatch,error:metricErr}=await sb.from("mtf_cedear_work")
-    .select("*").eq("run_date",runDate).eq("metrics_done",false).order("symbol").limit(100);
+    .select("*").eq("run_date",runDate).eq("metrics_done",false).order("symbol").limit(80);
   if(metricErr)throw metricErr;
   if(metricBatch?.length){
-    const results=await pool(metricBatch,20,async(row:any)=>{
+    const results=await pool(metricBatch,8,async(row:any)=>{
       try{
         const history=await bymaHistory(String(row.symbol).toUpperCase(),90);
         const metrics=liqMetrics(row.raw||{},history);
