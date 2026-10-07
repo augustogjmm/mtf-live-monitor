@@ -6,7 +6,7 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false, autoRefreshToken: false } });
 
 const BYMA = "https://open.bymadata.com.ar/vanoms-be-core/rest/api/bymadata/free";
-const STRATEGY_VERSION = "OB-LADDER-v3.6";
+const STRATEGY_VERSION = "CEDEAR-MACD-OB-v1.0";
 const MIN_RR = 1.0;
 const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
 const STABLES = new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
@@ -189,10 +189,12 @@ function trendRelation(direction:"LONG"|"SHORT",trend:string){
   return(direction==="LONG"&&trend==="ALCISTA")||(direction==="SHORT"&&trend==="BAJISTA")?"A_FAVOR":"CONTRA_TENDENCIA";
 }
 function regulatedRiskProfile(diag:any){
-  const d=String(diag?.context?.trend||"RANGO"),w=String(diag?.macroContext?.w1?.trend||diag?.macroContext?.trend||"RANGO");
-  if(w==="ALCISTA"&&d!=="BAJISTA")return{relation:"A_FAVOR",risk:d==="ALCISTA"?"MENOR":"INTERMEDIO",daily:d,weekly:w};
-  if(d==="BAJISTA"&&w==="BAJISTA")return{relation:"CONTRA_TENDENCIA",risk:"MAYOR",daily:d,weekly:w};
-  return{relation:"INTERMEDIA",risk:"INTERMEDIO",daily:d,weekly:w};
+  const d=diag?.context||{},macd=n(d.macd),signal=n(d.signal),
+        macdBull=Number.isFinite(macd)&&Number.isFinite(signal)&&macd>signal,
+        w=String(diag?.macroContext?.w1?.trend||diag?.macroContext?.trend||"RANGO");
+  return{relation:macdBull?"A_FAVOR":"MACD_NO_COMPRA",risk:macdBull?"HABILITADA":"BLOQUEADA",
+    daily:String(d.trend||"RANGO"),weekly:w,macd,signal,histogram:Number.isFinite(macd)&&Number.isFinite(signal)?macd-signal:null,
+    macd_direction:macdBull?"COMPRA":"NO_COMPRA"};
 }
 function publicLevel(x:LadderLevel){
   return{rank:x.rank,point:x.point,side:x.side,detector_side:x.detectorSide,origin_time:x.ob.originTime,confirm_time:x.ob.confirmTime,zone_bottom:x.ob.bottom,zone_top:x.ob.top};
@@ -210,15 +212,14 @@ function proximityFor(ladder:any,price:number,atr14:number,regulated=false){
 }
 function structuralStop(direction:"LONG"|"SHORT",ladder:any,atr14:number){
   const side:LadderLevel[]=direction==="LONG"?ladder?.below||[]:ladder?.above||[];
-  if(side.length<3)return NaN;
-  const third=side[2],buffer=Number.isFinite(atr14)&&atr14>0?atr14*.25:Math.abs(third.point)*.0025;
+  if(side.length<1)return NaN;\n  const third=side[Math.min(2,side.length-1)],buffer=Number.isFinite(atr14)&&atr14>0?atr14*.25:Math.abs(third.point)*.0025;
   return direction==="LONG"?third.ob.bottom-buffer:third.ob.top+buffer;
 }
 
 function ladderSignal(direction:"LONG"|"SHORT",level:LadderLevel,diag:any,timeframe:"1h"|"1d"){
-  const targets:LadderLevel[]=direction==="LONG"?diag.ladder.above:diag.ladder.below;if(targets.length<3)return null;
+  const targets:LadderLevel[]=direction==="LONG"?diag.ladder.above:diag.ladder.below;if(targets.length<1)return null;
   const stop=n(diag?.stops?.[direction]);if(!Number.isFinite(stop))return null;
-  return{direction,entry:level.point,stop,tp1:targets[0].point,tp2:targets[1].point,tp3:targets[2].point,context:{
+  return{direction,entry:level.point,stop,tp1:targets[0].point,tp2:targets[1]?.point??targets[0].point,tp3:targets[2]?.point??targets[targets.length-1].point,context:{
     strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",operational_timeframe:timeframe,indicators_role:"context_only",
     proximity_rule:"NEAR_when_distance_to_nearest_entry_line_lte_1_ATR14",
     trigger_basis:"entry_only_when_intraday_range_crosses_exact_OB_center_line",
@@ -228,7 +229,7 @@ function ladderSignal(direction:"LONG"|"SHORT",level:LadderLevel,diag:any,timefr
     proximity:diag.proximity,context:diag.context,macro_context:diag.macroContext,
     trend_relation:timeframe==="1d"?regulatedRiskProfile(diag).relation:trendRelation(direction,diag.macroContext?.trend||diag.context.trend),
     risk_profile:timeframe==="1d"?regulatedRiskProfile(diag).risk:null,
-    entry_policy:timeframe==="1d"?"require_W1_ALCISTA_and_D1_not_BAJISTA_each_leg":"block_CONTRA_TENDENCIA_allow_A_FAVOR_or_RANGO_each_leg",
+    entry_policy:timeframe==="1d"?"D1_MACD_line_above_signal_enables_COMPRA_and_D1_OB_touch_defines_entry":"block_CONTRA_TENDENCIA_allow_A_FAVOR_or_RANGO_each_leg",
     exit_policy:timeframe==="1d"?"TP1_ONLY_NO_SL":"TP1_OR_SL",stop_policy:timeframe==="1d"?"NONE":"STRUCTURAL"}};
 }
 
@@ -341,30 +342,24 @@ function panelFastMetrics(p:any){
     tradeCount:n(p?.tradeCount??p?.trades??p?.operations??p?.quantityOperations),
     spreadPct:mid>0&&ask>=bid?(ask-bid)/mid*100:NaN,
     volumeAccelerationPct:0,persistence:1,
-    metricSource:"BYMA_CURRENT_TURNOVER"
+    metricSource:"BYMA_HISTORICAL_ADTV40"
   };
 }
 function liqMetrics(p:any,b:DailyBar[]){const bid=n(p.bidPrice??p.bid??p.bestBid),ask=n(p.offerPrice??p.ask??p.bestOffer),mid=bid>0&&ask>0?(bid+ask)/2:NaN,a5=adtv(b,5),a20=adtv(b,20),a40=adtv(b,40);return{adtv5:a5,adtv20:a20,adtv40:a40,currentVolumeAmount:panelAmount(p),tradeCount:n(p.tradeCount??p.trades??p.operations??p.quantityOperations),spreadPct:mid>0&&ask>=bid?(ask-bid)/mid*100:NaN,volumeAccelerationPct:a20>0&&a5>0?(a5/a20-1)*100:NaN,persistence:persist(b)};}
 function selectLiquidUniverse(a:any[]){
- // No Top-N and no cumulative-volume quota.
- // Keep the broad traded universe and only discard the marginal low-activity tail.
  const traded=a
-   .filter(x=>n(x?.liquidity?.adtv20)>0)
-   .sort((x,y)=>n(y.liquidity?.adtv20)-n(x.liquidity?.adtv20)||String(x.symbol).localeCompare(String(y.symbol)));
+   .filter(x=>n(x?.liquidity?.adtv40)>0&&n(x?.liquidity?.persistence)>=0.75)
+   .sort((x,y)=>n(y.liquidity?.adtv40)-n(x.liquidity?.adtv40)||String(x.symbol).localeCompare(String(y.symbol)));
  if(!traded.length)return[];
- const vols=traded.map(x=>n(x.liquidity?.adtv20)).sort((a,b)=>a-b),
-       p10=vols[Math.max(0,Math.min(vols.length-1,Math.floor((vols.length-1)*0.10)))],
-       floor=Math.max(100000,p10);
- const base=traded.filter(x=>n(x.liquidity?.adtv20)>=floor),
-       total=base.reduce((sum,x)=>sum+n(x.liquidity?.adtv20),0);
+ const floor=20000000,
+       base=traded.filter(x=>n(x.liquidity?.adtv40)>=floor),
+       total=base.reduce((sum,x)=>sum+n(x.liquidity?.adtv40),0);
  let cum=0;
  return base.map((x,i)=>{
-   cum+=n(x.liquidity?.adtv20);
-   return{
-     ...x,eligible_liquid:true,liquidity_rank:i+1,
-     liquidity_floor:floor,liquidity_rule:"ALL_TRADED_EXCEPT_BOTTOM_ACTIVITY_TAIL",
-     liquidity_coverage_pct:total>0?cum/total*100:0
-   };
+   cum+=n(x.liquidity?.adtv40);
+   return{...x,eligible_liquid:true,liquidity_rank:i+1,liquidity_floor:floor,
+     liquidity_rule:"ADTV40_GTE_20M_AND_40D_PERSISTENCE_GTE_75PCT",
+     liquidity_coverage_pct:total>0?cum/total*100:0};
  });
 }
 async function pool<T,R>(a:T[],limit:number,fn:(x:T)=>Promise<R>){let i=0;const o:(R|null)[]=new Array(a.length).fill(null);await Promise.all(Array.from({length:Math.min(limit,a.length)},async()=>{while(i<a.length){const j=i++;try{o[j]=await fn(a[j]);}catch(_){o[j]=null;}}}));return o;}
@@ -662,9 +657,7 @@ async function getState(market:string){const{data,error}=await sb.from("mtf_stat
 async function setState(market:string,lastProcessed:number,meta:any){const current=await getState(market),merged={...(current?.meta||{}),...meta},{error}=await sb.from("mtf_state").upsert({market,last_processed_at:iso(lastProcessed),last_run_at:new Date().toISOString(),meta:merged,updated_at:new Date().toISOString()});if(error)throw error;}
 
 async function insertSignal(s:SignalInsert){
- const entry=n(s.entry),stop=n(s.stop),tp1=n(s.tp1),risk=Math.abs(entry-stop),reward=s.direction==="SHORT"?entry-tp1:tp1-entry,rr=risk>0&&reward>0?reward/risk:NaN;
- if(!(rr>=MIN_RR))return null;
- s={...s,context:{...(s.context||{}),minimum_rr:MIN_RR,planned_rr:rr,rr_gate:"TP1_vs_SL"}};
+ const entry=n(s.entry),stop=n(s.stop),tp1=n(s.tp1),risk=Math.abs(entry-stop),reward=s.direction==="SHORT"?entry-tp1:tp1-entry,rr=risk>0&&reward>0?reward/risk:NaN;\n if(s.market!=="cedear"&&!(rr>=MIN_RR))return null;\n s={...s,context:{...(s.context||{}),minimum_rr:s.market==="cedear"?null:MIN_RR,planned_rr:rr,rr_gate:s.market==="cedear"?"NONE":"TP1_vs_SL"}};
  const setupId=String((s.context as any)?.setup_id||""),rank=Number((s.context as any)?.entry_rank||0);
  const legacy=await legacyOperationalSignals(String(s.market),String(s.symbol));if(legacy.length)return null;
  const {data:opens,error:openErr}=await sb.from("mtf_signals").select("*")
@@ -779,7 +772,7 @@ async function processRegulatedLive(createEntries=true){
       const sym=String(row.symbol),underlying=underlyingFor(sym);
       return{market:"cedear",sym,underlying,extra:{
         liquidity:row.metrics||{},liquidity_rank:row.liquidity_rank,
-        universe_rule:"BYMA_BROAD_LIQUID_UNIVERSE",
+        universe_rule:"BYMA_ADTV40_20M_PERSISTENCE75",
         origin_market:underlying.toUpperCase().endsWith(".SA")?"B3":"USA"
       }};
     }),
@@ -840,7 +833,7 @@ async function processRegulatedLive(createEntries=true){
       if(!diag.ready)return{ok:false,ready:false,market,symbol:sym,underlying,state:"NO_ANALYSIS",reason:diag.reason,price:live.price,t:live.t,...extra};
 
       const below=diag.ladder.below.map(publicLevel),above=diag.ladder.above.map(publicLevel),
-            structureReady=below.length===3&&above.length===3,
+            structureReady=below.length>=1&&above.length>=1,
             legacy:any[]=await legacyOperationalSignals(market,sym);
       let active:any[]=await activeSetupSignals(market,sym),added=0;
 
@@ -879,13 +872,13 @@ async function processRegulatedLive(createEntries=true){
       const operational=legacy.length?legacy:active;
       return{
         ok:true,ready:true,actionable:structureReady&&regulatedRiskProfile(diag).relation==="A_FAVOR"&&!legacy.length,market,symbol:sym,underlying,
-        reason:!structureReady?`setup_incomplete_${below.length}x${above.length}`:(regulatedRiskProfile(diag).relation==="A_FAVOR"?null:"context_requires_weekly_bullish_and_daily_not_bearish"),
+        reason:!structureReady?`setup_incomplete_${below.length}x${above.length}`:(regulatedRiskProfile(diag).relation==="A_FAVOR"?null:"daily_macd_not_bullish"),
         price:live.price,t:live.t,name:live.name||prev?.name||"",bar:displayTrigger,fresh_trigger:triggers.length>0,source:live.source,
         state:operational.length?"OPEN":diag.proximity?.state,
         proximity:diag.proximity,
         ladder:{reference_price:live.price,below,above,complete:structureReady,exact_analyzer:true},
         context:diag.context,macroContext:diag.macroContext,stops:diag.stops,
-        entry_allowed:regulatedRiskProfile(diag).relation==="A_FAVOR",risk_profile:regulatedRiskProfile(diag),stop_policy:"NONE",exit_policy:"TP1_ONLY_NO_SL",
+        entry_allowed:regulatedRiskProfile(diag).relation==="A_FAVOR",risk_profile:regulatedRiskProfile(diag),stop_policy:"STRUCTURAL_REFERENCE",exit_policy:"TP1_ONLY",
         open_count:operational.length,setup_id:operational[0]?.context?.setup_id||null,direction:operational[0]?.direction||null,
         active_strategy_version:operational[0]?.strategy_version||null,legacy_active:legacy.length>0,
         created:added,...extra
@@ -933,12 +926,10 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
   const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),total=await ensureCedearWork(runDate),audit:any[]=[],cycleId="cedear:"+iso(now);
 
   const {data:metricBatch,error:metricErr}=await sb.from("mtf_cedear_work")
-    .select("*").eq("run_date",runDate).eq("metrics_done",false).order("symbol").limit(250);
+    .select("*").eq("run_date",runDate).eq("metrics_done",false).order("symbol").limit(40);
   if(metricErr)throw metricErr;
   if(metricBatch?.length){
-    const results=await pool(metricBatch,20,async(row:any)=>{
-      try{
-        const metrics=panelFastMetrics(row.raw||{});
+    const results=await pool(metricBatch,10,async(row:any)=>{\n      try{\n        const history=await bymaHistory(String(row.symbol).toUpperCase(),90);\n        const metrics=liqMetrics(row.raw||{},history);\n        (metrics as any).metricSource="BYMA_HISTORICAL_ADTV40";
         const {error}=await sb.from("mtf_cedear_work").update({
           metrics,metrics_done:true,attempts:0,last_error:null,updated_at:new Date().toISOString()
         }).eq("run_date",runDate).eq("symbol",row.symbol);
@@ -952,13 +943,13 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
       }
     });
     const {count:pendingMetrics}=await sb.from("mtf_cedear_work").select("symbol",{count:"exact",head:true}).eq("run_date",runDate).eq("metrics_done",false);
-    return{strategy_version:STRATEGY_VERSION,in_progress:true,phase:"metrics",liquidity_basis:"BYMA_CURRENT_TURNOVER",run_date:runDate,total,processed:metricBatch.length,pending:pendingMetrics||0,errors:(results||[]).filter((x:any)=>x&&x.ok===false).length};
+    return{strategy_version:STRATEGY_VERSION,in_progress:true,phase:"metrics",liquidity_basis:"BYMA_HISTORICAL_ADTV40",run_date:runDate,total,processed:metricBatch.length,pending:pendingMetrics||0,errors:(results||[]).filter((x:any)=>x&&x.ok===false).length};
   }
 
   const {data:metricRows,error:allMetricErr}=await sb.from("mtf_cedear_work").select("symbol,underlying,metrics").eq("run_date",runDate).eq("metrics_done",true).not("metrics","is",null);
   if(allMetricErr)throw allMetricErr;
   let liquid=selectLiquidUniverse((metricRows||[]).map((r:any)=>({symbol:r.symbol,underlying:r.underlying,liquidity:r.metrics}))),
-      liquidityBasis="BYMA_CURRENT_TURNOVER";
+      liquidityBasis="BYMA_HISTORICAL_ADTV40";
   if(!liquid.length&&(metricRows||[]).length){
     const {data:lastValid}=await sb.from("mtf_cedear_work").select("run_date").lt("run_date",runDate).eq("eligible_liquid",true)
       .order("run_date",{ascending:false}).limit(1).maybeSingle();
@@ -1011,7 +1002,7 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
           let insertedCount=0,decision="NO_ENTRY",reason=diag?.proximity?.state==="NEAR"?"near_entry_atr":diag?.proximity?.state==="IN_ZONE"?"entry_zone_active":"waiting_distance_atr";
           for(const cur of curs){
             const source=c.t>=activatedAt?"FORWARD":"BASELINE";
-            const inserted=await insertSignal({market:"cedear",symbol:sym,underlying,direction:"LONG",signal_time:iso(c.t),entry:cur.entry,stop:cur.stop,tp1:cur.tp1,tp2:cur.tp2,tp3:cur.tp3,source,context:{...cur.context,liquidity:row.metrics||{},liquidity_rank:row.liquidity_rank,universe_rule:"BYMA_BROAD_LIQUID_UNIVERSE",origin_market:underlying.toUpperCase().endsWith(".SA")?"B3":"USA"}});
+            const inserted=await insertSignal({market:"cedear",symbol:sym,underlying,direction:"LONG",signal_time:iso(c.t),entry:cur.entry,stop:cur.stop,tp1:cur.tp1,tp2:cur.tp2,tp3:cur.tp3,source,context:{...cur.context,liquidity:row.metrics||{},liquidity_rank:row.liquidity_rank,universe_rule:"BYMA_ADTV40_20M_PERSISTENCE75",origin_market:underlying.toUpperCase().endsWith(".SA")?"B3":"USA"}});
             if(inserted){insertedCount++;created++;}
           }
           if(curs.length&&insertedCount){decision="ENTRY";reason="daily_bullish_ob_buy_level_touched";}else if(curs.length){decision="BLOCKED_OPEN";reason="level_already_used_or_three_long_legs_open";}else if((diag?.touches?.long?.length||0)>0)reason="daily_bullish_ob_touched_but_3_bearish_exit_points_not_available";
@@ -1049,7 +1040,7 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
   await sb.from("mtf_cedear_work").delete().lt("run_date",runDate);
   return{
     strategy_version:STRATEGY_VERSION,complete:true,run_date:runDate,universe:universe.length,
-    universe_rule:"BYMA_BROAD_LIQUID_UNIVERSE",
+    universe_rule:"BYMA_ADTV40_20M_PERSISTENCE75",
     tracked_outside_universe:leftovers.length,
     work_errors:(finalRows||[]).filter((x:any)=>x.last_error).length,
     errors:trackingErrors
