@@ -724,7 +724,114 @@ html,body{height:100%;background:#030b14!important}
   .reference-ops .cc-table-wrap,.reference-radar .cc-table-wrap{height:auto!important;max-height:360px!important;overflow:auto!important}
 }
 </style>
-</head><body><main>
+
+<style id="mtf-reference-ui-v1">
+/* Reference-target visual treatment. Preserves the existing functional dashboard geometry. */
+.mtf-symbols{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.mtf-section-icon{width:21px;height:21px;display:inline-block;vertical-align:-5px;flex:none;margin-right:9px;fill:none;stroke:#08cfff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 2px rgba(0,186,233,.2))}
+.mtf-chart-heading{display:flex;align-items:center;min-width:0}
+.mtf-chart-heading .mtf-section-icon{margin-right:9px}
+.reference-dashboard .cc-head h2{color:#f7fcff!important;font-size:16.3px!important;font-weight:850!important;text-shadow:none!important;letter-spacing:.009em!important;white-space:nowrap}
+.reference-dashboard .cc-head h2:before{display:none!important}
+.reference-dashboard .cc-panel{border:1px solid #20506a!important;background:linear-gradient(180deg,rgba(7,25,40,.99),rgba(3,15,27,.99))!important;box-shadow:inset 0 1px rgba(114,171,194,.055),0 5px 14px rgba(0,0,0,.14)!important}
+.reference-dashboard .cc-head{background:linear-gradient(180deg,rgba(12,35,54,.78),rgba(5,22,35,.3))!important;border-bottom:1px solid rgba(28,73,100,.62)!important}
+.reference-dashboard .cc-table th,.reference-dashboard .cc-table td{font-family:Inter,system-ui,sans-serif!important}
+.reference-dashboard .cc-table th{color:#b5d0e2!important;letter-spacing:.035em!important;font-weight:760!important;background:#0a2335!important}
+.reference-dashboard .cc-table td{color:#eaf6fe!important;font-weight:565!important}
+.reference-dashboard .cc-table tbody tr:nth-child(even){background-color:rgba(39,89,116,.105)!important}
+.reference-dashboard .cc-table tbody tr:hover{background-color:rgba(35,106,141,.26)!important}
+.reference-dashboard .cc-status{font-weight:850!important;letter-spacing:.005em!important}
+.reference-dashboard .cc-filterbar button,.reference-dashboard .radar-filters button{color:#c9e3f3!important}
+.reference-dashboard .cc-filterbar button.on,.reference-dashboard .radar-filters button.on{color:#041c20!important}
+.reference-dashboard .cc-table-wrap{scrollbar-color:#2f6d86 #081929;scrollbar-width:thin}
+.cc-asset strong{display:inline-flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;color:#f4fbff!important}
+.cc-token-icon{
+ flex:0 0 19px;display:inline-grid;place-items:center;
+ width:19px;height:19px;border-radius:50%;font:900 12px/1 Inter,system-ui,sans-serif;
+ color:#fff;background:#2e6982;border:1px solid rgba(232,250,255,.18);
+ box-shadow:0 1px 3px rgba(0,0,0,.35)
+}
+.cc-token-trx{background:#e42e43}.cc-token-shib{background:#ee812c}
+.cc-token-xrp{background:#101d2b}.cc-token-xlm{background:#284a62}
+.cc-token-doge{background:#c6a139}.cc-token-link{background:#315bea}
+.cc-token-bnb{background:#e3b92d;color:#172330}.cc-token-eth{background:#6275a9}
+.cc-token-btc{background:#ed9225}.cc-token-sol{background:#805cf0}
+.cc-token-avax{background:#e74250}.cc-token-ada{background:#3d7ab3}
+.cc-token-hbar{background:#343b53}.cc-token-sui{background:#50adcb}
+.cc-token-bch{background:#248e71}
+
+/* Density tuned to the single-screen reference; no body or grid overflow changes. */
+@media(min-width:1180px){
+ .reference-opps .cc-filterbar button{font-size:11.2px!important}
+ .reference-opps .opportunities-table th{font-size:10.1px!important;color:#b8cddd!important}
+ .reference-opps .opportunities-table td{font-size:12px!important;padding:5px 5px!important;line-height:1.15!important}
+ .reference-opps .opportunities-table td strong{font-size:13px!important}
+ .reference-opps .opportunities-table tbody tr{height:37px!important}
+ .reference-opps .opportunities-table .cc-status{font-size:10.2px!important}
+ .reference-opps .cc-rank .rank-ball{width:27px;height:27px}
+ .reference-radar .radar-table th{font-size:9.8px!important;color:#b6cddd!important}
+ .reference-radar .radar-table td{font-size:11.4px!important;line-height:1.2!important}
+ .reference-radar .radar-table thead .subhead th{font-size:9.4px!important}
+ .reference-radar .radar-table tbody tr{height:31px!important}
+ .reference-radar .radar-table td strong{font-size:12px!important}
+ .reference-radar .cc-table-wrap{overflow-y:auto!important}
+ .reference-ops .operations-table th{font-size:10.1px!important;color:#bed2e0!important}
+ .reference-ops .operations-table td{font-size:12px!important;color:#f4fbff!important}
+ .reference-ops .operations-table td strong{font-size:13px!important}
+ .reference-ops .cc-table-wrap{overflow-y:auto!important}
+ .reference-context .session-box b{font-size:10.1px!important;color:#f4fbff!important}
+ .reference-context .session-box span{font-size:9.9px!important;color:#bdd1e0!important}
+ .reference-context .session-box span strong{font-size:12.1px!important}
+ .reference-context .macro-row{color:#e2eef7!important;font-size:11px!important}
+ .reference-context .risk-banner span{font-size:11px!important}
+ .reference-markets .market-kpi span{font-size:10.3px!important;color:#c3d6e4!important}
+ .reference-markets .market-statline{font-size:10.4px!important;color:#d3e5f2!important}
+ .reference-markets .mini-metric span{font-size:9.7px!important;color:#d1e1ed!important}
+ .reference-markets .mini-metric b{font-size:12px!important}
+ .reference-detail .detail-section h4{font-size:11.2px!important;color:#e9f5fb!important}
+ .reference-detail .detail-gridline{font-size:11.3px!important;min-height:24px!important}
+ .reference-detail .detail-gridline span{color:#bed2e0!important}
+ .reference-detail .gauge-card span,.reference-detail .gauge-card small{font-size:10.4px!important;color:#c3d4e1!important}
+ .reference-detail .gauge-card b{font-size:15.3px!important}
+ .reference-detail .detail-note{font-size:10.5px!important;line-height:1.3!important}
+ .reference-chart .chart-reference-head strong{font-size:16.5px!important}
+ .reference-chart .cc-trend span{font-size:10.1px!important}
+ .reference-chart .cc-trend b{font-size:12px!important}
+}
+@media(max-width:1179px){
+ .reference-dashboard .cc-head h2{font-size:16px!important}
+ .reference-dashboard .cc-table th{font-size:10.5px!important}
+ .reference-dashboard .cc-table td{font-size:12px!important}
+ .reference-dashboard .cc-table-wrap{overflow:auto!important}
+ .reference-radar .radar-table{min-width:710px!important}
+ .reference-ops .operations-table{min-width:940px!important}
+ .reference-opps .opportunities-table{min-width:700px!important}
+}
+
+/* The reference uses legible, compact signal pills instead of nearly-invisible status dots. */
+.reference-opps .opportunities-table .cc-status.open,
+.reference-opps .opportunities-table .cc-status.zone{
+ background:linear-gradient(180deg,#21f0a9,#03c789)!important;
+ color:#04271e!important;border-radius:5px!important;
+ padding:5px 7px!important;font-size:10.2px!important;
+ box-shadow:0 2px 6px rgba(0,0,0,.20)!important
+}
+.reference-opps .opportunities-table .cc-status.open:before,
+.reference-opps .opportunities-table .cc-status.zone:before{display:none!important}
+.reference-opps .opportunities-table .cc-status.near{
+ background:#f8be50!important;color:#251d0b!important;padding:5px 7px!important;border-radius:5px!important
+}
+.reference-opps .opportunities-table .cc-status.near:before{display:none!important}
+</style>
+</head><body><main><svg class="mtf-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+<symbol id="mtf-icon-world" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 4.5 6 4.5 9S15 18 12 21M12 3C9 6 7.5 9 7.5 12S9 18 12 21"/></symbol>
+<symbol id="mtf-icon-target" viewBox="0 0 24 24"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 9-9m-3 0h3v3"/></symbol>
+<symbol id="mtf-icon-bars" viewBox="0 0 24 24"><path d="M3 20h18M5 20v-8h4v8m2 0V5h4v15m2 0v-11h4v11"/></symbol>
+<symbol id="mtf-icon-ops" viewBox="0 0 24 24"><rect x="5" y="5" width="15" height="17" rx="2"/><path d="M9 3h7v4H9zM9 12h7M9 16h6"/></symbol>
+<symbol id="mtf-icon-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="m12 12 5-7M12 3v2m0 14v2m9-9h-2M5 12H3"/></symbol>
+<symbol id="mtf-icon-candle" viewBox="0 0 24 24"><path d="M6 3v18m6-18v18m6-18v18"/><rect x="4" y="8" width="4" height="7"/><rect x="10" y="5" width="4" height="10"/><rect x="16" y="11" width="4" height="6"/></symbol>
+<symbol id="mtf-icon-detail" viewBox="0 0 24 24"><path d="M5 20V12m0-3V4m7 16v-9m0-3V4m7 16v-3m0-3V4"/><rect x="3" y="9" width="4" height="3"/><rect x="10" y="8" width="4" height="3"/><rect x="17" y="14" width="4" height="3"/></symbol>
+</svg>
 
 
 <header class="command-header">
@@ -757,7 +864,7 @@ html,body{height:100%;background:#030b14!important}
   <div class="reference-dashboard">
 
     <article class="cc-panel cc-context reference-context">
-      <div class="cc-head"><h2>CONTEXTO GLOBAL</h2></div>
+      <div class="cc-head"><h2><svg class="mtf-section-icon" aria-hidden="true"><use href="#mtf-icon-world"></use></svg>CONTEXTO GLOBAL</h2></div>
       <div class="cc-context-body">
         <div class="context-map-zone">
           <div class="cc-map" role="img" aria-label="Mapa mundial de sesiones"></div>
@@ -785,7 +892,7 @@ html,body{height:100%;background:#030b14!important}
     </article>
 
     <article class="cc-panel cc-opps reference-opps">
-      <div class="cc-head"><h2>OPORTUNIDADES AHORA</h2></div>
+      <div class="cc-head"><h2><svg class="mtf-section-icon" aria-hidden="true"><use href="#mtf-icon-target"></use></svg>OPORTUNIDADES AHORA</h2></div>
       <div class="cc-tools cc-filterbar">
         <button class="on" data-ccfilter="ALL">Todas <span id="ccCountAll">(0)</span></button>
         <button data-ccfilter="ZONE">En OB <span id="ccCountZone">(0)</span></button>
@@ -801,7 +908,7 @@ html,body{height:100%;background:#030b14!important}
     </article>
 
     <article class="cc-panel cc-markets reference-markets">
-      <div class="cc-head"><h2>MERCADOS</h2><div class="cc-tools market-switch"><button class="on" data-ccmarket="CRYPTO">CRYPTO</button><button data-ccmarket="CEDEAR">CEDEARs</button></div></div>
+      <div class="cc-head"><h2><svg class="mtf-section-icon" aria-hidden="true"><use href="#mtf-icon-bars"></use></svg>MERCADOS</h2><div class="cc-tools market-switch"><button class="on" data-ccmarket="CRYPTO">CRYPTO</button><button data-ccmarket="CEDEAR">CEDEARs</button></div></div>
       <div class="cc-market-body">
         <div class="market-kpis five">
           <div class="market-kpi"><b id="ccMkTotal">—</b><span>Activos</span></div>
@@ -830,7 +937,7 @@ html,body{height:100%;background:#030b14!important}
     </article>
 
     <article class="cc-panel cc-ops reference-ops" id="ccActiveOps">
-      <div class="cc-head"><h2 id="ccOpsTitle">OPERACIONES ACTIVAS (0)</h2></div>
+      <div class="cc-head"><h2 id="ccOpsTitle"><svg class="mtf-section-icon" aria-hidden="true"><use href="#mtf-icon-ops"></use></svg><span class="mtf-ops-title-label">OPERACIONES ACTIVAS (0)</span></h2></div>
       <div class="cc-table-wrap">
         <table class="cc-table operations-table"><colgroup><col style="width:9%"><col style="width:7%"><col style="width:10%"><col style="width:10%"><col style="width:9%"><col style="width:10%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:3%"></colgroup>
           <thead><tr><th>ACTIVO</th><th>DIR</th><th>ENTRADA</th><th>ACTUAL</th><th>VAR %</th><th>R ACTUAL</th><th>TP1</th><th>TP2</th><th>TP3</th><th>SL</th><th>ESTADO</th><th></th></tr></thead>
@@ -842,7 +949,7 @@ html,body{height:100%;background:#030b14!important}
 
     <article class="cc-panel cc-radar reference-radar" id="ccRadar">
       <div class="cc-head">
-        <h2>RADAR DE ACTIVOS</h2>
+        <h2><svg class="mtf-section-icon" aria-hidden="true"><use href="#mtf-icon-radar"></use></svg>RADAR DE ACTIVOS</h2>
         <div class="cc-tools radar-filters">
           <button class="on" data-ccradarfilter="ALL">Todos <span id="ccRadarAll">(0)</span></button>
           <button data-ccradarfilter="ZONE">En OB <span id="ccRadarZone">(0)</span></button>
@@ -861,7 +968,7 @@ html,body{height:100%;background:#030b14!important}
 
     <article class="cc-panel cc-chart reference-chart">
       <div class="chart-reference-head">
-        <div><strong id="ccAssetName">—</strong><span id="ccChartPair"></span></div>
+        <div class="mtf-chart-heading"><svg class="mtf-section-icon" aria-hidden="true"><use href="#mtf-icon-candle"></use></svg><strong id="ccAssetName">—</strong><span id="ccChartPair"></span></div>
         <div class="chart-quote"><b id="ccAssetPrice">—</b><strong id="ccAssetMove">—</strong><button class="tf-pill" id="ccChartTf">1H⌄</button></div>
       </div>
       <div class="cc-chart-card"><canvas id="ccPrice"></canvas></div>
@@ -874,7 +981,7 @@ html,body{height:100%;background:#030b14!important}
     </article>
 
     <aside class="cc-panel cc-detail reference-detail">
-      <div class="cc-head"><h2>DETALLE DEL ACTIVO</h2><button class="detail-x" type="button">×</button></div>
+      <div class="cc-head"><h2><svg class="mtf-section-icon" aria-hidden="true"><use href="#mtf-icon-detail"></use></svg>DETALLE DEL ACTIVO</h2><button class="detail-x" type="button">×</button></div>
       <div class="cc-detail-body" id="ccDetailBody"><div class="cc-info-note">Seleccioná un activo del radar u oportunidades.</div></div>
     </aside>
 
@@ -1978,4 +2085,4 @@ pollZBackendCycle().catch(()=>{});
 
 loadC();
 })();
-</script><script src="/command-center.js?v=1.0.0"></script></main></body></html>
+</script><script src="/command-center.js?v=reference-ui-1"></script></main></body></html>
