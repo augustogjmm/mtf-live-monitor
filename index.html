@@ -823,6 +823,135 @@ html,body{height:100%;background:#030b14!important}
 }
 .reference-opps .opportunities-table .cc-status.near:before{display:none!important}
 </style>
+<style id="mtf-reference-layout-20261008">
+/* Reproducción de la grilla visual aprobada.
+   Interfaz solamente: nunca toca lógica, cron, operaciones ni datos. */
+:root{--mtf-readable:#ebf6ff;--mtf-secondary:#b7cddd}
+.reference-dashboard .cc-head h2{
+  font:850 16.8px/1.2 Inter,system-ui,sans-serif!important;
+  color:#f4fbff!important;letter-spacing:.005em!important
+}
+.reference-dashboard .cc-head{background:linear-gradient(180deg,#0c263a,#081b2c)!important}
+.reference-dashboard .cc-panel{
+  border:1px solid #23516d!important;
+  background:linear-gradient(180deg,#071a2b,#041320)!important
+}
+.reference-dashboard .cc-table th{color:#bcd5e8!important;font-size:10.8px!important;font-weight:750!important;letter-spacing:.02em!important}
+.reference-dashboard .cc-table td{color:var(--mtf-readable)!important;font-size:12px!important;line-height:1.3!important}
+.reference-dashboard .cc-table tbody tr:nth-child(even){background:rgba(31,77,99,.12)!important}
+.reference-dashboard .cc-table tbody tr:hover{background:rgba(32,110,143,.25)!important}
+.reference-dashboard .cc-filterbar button,.reference-dashboard .radar-filters button{font-size:11.6px!important;color:#d2e5f2!important}
+.reference-dashboard .cc-filterbar button.on,.reference-dashboard .radar-filters button.on{color:#042b26!important}
+.reference-dashboard .cc-status{font-size:10.3px!important;line-height:1.15!important;font-weight:800!important}
+.reference-context .session-box span{color:var(--mtf-secondary)!important}
+.reference-context .macro-row{color:#e7f5ff!important}
+.reference-markets .market-kpi span,.reference-markets .mini-metric span{color:#b8cfdf!important}
+.reference-detail .detail-gridline span{color:#bdd5e7!important}
+.reference-detail .detail-section h4{color:#eaf5ff!important}
+.reference-detail .detail-tabs button{font-size:11.2px!important}
+.reference-chart .cc-trend span{color:#d0e3f0!important}
+.reference-chart .cc-trend b{font-size:12px!important}
+
+/* 3 grandes áreas de escritorio, con división independiente en el radar.
+   36 | 6 | 28 | 30 se presenta como 36/34/30 arriba
+   y 42/28/30 abajo, tal como la maqueta aprobada. */
+@media(min-width:1400px){
+ body{overflow:hidden!important}
+ main{height:100vh!important;min-height:0!important;overflow:hidden!important;padding:0 12px 8px!important}
+ .command-header{height:72px!important;min-height:72px!important;padding:0 17px 0 23px!important;margin:0 -12px!important;grid-template-columns:315px minmax(0,1fr) auto!important}
+ .command-brand strong{font-size:29px!important}
+ .command-nav button{font-size:12px!important}
+ .command-center{height:calc(100vh - 72px)!important;padding-top:10px!important}
+ .reference-dashboard{
+  height:calc(100% - 4px)!important;min-height:0!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,36fr) minmax(0,6fr) minmax(0,28fr) minmax(0,30fr)!important;
+  grid-template-rows:minmax(0,40fr) minmax(0,22fr) minmax(0,38fr)!important;
+  column-gap:11px!important;row-gap:11px!important
+ }
+ .reference-dashboard .cc-panel{height:auto!important;min-height:0!important;align-self:stretch!important;margin:0!important}
+ .reference-context{grid-column:1!important;grid-row:1!important}
+ .reference-opps{grid-column:2/4!important;grid-row:1!important}
+ .reference-markets{grid-column:4!important;grid-row:1!important}
+ .reference-ops{grid-column:1/4!important;grid-row:2!important}
+ .reference-radar{grid-column:1/3!important;grid-row:3!important}
+ .reference-chart{grid-column:3!important;grid-row:3!important}
+ .reference-detail{grid-column:4!important;grid-row:2/4!important}
+ .reference-dashboard .cc-head{height:39px!important;min-height:39px!important;padding:0 12px!important}
+ .reference-opps .cc-filterbar{height:39px!important;min-height:39px!important;padding:5px 9px!important}
+ .reference-opps .cc-filterbar button{height:30px!important;min-height:30px!important;font-size:11px!important}
+ .reference-opps .cc-table-wrap{height:calc(100% - 78px)!important;overflow:auto!important}
+ .reference-opps .opportunities-table tbody tr{height:38px!important}
+ .reference-opps .opportunities-table th{font-size:10.6px!important;padding:7px 5px!important}
+ .reference-opps .opportunities-table td{font-size:11.7px!important;padding:7px 5px!important}
+ .reference-opps .opportunities-table td strong{font-size:13px!important}
+ .reference-opps .opportunities-table .cc-status{font-size:10px!important}
+ .reference-context .cc-context-body{
+  height:calc(100% - 39px)!important;padding:5px 12px 8px!important;
+  grid-template-columns:minmax(0,61%) minmax(0,39%)!important;
+  grid-template-rows:minmax(0,67%) minmax(0,33%)!important
+ }
+ .reference-context .cc-map{height:calc(100% - 55px)!important;min-height:82px!important}
+ .reference-context .session-strip{height:52px!important}
+ .reference-context .session-box b{font-size:10.4px!important}
+ .reference-context .session-box span{font-size:10px!important}
+ .reference-context .session-box span strong{font-size:12.5px!important}
+ .reference-context .macro-row{height:32px!important;font-size:11px!important}
+ .reference-context .risk-banner{height:64px!important;min-height:0!important}
+ .reference-context .risk-banner span{font-size:10.7px!important}
+ .reference-context .context-mini-chart{padding-top:9px!important}
+ .reference-context .context-mini-chart canvas{height:100%!important;max-height:none!important}
+ .reference-markets .cc-market-body{height:calc(100% - 39px)!important;padding:5px 10px 10px!important;overflow:auto!important}
+ .reference-markets .market-kpi{height:58px!important;padding:8px 2px!important}
+ .reference-markets .market-kpi b{font-size:21px!important}
+ .reference-markets .market-kpi span{font-size:10px!important}
+ .reference-markets .cc-market-section{padding-top:9px!important;margin-top:6px!important}
+ .reference-markets .market-statline{font-size:10.2px!important}
+ .reference-markets .reset-metrics .mini-metric span{font-size:9.5px!important}
+ .reference-markets .reset-metrics .mini-metric b{font-size:12px!important}
+ .reference-ops .cc-table-wrap{height:80px!important;min-height:0!important;overflow:auto!important;margin:0 10px!important}
+ .reference-ops .operations-table tbody tr{height:47px!important}
+ .reference-ops .operations-table th{font-size:10.5px!important;padding:7px 6px!important}
+ .reference-ops .operations-table td{font-size:12px!important;padding:10px 6px!important}
+ .reference-ops .operation-timeline{height:calc(100% - 119px)!important;min-height:45px!important;padding:10px 17px!important}
+ .reference-ops .timeline-label{font-size:10.5px!important;top:20px!important}
+ .reference-radar .cc-head{height:45px!important;min-height:45px!important}
+ .reference-radar .radar-filters button{height:32px!important;min-height:32px!important;font-size:10.5px!important;min-width:0!important}
+ .reference-radar .cc-table-wrap{height:calc(100% - 52px)!important;margin:0 9px 7px!important;overflow:auto!important}
+ .reference-radar .radar-table tbody tr{height:33px!important}
+ .reference-radar .radar-table th{font-size:9.8px!important;padding:7px 5px!important}
+ .reference-radar .radar-table td{font-size:11.2px!important;padding:7px 5px!important}
+ .reference-radar .radar-table td strong{font-size:12.5px!important}
+ .reference-chart .chart-reference-head{height:45px!important}
+ .reference-chart .cc-chart-card{height:calc(100% - 153px)!important;min-height:150px!important;margin:0 10px!important}
+ .reference-chart .cc-chart-card canvas{height:100%!important}
+ .reference-chart .mtf-title{height:30px!important;font-size:11px!important}
+ .reference-chart .cc-chart-meta{height:68px!important;margin:0 10px 9px!important}
+ .reference-chart .cc-trend{height:62px!important}
+ .reference-detail .cc-detail-body{height:calc(100% - 39px)!important;padding:10px!important;overflow-y:auto!important}
+ .reference-detail .detail-top h3{font-size:18.5px!important}
+ .reference-detail .detail-tabs{height:37px!important;margin:10px 0!important}
+ .reference-detail .detail-columns{height:auto!important;grid-template-columns:minmax(0,1fr) 125px!important;gap:9px!important}
+ .reference-detail .detail-section{margin-top:12px!important}
+ .reference-detail .detail-section h4{font-size:11.2px!important}
+ .reference-detail .detail-gridline{min-height:25px!important;font-size:11.2px!important}
+ .reference-detail .gauge-card{height:80px!important;margin-bottom:8px!important}
+ .reference-detail .gauge-card b{font-size:14px!important}
+ .reference-detail .detail-note{position:static!important;margin-top:12px!important;font-size:10.8px!important;padding:9px 9px 9px 32px!important}
+}
+/* Menor resolución: preferir legibilidad y desplazamiento a recortes. */
+@media(min-width:1180px) and (max-width:1399px){
+ body{overflow-y:auto!important}
+ main{height:auto!important;min-height:100vh!important;overflow:visible!important}
+ .command-center{height:auto!important}
+ .reference-dashboard{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:auto!important;height:auto!important;gap:11px!important}
+ .reference-dashboard>.cc-panel{grid-column:auto!important;grid-row:auto!important;height:400px!important;min-height:0!important;margin:0!important}
+ .reference-dashboard>.reference-ops,.reference-dashboard>.reference-detail{grid-column:1/-1!important;height:270px!important}
+ .reference-dashboard>.reference-detail{height:560px!important}
+ .reference-detail .cc-detail-body{height:calc(100% - 39px)!important;overflow:auto!important}
+ .reference-opps .cc-table-wrap,.reference-radar .cc-table-wrap{overflow:auto!important}
+}
+</style>
 </head><body><main><svg class="mtf-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 <symbol id="mtf-icon-world" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 4.5 6 4.5 9S15 18 12 21M12 3C9 6 7.5 9 7.5 12S9 18 12 21"/></symbol>
 <symbol id="mtf-icon-target" viewBox="0 0 24 24"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 9-9m-3 0h3v3"/></symbol>
