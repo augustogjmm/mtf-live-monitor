@@ -724,6 +724,295 @@ html,body{height:100%;background:#030b14!important}
   .reference-ops .cc-table-wrap,.reference-radar .cc-table-wrap{height:auto!important;max-height:360px!important;overflow:auto!important}
 }
 </style>
+
+<style id="mtf-readability-v1">
+/* MTF Monitor production: readable, scrollable dashboard. No strategy/data changes. */
+:root{--cc-text:#f1f8ff;--cc-muted:#b4c8da;--cc-line:#264c65;--cc-line2:#326783}
+html{scroll-behavior:smooth}
+html,body{height:auto!important;min-height:100%!important}
+body{overflow-x:hidden!important;overflow-y:auto!important;color:#f1f8ff!important}
+main{height:auto!important;min-height:100vh!important;padding:0 16px 28px!important;overflow:visible!important}
+.command-center{height:auto!important;min-height:0!important;padding-top:14px!important}
+.command-header{
+ position:sticky!important;top:0!important;z-index:90!important;
+ height:78px!important;min-height:78px!important;
+ grid-template-columns:300px minmax(0,1fr) auto!important;
+ margin:0 -16px!important;padding:0 20px!important;gap:14px!important;
+ border-bottom:1px solid #28516d!important;background:#061523!important
+}
+.command-brand strong{font-size:29px!important;line-height:1.12!important}
+.command-brand small{font-size:11px!important;color:#bdcedc!important}
+.command-nav{gap:6px!important;overflow-x:auto!important;scrollbar-width:thin}
+.command-nav button{min-height:38px!important;padding:10px 10px!important;font-size:13px!important;color:#d8e6f2!important}
+.command-right{gap:8px!important}
+.live-clock b{font-size:15px!important}.live-clock small{font-size:11px!important;color:#c8d7e2!important}
+.header-health span{min-height:29px!important;padding:7px 8px!important;font-size:10.5px!important;color:#d9eaf5!important}
+#reload{font-size:12px!important;min-height:30px!important}
+
+/* Desktop: content determines document height instead of squashing every panel into 100vh. */
+.reference-dashboard{width:100%!important;row-gap:14px!important;column-gap:14px!important;align-items:stretch!important}
+.reference-dashboard .cc-panel{
+ min-height:0!important;min-width:0!important;
+ background:linear-gradient(180deg,#0b1f30,#071625)!important;
+ border:1px solid #285471!important;border-radius:10px!important;
+ box-shadow:0 9px 20px rgba(0,0,0,.13)!important
+}
+.reference-dashboard .cc-head{
+ height:47px!important;min-height:47px!important;
+ padding:0 16px!important;
+ background:linear-gradient(180deg,#112b3e,#0a1c2c)!important;
+ border-bottom:1px solid #274a64!important
+}
+.reference-dashboard .cc-head h2{
+ font-family:Inter,system-ui,sans-serif!important;
+ font-size:17px!important;font-weight:850!important;line-height:1.2!important;
+ letter-spacing:.01em!important;color:#f5fbff!important;text-shadow:none!important
+}
+.reference-dashboard .cc-head h2:before{height:20px!important;margin-right:9px!important}
+.reference-dashboard button{min-height:33px!important;font-size:12.5px!important}
+.reference-dashboard .cc-filterbar,.reference-dashboard .radar-filters{
+ height:auto!important;min-height:54px!important;
+ padding:8px 12px!important;gap:7px!important
+}
+.reference-dashboard .cc-filterbar button,.reference-dashboard .radar-filters button{
+ height:36px!important;min-height:36px!important;
+ padding:8px 10px!important;font-size:12px!important;line-height:1.2!important
+}
+.reference-dashboard .cc-filterbar button:not(.on),.reference-dashboard .radar-filters button:not(.on){
+ color:#d4e4f0!important;background:#0e2839!important;border-color:#2c526c!important
+}
+.reference-dashboard .cc-table{
+ width:100%!important;table-layout:fixed!important;
+ border-collapse:separate!important;border-spacing:0!important
+}
+.reference-dashboard .cc-table th,.reference-dashboard .cc-table td{
+ font-family:Inter,system-ui,sans-serif!important;
+ line-height:1.35!important;vertical-align:middle!important;
+ white-space:nowrap!important;text-overflow:ellipsis!important
+}
+.reference-dashboard .cc-table th{
+ color:#cedeed!important;background:#112d41!important;
+ font-size:11px!important;font-weight:750!important;
+ letter-spacing:.025em!important;padding:11px 9px!important;
+ border-bottom:1px solid #335871!important
+}
+.reference-dashboard .cc-table td{
+ color:#f1f8ff!important;font-size:13px!important;font-weight:550!important;
+ padding:11px 9px!important;
+ border-bottom:1px solid rgba(47,90,117,.55)!important
+}
+.reference-dashboard .cc-table td b,.reference-dashboard .cc-table td strong{font-size:13.5px!important}
+.reference-dashboard .cc-table tbody tr:nth-child(even){background:rgba(28,62,83,.17)!important}
+.reference-dashboard .cc-table tbody tr:hover{background:rgba(43,103,132,.27)!important}
+.reference-dashboard .cc-status,.reference-dashboard .state-pill{
+ font-size:11.5px!important;font-weight:800!important;line-height:1.3!important;
+ padding:6px 8px!important
+}
+.reference-dashboard .cc-table-wrap{scrollbar-color:#3c7796 #0a1b2b}
+.reference-dashboard .cc-table-wrap::-webkit-scrollbar{height:8px;width:8px}
+.reference-dashboard .cc-table-wrap::-webkit-scrollbar-thumb{background:#3c7796;border-radius:8px}
+
+/* Top opportunities: readable rows, remove redundant tiny ATR column (detail remains). */
+.reference-opps .cc-table-wrap{height:auto!important;max-height:315px!important;overflow:auto!important}
+.opportunities-table tbody tr{height:48px!important}
+.opportunities-table td strong{font-size:15px!important}
+.reference-opps .opportunities-table th:nth-child(5),.reference-opps .opportunities-table td:nth-child(5){display:none!important}
+.reference-opps .opportunities-table th:nth-child(1){width:8%!important}
+.reference-opps .opportunities-table th:nth-child(2){width:14%!important}
+.reference-opps .opportunities-table th:nth-child(3){width:12%!important}
+.reference-opps .opportunities-table th:nth-child(4){width:21%!important}
+.reference-opps .opportunities-table th:nth-child(6){width:8%!important}
+.reference-opps .opportunities-table th:nth-child(7){width:10%!important}
+.reference-opps .opportunities-table th:nth-child(8){width:14%!important}
+.reference-opps .opportunities-table th:nth-child(9){width:13%!important}
+
+/* Global context: larger session and macro labels. */
+.reference-context .cc-context-body{padding:13px 15px 14px!important;gap:12px!important}
+.reference-context .session-strip{height:auto!important;min-height:64px!important}
+.reference-context .session-box{padding:7px 5px!important}
+.reference-context .session-box b{font-size:11.5px!important}
+.reference-context .session-box span{font-size:11px!important;line-height:1.3!important;color:#c8dae6!important}
+.reference-context .session-box span strong{font-size:15px!important}
+.reference-context .macro-row{height:auto!important;min-height:35px!important;font-size:13px!important;padding:5px!important}
+.reference-context .macro-row b{font-size:13px!important}
+.reference-context .risk-banner{height:auto!important;min-height:71px!important;margin-top:10px!important}
+.reference-context .risk-banner span{font-size:12.5px!important;line-height:1.3!important}
+.reference-context .context-mini-chart{min-height:100px!important}
+.reference-context .context-mini-chart canvas{height:100%!important;max-height:none!important}
+
+/* Market health and performance - legible KPI values. */
+.reference-markets .cc-market-body{height:auto!important;padding:12px 13px 16px!important}
+.market-kpi{height:72px!important;min-height:72px!important;padding:12px 3px!important}
+.market-kpi b{font-size:25px!important;line-height:1.1!important}
+.market-kpi span{font-size:11px!important;color:#c3d4e2!important;line-height:1.25!important}
+.segbar{height:10px!important;margin:8px 3px 13px!important}
+.cc-market-section{padding-top:13px!important;margin-top:9px!important}
+.cc-market-section h3{font-size:13px!important}
+.market-statline{font-size:11.5px!important;line-height:1.4!important;margin:10px 5px!important}
+.reset-metrics{margin-top:12px!important;gap:5px!important}
+.reset-metrics .mini-metric{padding:9px 2px!important}
+.reset-metrics .mini-metric span{font-size:10.5px!important;color:#c7d7e2!important}
+.reset-metrics .mini-metric b{font-size:15px!important;line-height:1.5!important}
+
+/* Positions: maintain all targets, enable scroll instead of ellipsis for table. */
+.reference-ops .cc-table-wrap{
+ height:auto!important;max-height:190px!important;min-height:0!important;
+ margin:0 13px!important;overflow:auto!important
+}
+.reference-ops .operations-table{min-width:920px!important}
+.reference-ops .operations-table thead tr{height:36px!important}
+.reference-ops .operations-table tbody tr{height:53px!important}
+.reference-ops .operations-table td{padding:12px 9px!important}
+.operation-timeline{height:auto!important;min-height:98px!important;padding:15px 24px!important}
+.timeline-label{top:27px!important;font-size:11px!important;line-height:1.3!important}
+.timeline-label b{font-size:12px!important}
+
+/* Radar: taller rows with clearer numbers and selectable state. */
+.reference-radar .cc-table-wrap{
+ height:auto!important;max-height:455px!important;margin:0 11px 12px!important;
+ overflow:auto!important
+}
+.reference-radar .radar-table{min-width:635px!important}
+.reference-radar .radar-table tbody tr{height:44px!important}
+.reference-radar .radar-table td{font-size:12.5px!important;padding:9px 8px!important}
+.reference-radar .radar-table th{font-size:10.5px!important;padding:10px 8px!important}
+.reference-radar .radar-table thead .subhead th{font-size:10px!important}
+
+/* Larger trading chart - keep price candles, OB levels and tooltips functional. */
+.chart-reference-head{height:54px!important;padding:0 16px!important}
+.chart-reference-head strong{font-size:17px!important}
+.chart-quote b{font-size:20px!important}.chart-quote strong{font-size:14px!important}
+.reference-chart .cc-chart-card{height:380px!important;min-height:310px!important;margin:0 13px 13px!important;overflow:hidden!important}
+.reference-chart .cc-chart-card canvas{height:100%!important}
+.mtf-title{height:36px!important;padding:7px 14px!important;font-size:12px!important}
+.reference-chart .cc-chart-meta{height:86px!important;margin:0 13px 12px!important;gap:9px!important}
+.cc-trend{height:78px!important;padding:12px 11px!important}
+.cc-trend span{font-size:12px!important}.cc-trend b{font-size:14px!important;line-height:1.35!important}
+
+/* Right detail: levels and momentum gauges are readable. */
+.reference-detail .cc-detail-body{height:auto!important;min-height:0!important;padding:16px!important;overflow:visible!important}
+.reference-detail .detail-top h3{font-size:21px!important;line-height:1.2!important}
+.reference-detail .detail-top b{font-size:18px!important}
+.reference-detail .detail-tabs{height:43px!important;margin:15px 0!important}
+.reference-detail .detail-tabs button{font-size:12px!important;min-height:40px!important}
+.reference-detail .detail-columns{height:auto!important;grid-template-columns:minmax(0,1fr) 132px!important;gap:14px!important}
+.reference-detail .detail-section{margin-top:16px!important}
+.reference-detail .detail-section h4{font-size:12.5px!important;margin:0 0 10px!important;color:#e3eef9!important}
+.reference-detail .detail-gridline{min-height:31px!important;font-size:12px!important;line-height:1.35!important}
+.reference-detail .detail-gridline>span{color:#c5d7e4!important}
+.reference-detail .detail-gridline>b,.reference-detail .detail-gridline>em{font-size:12px!important}
+.reference-detail .indicators-title{font-size:12px!important}
+.reference-detail .gauge-card{
+ height:110px!important;margin-bottom:12px!important;padding:15px 6px!important;
+ background:rgba(10,37,55,.75)!important;border:1px solid #284f6b!important;border-radius:7px!important
+}
+.reference-detail .gauge-card span,.reference-detail .gauge-card small{font-size:11px!important}
+.reference-detail .gauge-card b{font-size:17px!important}
+.reference-detail .detail-note{
+ position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;
+ margin-top:17px!important;font-size:12px!important;line-height:1.45!important;
+ padding:13px 14px 13px 38px!important;color:#cae8fa!important
+}
+
+/* Existing secondary views are still accessible and readable. */
+#vc,#vz,#vs,#vh{padding-top:18px!important}
+#vs .card{padding:16px!important;min-height:104px!important}
+#vs .card b{font-size:23px!important}
+#vs .kpi-sub{font-size:12px!important;color:#bed0dc!important}
+#vs .stats-filters label,#vs .stats-filters select{font-size:13px!important}
+#vs .tw th{font-size:12px!important;padding:10px!important;color:#d1e4f1!important}
+#vs .tw td{font-size:13px!important;padding:12px 10px!important;line-height:1.35!important}
+#sCleanStart{font-size:14px!important;line-height:1.5!important;background:#0b2132!important;border-color:#34627c!important}
+
+/* Wide desktop: familiar 4-column geometry, with taller panels. */
+@media(min-width:1500px){
+ .reference-dashboard{
+  height:auto!important;min-height:0!important;display:grid!important;
+  grid-template-columns:minmax(0,35fr) minmax(0,12.7fr) minmax(0,24.8fr) minmax(0,25.5fr)!important;
+  grid-template-rows:420px 280px 575px!important
+ }
+ .reference-context{grid-column:1!important;grid-row:1!important}
+ .reference-opps{grid-column:2/4!important;grid-row:1!important}
+ .reference-markets{grid-column:4!important;grid-row:1!important}
+ .reference-ops{grid-column:1/4!important;grid-row:2!important}
+ .reference-radar{grid-column:1/3!important;grid-row:3!important}
+ .reference-chart{grid-column:3!important;grid-row:3!important}
+ .reference-detail{grid-column:4!important;grid-row:2/4!important}
+ .reference-dashboard .cc-panel{height:auto!important;align-self:stretch!important}
+ .reference-context .cc-context-body{
+  height:calc(100% - 47px)!important;
+  grid-template-columns:minmax(0,59%) minmax(0,41%)!important;
+  grid-template-rows:minmax(0,57%) minmax(0,43%)!important
+ }
+ .reference-context .cc-map{height:calc(100% - 68px)!important;min-height:100px!important}
+ .reference-ops .operation-timeline{height:calc(100% - 142px)!important}
+ .reference-radar .cc-table-wrap{height:calc(100% - 110px)!important;max-height:none!important}
+ .reference-chart .cc-chart-card{height:calc(100% - 192px)!important}
+ .reference-detail .cc-detail-body{height:calc(100% - 47px)!important}
+}
+/* 1180-1499: two columns, avoiding compressed 9px fonts on smaller laptops. */
+@media(min-width:1180px) and (max-width:1499px){
+ .command-header{
+  height:auto!important;min-height:98px!important;
+  grid-template-columns:245px minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;gap:3px 15px!important;padding:10px 18px!important
+ }
+ .command-brand{grid-row:1/3}.command-nav{grid-column:2;grid-row:1}
+ .command-right{grid-column:2;grid-row:2;justify-content:flex-start!important}
+ .reference-dashboard{
+  height:auto!important;display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:auto!important;gap:14px!important
+ }
+ .reference-context,.reference-opps,.reference-markets,.reference-ops,
+ .reference-radar,.reference-chart,.reference-detail{
+  grid-column:auto!important;grid-row:auto!important;
+  height:auto!important;min-height:0!important;margin:0!important
+ }
+ .reference-context,.reference-opps{min-height:420px!important}
+ .reference-markets,.reference-ops{min-height:330px!important}
+ .reference-radar,.reference-chart{min-height:575px!important}
+ .reference-detail{grid-column:1/-1!important;min-height:650px!important}
+ .reference-detail .detail-columns{grid-template-columns:minmax(0,1fr) 250px!important}
+ .reference-context .cc-context-body{grid-template-columns:59% 41%!important;grid-template-rows:230px 130px!important}
+ .reference-context .cc-map{height:calc(100% - 68px)!important}
+}
+/* Smaller screens: stacked panels and horizontal table scrolling. */
+@media(max-width:1179px){
+ body{overflow-y:auto!important}
+ main{height:auto!important;min-height:100vh!important;padding:0 10px 26px!important}
+ .command-header{
+  height:auto!important;min-height:0!important;position:relative!important;
+  display:flex!important;flex-wrap:wrap!important;gap:10px!important;
+  padding:13px!important;margin:0 -10px!important
+ }
+ .command-brand{width:100%}
+ .command-nav{display:flex!important;flex-wrap:wrap!important;gap:7px!important}
+ .command-right{display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important}
+ .reference-dashboard{display:flex!important;flex-direction:column!important;height:auto!important;gap:14px!important}
+ .reference-dashboard .cc-panel{height:auto!important;min-height:360px!important;margin:0!important;overflow:hidden!important}
+ .reference-ops .cc-table-wrap,.reference-radar .cc-table-wrap{height:auto!important;max-height:460px!important;overflow:auto!important}
+ .reference-chart .cc-chart-card{height:380px!important}
+ .reference-context .cc-context-body{height:auto!important;grid-template-columns:59% 41%!important;grid-template-rows:225px 140px!important}
+ .reference-context .cc-map{height:calc(100% - 68px)!important}
+}
+@media(max-width:650px){
+ .command-brand strong{font-size:25px!important}
+ .command-nav button{font-size:12px!important}
+ .reference-dashboard .cc-head h2{font-size:15px!important}
+ .reference-dashboard .cc-table th{font-size:11px!important}
+ .reference-dashboard .cc-table td{font-size:12.5px!important}
+ .reference-opps .cc-table{min-width:640px!important}
+ .reference-context .cc-context-body{display:flex!important;flex-direction:column!important}
+ .reference-context .cc-map{height:180px!important}
+ .reference-context .context-mini-chart{height:140px!important}
+ .reference-detail .detail-columns{grid-template-columns:minmax(0,1fr)!important}
+ .reference-detail .detail-indicators{border-left:0!important;padding-left:0!important}
+ .reference-chart .cc-chart-card{height:340px!important}
+ .reference-dashboard .cc-filterbar,.reference-dashboard .radar-filters{flex-wrap:wrap!important}
+ .reference-dashboard .cc-filterbar button,.reference-dashboard .radar-filters button{min-width:95px!important;flex:1 1 95px!important}
+}
+</style>
 </head><body><main>
 
 
