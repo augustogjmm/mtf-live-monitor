@@ -807,6 +807,21 @@ html,body{height:100%;background:#030b14!important}
  .reference-ops .operations-table{min-width:940px!important}
  .reference-opps .opportunities-table{min-width:700px!important}
 }
+
+/* The reference uses legible, compact signal pills instead of nearly-invisible status dots. */
+.reference-opps .opportunities-table .cc-status.open,
+.reference-opps .opportunities-table .cc-status.zone{
+ background:linear-gradient(180deg,#21f0a9,#03c789)!important;
+ color:#04271e!important;border-radius:5px!important;
+ padding:5px 7px!important;font-size:10.2px!important;
+ box-shadow:0 2px 6px rgba(0,0,0,.20)!important
+}
+.reference-opps .opportunities-table .cc-status.open:before,
+.reference-opps .opportunities-table .cc-status.zone:before{display:none!important}
+.reference-opps .opportunities-table .cc-status.near{
+ background:#f8be50!important;color:#251d0b!important;padding:5px 7px!important;border-radius:5px!important
+}
+.reference-opps .opportunities-table .cc-status.near:before{display:none!important}
 </style>
 </head><body><main><svg class="mtf-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 <symbol id="mtf-icon-world" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 4.5 6 4.5 9S15 18 12 21M12 3C9 6 7.5 9 7.5 12S9 18 12 21"/></symbol>
