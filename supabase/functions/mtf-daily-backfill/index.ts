@@ -659,8 +659,8 @@ async function setState(market:string,lastProcessed:number,meta:any){const curre
 
 async function insertSignal(s:SignalInsert){
  const entry=n(s.entry),stop=n(s.stop),tp1=n(s.tp1),risk=Math.abs(entry-stop),reward=s.direction==="SHORT"?entry-tp1:tp1-entry,rr=risk>0&&reward>0?reward/risk:NaN;
- if(s.market!=="cedear"&&!(rr>=MIN_RR))return null;
- s={...s,context:{...(s.context||{}),minimum_rr:s.market==="cedear"?null:MIN_RR,planned_rr:rr,rr_gate:s.market==="cedear"?"NONE":"TP1_vs_SL"}};
+ if(!(rr>=MIN_RR))return null;
+ s={...s,context:{...(s.context||{}),minimum_rr:MIN_RR,planned_rr:rr,rr_gate:"TP1_vs_SL"}};
  const setupId=String((s.context as any)?.setup_id||""),rank=Number((s.context as any)?.entry_rank||0);
  const legacy=await legacyOperationalSignals(String(s.market),String(s.symbol));if(legacy.length)return null;
  const {data:opens,error:openErr}=await sb.from("mtf_signals").select("*")
@@ -741,22 +741,31 @@ async function bymaLiveOpen(){
     return String(data?.meta?.byma?.code||"").toUpperCase()==="OPEN";
   }catch(_){return false;}
 }
-function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:number;o?:number;h?:number;l?:number;c?:number}){
+function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:number;o?:number;h?:number;l?:number;c?:number},staticDaily?:any){
   if(!daily?.length||daily.length<55)return{ready:false,reason:"insufficient_daily_history_lt55"};
-  const bars:Bar[]=daily.map(v=>({t:v.t,o:v.open,h:v.high,l:v.low,c:v.close,v:v.volume}));
-  const ladder=detectorLadder(bars,n(liveBar?.o)>0?n(liveBar?.o):livePrice),context=contextOnly(bars),weeklyBars=weeksFromDaily(daily,daily.at(-1)!.t);
-  const weekly=weeklyBars.length>=55?contextOnly(weeklyBars):{ready:false,trend:"RANGO"};
-  if(!context.ready)return{ready:false,reason:"daily_context_not_mature"};
-  const macroContext={trend:weekly.trend,d1:context,w1:weekly,dominant_timeframe:"1w_informational"};
+  // Daily/weekly OHLC, OB set, indicators and stop don't change between 1m
+  // confirmations.  Recalculate only the bar touch and proximity per minute.
+  let base=staticDaily?.ready===true?staticDaily:null;
+  if(!base){
+    const bars:Bar[]=daily.map(v=>({t:v.t,o:v.open,h:v.high,l:v.low,c:v.close,v:v.volume}));
+    const ladder=detectorLadder(bars,livePrice),context=contextOnly(bars),weeklyBars=weeksFromDaily(daily,daily.at(-1)!.t);
+    const weekly=weeklyBars.length>=55?contextOnly(weeklyBars):{ready:false,trend:"RANGO"};
+    if(!context.ready)return{ready:false,reason:"daily_context_not_mature"};
+    const macroContext={trend:weekly.trend,d1:context,w1:weekly,dominant_timeframe:"1w_informational"};
+    const stops={LONG:structuralStop("LONG",ladder,context.atr14)};
+    base={ready:true,ladder,context,macroContext,stops};
+  }
+  const referencePrice=n(liveBar?.o)>0?n(liveBar?.o):livePrice;
+  const ladder={...base.ladder,referencePrice};
   const trigger={t:n(liveBar?.t)||Date.now(),o:n(liveBar?.o)||livePrice,h:n(liveBar?.h)||livePrice,l:n(liveBar?.l)||livePrice,c:n(liveBar?.c)||livePrice,v:0};
   const touches=ladder.below.filter((x:LadderLevel)=>pointTouched(trigger,x));
-  const stops={LONG:structuralStop("LONG",ladder,context.atr14)},proximity=proximityFor(ladder,livePrice,context.atr14,true);
-  return{ready:true,referencePrice:livePrice,ladder,context,macroContext,stops,proximity,touches:{long:touches},qualifiedDirection:touches.length?"LONG":null,trigger};
+  const proximity=proximityFor(ladder,livePrice,base.context.atr14,true);
+  return{ready:true,referencePrice:livePrice,ladder,context:base.context,macroContext:base.macroContext,stops:base.stops,proximity,touches:{long:touches},qualifiedDirection:touches.length?"LONG":null,trigger};
 }
 async function processRegulatedLive(createEntries=true){
   const open=await bymaLiveOpen();
   if(createEntries&&!open)return{strategy_version:STRATEGY_VERSION,skipped:"byma_not_open"};
-  const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=40;
+  const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=8;
   const {data:prevRow}=await sb.from("mtf_state").select("meta").eq("market","regulated_live").maybeSingle();
   const prevSnapshot:any[]=prevRow?.meta?.snapshot||[],
         prevMap=new Map<string,any>(prevSnapshot.map((x:any)=>[String(x.market)+":"+String(x.symbol),x]));
@@ -764,17 +773,40 @@ async function processRegulatedLive(createEntries=true){
   const {data:cedears,error:ceErr}=await sb.from("mtf_cedear_work").select("symbol,underlying,metrics,liquidity_rank")
     .eq("run_date",runDate).eq("eligible_liquid",true).order("liquidity_rank",{ascending:true});
   if(ceErr)throw ceErr;
+  // Use a recent, previously verified BYMA liquidity universe if today's preparation
+  // is not finished. Its age and fallback status are explicitly recorded.
+  let operationalCedears:any[]=cedears||[];
+  let liquidityFallbackDate:string|null=null;
+  if(!operationalCedears.length){
+    const {data:prior,error:priorErr}=await sb.from("mtf_cedear_work")
+      .select("run_date").lt("run_date",runDate).eq("eligible_liquid",true)
+      .order("run_date",{ascending:false}).limit(1).maybeSingle();
+    if(priorErr)throw priorErr;
+    const priorDate=String(prior?.run_date||"");
+    const ageDays=priorDate?(Date.parse(runDate+"T12:00:00Z")-Date.parse(priorDate+"T12:00:00Z"))/86400000:Infinity;
+    if(ageDays>0&&ageDays<=5){
+      const {data:previous,error:previousErr}=await sb.from("mtf_cedear_work")
+        .select("symbol,underlying,metrics,liquidity_rank")
+        .eq("run_date",priorDate).eq("eligible_liquid",true).order("liquidity_rank",{ascending:true});
+      if(previousErr)throw previousErr;
+      operationalCedears=(previous||[]).filter((row:any)=>
+        row.metrics&&Number(row.metrics.adtv40)>=20000000&&Number(row.metrics.persistence)>=.75);
+      if(operationalCedears.length)liquidityFallbackDate=priorDate;
+    }
+  }
 
   // ADR live entries are isolated in mtf-adr-engine (ADR-OB-v1.0).
   // Keep this worker CEDEAR-only to avoid duplicate/competing merval signals.
   const merval:any[]=[];
 
   const items:any[]=[
-    ...(cedears||[]).map((row:any)=>{
+    ...(operationalCedears||[]).map((row:any)=>{
       const sym=String(row.symbol),underlying=underlyingFor(sym);
       return{market:"cedear",sym,underlying,extra:{
         liquidity:row.metrics||{},liquidity_rank:row.liquidity_rank,
         universe_rule:"BYMA_ADTV40_20M_PERSISTENCE75",
+        liquidity_snapshot_date:row.metrics?.liquidity_snapshot_date||liquidityFallbackDate||runDate,
+        liquidity_fallback:row.metrics?.liquidity_fallback===true||liquidityFallbackDate!==null,
         origin_market:underlying.toUpperCase().endsWith(".SA")?"B3":"USA"
       }};
     }),
@@ -829,8 +861,14 @@ async function processRegulatedLive(createEntries=true){
     if(!underlying)return{ok:false,ready:false,market,symbol:sym,underlying,state:"NO_ANALYSIS",reason:"missing_underlying",...extra};
     try{
       const [d,live]=await Promise.all([yahooDaily(underlying),yahooLiveUsd(underlying)]);
-      const triggers=freshTriggers(live,prev),
-            displayTrigger=triggers.at(-1)||{t:live.t,o:live.price,h:live.price,l:live.price,c:live.price},
+      // Keep all observed 1m bars for context, but never open trades from
+      // historical touches discovered after the opportunity has expired.
+      const observedTriggers=freshTriggers(live,prev),
+            triggers=observedTriggers.filter((bar:any)=>{
+              const ageMs=now-Number(bar?.t);
+              return Number.isFinite(ageMs)&&ageMs>=-30000&&ageMs<=5*60000;
+            }),
+            displayTrigger=observedTriggers.at(-1)||{t:live.t,o:live.price,h:live.price,l:live.price,c:live.price},
             diag:any=regulatedLiveDiagnostic(d,live.price,displayTrigger);
       if(!diag.ready)return{ok:false,ready:false,market,symbol:sym,underlying,state:"NO_ANALYSIS",reason:diag.reason,price:live.price,t:live.t,...extra};
 
@@ -840,10 +878,14 @@ async function processRegulatedLive(createEntries=true){
       let active:any[]=await activeSetupSignals(market,sym),added=0;
 
       if(!legacy.length)for(const trigger of triggers){
-        const stepDiag:any=regulatedLiveDiagnostic(d,trigger.c,trigger);
+        const stepDiag:any=regulatedLiveDiagnostic(d,trigger.c,trigger,diag);
         if(!stepDiag.ready)continue;
-        // Re-read active state before each historical minute so a concurrent watcher close
-        // cannot be followed by a late frozen E2/E3 insert.
+        // Most minute bars never touch an OB. Avoid a database round-trip for
+        // every non-event (up to 60 per asset), but re-read state before a
+        // candidate signal to prevent stale or duplicate E2/E3.
+        const touchesNew=(stepDiag.touches?.long||[]).length>0;
+        const touchesFrozen=active.length>0&&frozenSignals(active[0],trigger,stepDiag).length>0;
+        if(!touchesNew&&!touchesFrozen)continue;
         active=await activeSetupSignals(market,sym);
         const entryAllowed=regulatedRiskProfile(stepDiag).relation==="A_FAVOR";
         let curs:any[]=[];
@@ -878,6 +920,7 @@ async function processRegulatedLive(createEntries=true){
         price:live.price,t:live.t,name:live.name||prev?.name||"",bar:displayTrigger,fresh_trigger:triggers.length>0,source:live.source,
         state:operational.length?"OPEN":diag.proximity?.state,
         proximity:diag.proximity,
+        entry_timing_rule:"NEW_TOUCH_WITHIN_5M_ONLY",late_trigger_bars_skipped:observedTriggers.length-triggers.length,
         ladder:{reference_price:live.price,below,above,complete:structureReady,exact_analyzer:true},
         context:diag.context,macroContext:diag.macroContext,stops:diag.stops,
         entry_allowed:regulatedRiskProfile(diag).relation==="A_FAVOR",risk_profile:regulatedRiskProfile(diag),stop_policy:"STRUCTURAL_REFERENCE",exit_policy:"TP1_ONLY",
@@ -891,7 +934,7 @@ async function processRegulatedLive(createEntries=true){
     }
   };
 
-  const results=await pool(batch,6,scanOne);
+  const results=await pool(batch,3,scanOne);
   const universeKeys=new Set(items.map((x:any)=>x.market+":"+x.sym)),
         merged=new Map<string,any>();
   for(const x of prevSnapshot){
@@ -900,7 +943,21 @@ async function processRegulatedLive(createEntries=true){
   }
   for(const x of results||[])merged.set(String(x.market)+":"+String(x.symbol),x);
 
-  const liveSnapshot=[...merged.values()];
+  // Separately count live quotes; historical snapshot rows must not appear current.
+  let freshQuoteAssets=0;
+  const liveSnapshot=[...merged.values()].map((row:any)=>{
+    const quoteTs=Number(row?.t||0);
+    const quoteAgeMs=quoteTs>0&&Number.isFinite(quoteTs)?Math.max(0,now-quoteTs):Infinity;
+    const quoteFresh=Boolean(row?.ready===true&&quoteAgeMs<=60*60*1000);
+    if(quoteFresh)freshQuoteAssets++;
+    const flagged={...row,quote_fresh_60m:quoteFresh,
+      quote_age_minutes:Number.isFinite(quoteAgeMs)?Math.round(quoteAgeMs/60000):null,
+      stale_data:!quoteFresh};
+    return quoteFresh?flagged:{...flagged,ready:false,actionable:false,
+      state:row?.state==="OPEN"?"OPEN":"STALE_DATA"};
+  });
+  const freshCoveragePct=total>0?Math.min(100,freshQuoteAssets/total*100):0;
+  const cachedCoveragePct=total>0?Math.min(100,liveSnapshot.length/total*100):0;
   await sb.from("mtf_state").upsert({
     market:"regulated_live",last_processed_at:iso(now),last_run_at:iso(now),
     meta:{
@@ -908,8 +965,10 @@ async function processRegulatedLive(createEntries=true){
       generated_at:iso(now),baseline:!createEntries,snapshot:liveSnapshot,
       cursor:nextCursor,retry_cursor:nextRetryCursor,chunk_size:CHUNK,universe_size:total,
       scanned_this_run:batch.length,full_cycle_completed:wrapped,
+      liquidity_snapshot_date:liquidityFallbackDate||runDate,liquidity_fallback:!!liquidityFallbackDate,
       retry_queue:retryKeys.length,retried_symbol:retryItem?.sym||null,
-      coverage_pct:total>0?Math.min(100,liveSnapshot.length/total*100):0
+      coverage_pct:freshCoveragePct,cached_coverage_pct:cachedCoveragePct,
+      fresh_quote_assets_60m:freshQuoteAssets,stale_or_pending_assets:total-freshQuoteAssets
     },
     updated_at:iso(now)
   },{onConflict:"market"});
@@ -919,7 +978,9 @@ async function processRegulatedLive(createEntries=true){
     mode:"regulated_live_chunked",baseline:!createEntries,run_date:runDate,
     universe:total,scanned_this_run:batch.length,cursor,next_cursor:nextCursor,
     retry_queue:retryKeys.length,retried_symbol:retryItem?.sym||null,
-    snapshot_size:liveSnapshot.length,coverage_pct:total>0?liveSnapshot.length/total*100:0,
+    snapshot_size:liveSnapshot.length,coverage_pct:freshCoveragePct,
+    cached_coverage_pct:cachedCoveragePct,fresh_quote_assets_60m:freshQuoteAssets,stale_or_pending_assets:total-freshQuoteAssets,
+    liquidity_snapshot_date:liquidityFallbackDate||runDate,liquidity_fallback:!!liquidityFallbackDate,
     created:created.length,created_signals:created,errors
   };
 }
@@ -952,34 +1013,44 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
     return{strategy_version:STRATEGY_VERSION,in_progress:true,phase:"metrics",liquidity_basis:"BYMA_HISTORICAL_ADTV40",run_date:runDate,total,processed:metricBatch.length,pending:pendingMetrics||0,errors:(results||[]).filter((x:any)=>x&&x.ok===false).length};
   }
 
-  const {data:metricRows,error:allMetricErr}=await sb.from("mtf_cedear_work").select("symbol,underlying,metrics").eq("run_date",runDate).eq("metrics_done",true).not("metrics","is",null);
+  const {data:metricRows,error:allMetricErr}=await sb.from("mtf_cedear_work")
+    .select("symbol,underlying,metrics").eq("run_date",runDate).eq("metrics_done",true).not("metrics","is",null);
   if(allMetricErr)throw allMetricErr;
-  let liquid=selectLiquidUniverse((metricRows||[]).map((r:any)=>({symbol:r.symbol,underlying:r.underlying,liquidity:r.metrics}))),
-      liquidityBasis="BYMA_HISTORICAL_ADTV40";
-  if(!liquid.length&&(metricRows||[]).length){
-    const {data:lastValid}=await sb.from("mtf_cedear_work").select("run_date").lt("run_date",runDate).eq("eligible_liquid",true)
-      .order("run_date",{ascending:false}).limit(1).maybeSingle();
-    if(lastValid?.run_date){
-      const {data:prevRows,error:prevErr}=await sb.from("mtf_cedear_work")
-        .select("symbol,underlying,liquidity_rank,metrics").eq("run_date",lastValid.run_date).eq("eligible_liquid",true)
-        .order("liquidity_rank",{ascending:true});
-      if(prevErr)throw prevErr;
-      liquid=(prevRows||[]).map((r:any)=>({
-        symbol:r.symbol,underlying:r.underlying||underlyingFor(r.symbol),liquidity:r.metrics||{},
-        eligible_liquid:true,liquidity_rank:r.liquidity_rank,
-        liquidity_rule:"FALLBACK_LAST_VALID_BYMA_UNIVERSE",fallback_run_date:lastValid.run_date
-      }));
-      if(liquid.length)liquidityBasis="BYMA_LAST_VALID_UNIVERSE_FALLBACK";
+  const usableMetrics:any[]=(metricRows||[]).map((r:any)=>({symbol:r.symbol,underlying:r.underlying,liquidity:r.metrics}));
+  const currentKeys=new Set(usableMetrics.map((r:any)=>r.symbol));
+  let recoveredFromDate:string|null=null, recoveredCount=0;
+  // Rate-limited BYMA queries must not remove otherwise-liquid instruments.
+  // Recover only symbols lacking today's actual metrics and only from a
+  // previously confirmed liquid universe no more than five calendar days old.
+  const {data:lastValid,error:latestErr}=await sb.from("mtf_cedear_work").select("run_date")
+    .lt("run_date",runDate).eq("eligible_liquid",true)
+    .order("run_date",{ascending:false}).limit(1).maybeSingle();
+  if(latestErr)throw latestErr;
+  const prevDate=String(lastValid?.run_date||"");
+  const ageDays=prevDate?(Date.parse(runDate+"T12:00:00Z")-Date.parse(prevDate+"T12:00:00Z"))/86400000:Infinity;
+  if(ageDays>0&&ageDays<=5){
+    const {data:prevRows,error:prevErr}=await sb.from("mtf_cedear_work")
+      .select("symbol,underlying,metrics").eq("run_date",prevDate).eq("eligible_liquid",true);
+    if(prevErr)throw prevErr;
+    for(const r of prevRows||[]){
+      if(currentKeys.has(r.symbol)||!(Number(r.metrics?.adtv40)>=20000000)||!(Number(r.metrics?.persistence)>=0.75))continue;
+      usableMetrics.push({symbol:r.symbol,underlying:r.underlying||underlyingFor(r.symbol),
+        liquidity:{...r.metrics,metricSource:"BYMA_PREVIOUS_VALID_LIQUIDITY",liquidity_snapshot_date:prevDate,liquidity_fallback:true}});
+      recoveredCount++;
     }
+    if(recoveredCount)recoveredFromDate=prevDate;
   }
+  const liquid=selectLiquidUniverse(usableMetrics);
+  const liquidityBasis=recoveredCount?"BYMA_CURRENT_AND_RECENT_VALID_FALLBACK":"BYMA_HISTORICAL_ADTV40";
+  if(!liquid.length)throw new Error("No verified liquid CEDEAR universe available; preserve previous snapshot, retry next cycle");
   await sb.from("mtf_cedear_work").update({eligible_liquid:false,liquidity_rank:null,tier:null,score:null,coverage_pct:null,updated_at:new Date().toISOString()}).eq("run_date",runDate);
   if(liquid.length){
-    const patch=liquid.map((x:any)=>({run_date:runDate,symbol:x.symbol,underlying:underlyingFor(x.symbol),eligible_liquid:true,liquidity_rank:x.liquidity_rank,tier:null,score:null,coverage_pct:null,updated_at:new Date().toISOString()}));
+    const patch=liquid.map((x:any)=>({run_date:runDate,symbol:x.symbol,underlying:underlyingFor(x.symbol),metrics:x.liquidity,eligible_liquid:true,liquidity_rank:x.liquidity_rank,tier:null,score:null,coverage_pct:null,updated_at:new Date().toISOString()}));
     const {error}=await sb.from("mtf_cedear_work").upsert(patch,{onConflict:"run_date,symbol"});if(error)throw error;
   }
 
   if(prepareOnly){
-    return{strategy_version:STRATEGY_VERSION,prepare:true,complete:true,phase:"ready",liquidity_basis:liquidityBasis,run_date:runDate,total,liquid_universe:liquid.length,pending:0};
+    return{strategy_version:STRATEGY_VERSION,prepare:true,complete:true,phase:"ready",liquidity_basis:liquidityBasis,run_date:runDate,total,liquid_universe:liquid.length,pending:0,recovered_metrics:recoveredCount,recovered_from_date:recoveredFromDate};
   }
 
   const {data:signalBatch,error:signalErr}=await sb.from("mtf_cedear_work")
