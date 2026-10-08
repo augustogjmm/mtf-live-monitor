@@ -8,6 +8,7 @@ const VERSION="MACD-OB-v1.0";
 const LEGACY_VERSION="OB-LADDER-v3.7.2";
 const ENGINE="MTF_MACD_DIRECTION_OB_ENTRY_V1";
 const ATR_STOP_BUFFER=.25;
+const MIN_RR_TO_TP1=1.0; // do not open trades whose structural risk exceeds TP1 reward
 const STABLES=new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const FALLBACK=["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
 const HOUR=3600000;
@@ -215,6 +216,7 @@ function tradePlan(direction:string,level:Level,snap:any,entry:number){
   const targets=raw.map(levelFromPublic).filter((x:Level)=>direction==="LONG"?x.point>entry:x.point<entry);
   if(!targets.length)return null;
   const rr=Math.abs(targets[0].point-entry)/risk;
+  if(!(rr>=MIN_RR_TO_TP1))return null;
   return{stop,risk,rr,tp1:targets[0].point,
     tp2:targets[1]?.point??targets[0].point,tp3:targets[2]?.point??targets[targets.length-1].point,
     target_rank:targets[0].rank};
@@ -286,8 +288,8 @@ function signalFromConfirmation(sym:string,dir:string,level:Level,snap:any,id:st
     context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"1m",trigger_basis:"1m_range_crosses_active_1h_OB_point",
       entry_price_basis:"OB_center_line",entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
       ladder_basis:"pre_confirmation_detector_state",ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:gate.relation,macd_direction:gate.macdDirection,proximity:snap.proximity,
-      entry_policy:"H1_MACD_line_vs_signal_defines_direction; active_1H_OB_center_touch_defines_entry; no_RR_gate",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
-      rr_min:null,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
+      entry_policy:"H1_MACD_line_vs_signal_defines_direction; active_1H_OB_center_touch_defines_entry; TP1_reward_must_cover_structural_SL_risk",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
+      rr_min:MIN_RR_TO_TP1,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
       protection_policy:"after_closed_1m_reaches_1R_move_active_stop_to_break_even_for_next_bar",
       trigger_bar:{t:bar.t,closeTime:eventTime,o:bar.o,h:bar.h,l:bar.l,c:bar.c,v:bar.v},stop_basis:"third_entry_OB_far_edge_plus_0_25_ATR"}};
 }
@@ -320,7 +322,7 @@ async function live(createEntries=true){
           nearestDir=String(prox?.nearest?.direction||""),currentGate=nearestDir?(snap0?.eligibility?.[nearestDir]||directionEligibility(nearestDir,snap0)):null;
     if(["NEAR","IN_ZONE"].includes(String(prox.state))){
       funnel.near_or_zone++;
-      if(currentGate?.contextOk){funnel.context_allowed++;if(currentGate?.structureOk){funnel.structure_allowed++;if(Number(currentGate?.momentumScore||0)>=2)funnel.momentum_allowed++;}}
+      if(currentGate?.contextOk){funnel.context_allowed++;if(currentGate?.structureOk){funnel.structure_allowed++;if(Number(currentGate?.momentumScore||0)>=1)funnel.momentum_allowed++;}}
       if(currentGate?.eligible)funnel.eligible_current++;
     }
     let lastH1=n(prev?.last_h1_close)||0,lastM1=n(prev?.last_m1_close)||0;
