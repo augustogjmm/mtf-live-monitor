@@ -185,15 +185,24 @@ function proximity(ladder:any,price:number,atr:number,regulated=false){
 function stopFor(direction:string,ladder:any,atr:number){const a=direction==="LONG"?ladder.below:ladder.above;if(a.length<3)return NaN;const x=a[2],buf=atr>0?atr*.25:Math.abs(x.point)*.0025;return direction==="LONG"?x.ob.bottom-buf:x.ob.top+buf}
 function trendRelation(direction:string,trend:string){if(trend==="RANGO")return"RANGO";return(direction==="LONG"&&trend==="ALCISTA")||(direction==="SHORT"&&trend==="BAJISTA")?"A_FAVOR":"CONTRA_TENDENCIA"}
 function directionEligibility(direction:string,snap:any){
-  const c1=snap?.context||{},macd=n(c1.macd),signal=n(c1.signal),
+  const c1=snap?.context||{},c4=snap?.macroContext?.h4||{},
+        macd=n(c1.macd),signal=n(c1.signal),
         macdDirection=macd>signal?"LONG":macd<signal?"SHORT":"NEUTRAL",
-        eligible=macdDirection===direction;
-  return{eligible,relation:eligible?"MACD_ALIGNED":"MACD_OPPOSED",macd,signal,
+        expected=direction==="LONG"?"ALCISTA":"BAJISTA",
+        h1Trend=String(c1.trend||"RANGO"),h4Trend=String(c4.trend||"RANGO"),
+        macdOk=Number.isFinite(macd)&&Number.isFinite(signal)&&macdDirection===direction,
+        h1Ok=h1Trend===expected,h4Ok=h4Trend===expected,
+        trendOk=h1Ok&&h4Ok,eligible=macdOk&&trendOk,
+        reasons=[...(!macdOk?["macd_direction_mismatch"]:[]),
+                 ...(!h1Ok?["h1_trend_not_aligned"]:[]),
+                 ...(!h4Ok?["h4_trend_not_aligned"]:[])];
+  return{eligible,relation:trendOk?"A_FAVOR":"CONTRA_TENDENCIA",macd,signal,
     histogram:Number.isFinite(macd)&&Number.isFinite(signal)?macd-signal:null,
     macdDirection,contextOk:Number.isFinite(macd)&&Number.isFinite(signal),
-    structureOk:true,momentumScore:eligible?1:0,rsiOk:null,macdOk:eligible,volumeOk:null,
-    indicatorsRole:"MACD_defines_direction_OB_defines_entry",emaFilter:false,
-    reasons:eligible?[]:["macd_direction_mismatch"]};
+    structureOk:trendOk,momentumScore:macdOk?1:0,rsiOk:null,macdOk,volumeOk:null,
+    h1Trend,h4Trend,trendOk,trendTimeframes:["1h","4h"],
+    indicatorsRole:"H1_MACD_direction_H1_H4_trend_gate_OB_entry",emaFilter:false,
+    reasons};
 }
 function rejectsZone(bar:Bar,level:Level,direction:string){
   const range=Math.max(1e-12,bar.h-bar.l),overlap=bar.l<=level.ob.top&&bar.h>=level.ob.bottom;
@@ -288,7 +297,7 @@ function signalFromConfirmation(sym:string,dir:string,level:Level,snap:any,id:st
     context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"1m",trigger_basis:"1m_range_crosses_active_1h_OB_point",
       entry_price_basis:"OB_center_line",entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
       ladder_basis:"pre_confirmation_detector_state",ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:gate.relation,macd_direction:gate.macdDirection,proximity:snap.proximity,
-      entry_policy:"H1_MACD_line_vs_signal_defines_direction; active_1H_OB_center_touch_defines_entry; TP1_reward_must_cover_structural_SL_risk",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
+      entry_policy:"H1_MACD_direction_REQUIRES_H1_AND_H4_TREND_AGREEMENT; active_1H_OB_center_touch_defines_entry; TP1_reward_must_cover_structural_SL_risk",rule_revision:"MACD_OB_H1_H4_TREND_RR1_20261008",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
       rr_min:MIN_RR_TO_TP1,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
       protection_policy:"after_closed_1m_reaches_1R_move_active_stop_to_break_even_for_next_bar",
       trigger_bar:{t:bar.t,closeTime:eventTime,o:bar.o,h:bar.h,l:bar.l,c:bar.c,v:bar.v},stop_basis:"third_entry_OB_far_edge_plus_0_25_ATR"}};
@@ -363,7 +372,7 @@ async function live(createEntries=true){
     try{const rows=await klines(pair,"1h",2),closed=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now());
       const bar=closed[closed.length-1];if(bar)lastH1=Math.max(lastH1,n(bar.closeTime)||bar.t+HOUR);}catch{}
     const operational=legacy.length?legacy:opens;
-    const eligible=snap0.eligibility||{};
+    const eligible={LONG:directionEligibility("LONG",snap0),SHORT:directionEligibility("SHORT",snap0)};
     liveStates.push({
       symbol:sym,price,state:operational.length?"OPEN":prox.state,proximity:prox,open_count:operational.length,
       setup_id:operational[0]?.context?.setup_id||null,direction:operational[0]?.direction||null,
