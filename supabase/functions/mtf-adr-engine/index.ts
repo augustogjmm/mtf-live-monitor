@@ -3,6 +3,25 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ENGINE_PUBLIC_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
+async function authorizedEngineRequest(req: Request) {
+  if (!SERVICE_ROLE || !SUPABASE_URL) return false;
+  const authorization = req.headers.get("authorization") || "";
+  if (authorization === `Bearer ${SERVICE_ROLE}`) return true;
+  if (!authorization.startsWith("Bearer ") || !ENGINE_PUBLIC_KEY) return false;
+  try {
+    const encoded = authorization.slice(7).split(".")[1];
+    const claims = JSON.parse(atob(encoded.replaceAll("-", "+").replaceAll("_", "/")));
+    // This is only a prefilter. PostgREST must verify the signature and role.
+    if (claims.role !== "service_role") return false;
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/mtf_engine_auth_status`, {
+      method: "POST", headers: {apikey: ENGINE_PUBLIC_KEY, authorization,
+        "content-type": "application/json"}, body: "{}", signal: AbortSignal.timeout(5000)
+    });
+    return response.ok && await response.json() === true;
+  } catch { return false; }
+}
+
 const sb=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
 
 const VERSION="ADR-OB-v1.0";
@@ -298,7 +317,7 @@ async function run(mode:"baseline"|"live"){
 }
 
 Deno.serve(async(req:Request)=>{
- if(!SERVICE_ROLE||req.headers.get("authorization")!==`Bearer ${SERVICE_ROLE}`){
+ if (!(await authorizedEngineRequest(req))){
   return new Response(JSON.stringify({ok:false,error:"unauthorized"}),{status:401,headers:{"content-type":"application/json"}});
  }
  try{

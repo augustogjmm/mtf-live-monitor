@@ -4,11 +4,12 @@ const path = require('node:path');
 const vm = require('node:vm');
 const {stripTypeScriptTypes} = require('node:module');
 const exportsByEngine = {
+  'mtf-alert-watcher': ['authorizedEngineRequest'],
   'mtf-crypto-engine': ['emptyState','step','ladderFromState','publicLevel','context',
     'directionEligibility','qualifiedOb','rejectsZone','tradePlan','levelFromPublic',
-    'confirmationSafety','confirmationSnapshot'],
-  'mtf-adr-engine': ['diagnostic','confirmationPlan','selftest','forwardConfirmation','weeksFromDaily'],
-  'mtf-daily-backfill': ['regulatedLiveDiagnostic','regulatedRiskProfile','confirmedCedearRecovery','ladderSignal','MIN_RR']
+    'confirmationSafety','confirmationSnapshot','authorizedEngineRequest'],
+  'mtf-adr-engine': ['diagnostic','confirmationPlan','selftest','forwardConfirmation','weeksFromDaily','authorizedEngineRequest'],
+  'mtf-daily-backfill': ['regulatedLiveDiagnostic','regulatedRiskProfile','confirmedCedearRecovery','ladderSignal','MIN_RR','authorizedEngineRequest']
 };
 function loadEngine(name, options={}) {
   const names = exportsByEngine[name];
@@ -23,8 +24,8 @@ function loadEngine(name, options={}) {
   }
   const deny = () => { throw Error('External effects are disabled in strategy validation'); };
   const context = {
-    Date:Clock, console, URL, Request, Response, AbortController,
-    setTimeout, clearTimeout, fetch:deny,
+    Date:Clock, console, URL, Request, Response, AbortController, AbortSignal, atob,
+    setTimeout, clearTimeout, fetch:options.fetch??deny,
     createClient:()=>({from:deny,rpc:deny}),
     Deno:{env:{get:name=>options.variables?.[name]},serve:fn=>{handler=fn}}
   };

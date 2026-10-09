@@ -47,3 +47,18 @@ alguno falla.
 La validación de desempeño económico y el primer ciclo de entrada/salida real
 siguen siendo requisitos distintos de la compilación y de estas restricciones
 de base de datos. Consultar `STRATEGY_VALIDATION.md` antes de afirmar rentabilidad.
+
+## Autenticación de claves de servicio
+
+La verificación real detectó que un JWT de servicio válido podía diferir de la
+clave literal del entorno. Los motores conservan el acceso de su clave interna
+y, para otro JWT de servicio, requieren una comprobación de PostgREST. La
+lectura del claim es únicamente un filtro previo: la firma y el rol deben ser
+validados por Supabase. Una caída, respuesta inválida o denegación rechaza la
+petición. Las claves públicas y de usuarios siguen bloqueadas.
+
+Aplicar `20261009181500_engine_service_role_verification.sql` antes de publicar
+esta versión de los motores. Su RPC es SECURITY INVOKER, sólo ejecutable por
+service_role, y devuelve el rol real de la conexión. Sus permisos pasaron una
+prueba transaccional revertida. Las pruebas locales cubren las cuatro funciones,
+claves actuales, JWT alternativos, claims falsificados y caída del verificador.
