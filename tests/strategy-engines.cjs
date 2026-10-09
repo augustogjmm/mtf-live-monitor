@@ -7,7 +7,7 @@ const {loadEngine} = require('../scripts/lib/strategy-runtime.cjs');
   assert.equal(certificate.total, 8);
   assert.equal(certificate.passed, certificate.total);
   const credential=require('node:crypto').randomUUID();
-  const authorizedAdr=loadEngine('mtf-adr-engine',{variables:{SUPABASE_SERVICE_ROLE_KEY:credential}});
+  const authorizedAdr=loadEngine('mtf-adr-engine',{variables:{SUPABASE_SERVICE_ROLE_KEY:credential,SUPABASE_URL:"https://project.example"}});
   const certifiedResponse=await authorizedAdr.handler(new Request('http://local.test',{
     method:'POST',headers:{authorization:'Bearer '+credential},body:'{"mode":"selftest"}'
   }));
