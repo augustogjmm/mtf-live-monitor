@@ -11,6 +11,9 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 new Function(source); // Parse without running the browser initialization.
 new Function(api);
 assert.match(html, /command-center\.js\?v=6\.3\.2-data-integrity/);
+assert.match(html, /ESTADÍSTICAS v2 · NUEVA COHORTE/);
+assert.match(html, /CEDEAR MACD\+OB Diario v2/);
+assert.doesNotMatch(html, /CEDEAR MACD\+OB Diario v1/);
 
 const init = 'clock();setInterval(clock,1000);bind();';
 const i = source.lastIndexOf(init);
