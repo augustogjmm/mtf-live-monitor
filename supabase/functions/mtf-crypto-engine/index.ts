@@ -4,11 +4,11 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
-const VERSION="MACD-OB-v1.0";
+const VERSION="MACD-OB-v2.0";
 const LEGACY_VERSION="OB-LADDER-v3.7.2";
-const ENGINE="MTF_MACD_DIRECTION_OB_ENTRY_V1";
+const ENGINE="MTF_CONFIRMED_OB_15M_V2";
 const ATR_STOP_BUFFER=.25;
-const MIN_RR_TO_TP1=1.0; // do not open trades whose structural risk exceeds TP1 reward
+const MIN_RR_TO_TP1=1.8; // reward to TP1 must cover at least 1.8x initial risk
 const STABLES=new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const FALLBACK=["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
 const HOUR=3600000;
@@ -182,7 +182,7 @@ function proximity(ladder:any,price:number,atr:number,regulated=false){
   if(!regulated)for(const x of ladder?.above||[])a.push({direction:"SHORT",rank:x.rank,point:x.point,zone_bottom:x.ob.bottom,zone_top:x.ob.top,distance:Math.abs(price-x.point),distanceAtr:atr>0?Math.abs(price-x.point)/atr:NaN,in_zone:price>=x.ob.bottom&&price<=x.ob.top});
   a.sort((x,y)=>x.distance-y.distance);const near=a[0]||null,state=near?.in_zone?"IN_ZONE":Number.isFinite(near?.distanceAtr)&&near.distanceAtr<=1?"NEAR":"WAIT";return{state,thresholdAtr:1,nearest:near,candidates:a};
 }
-function stopFor(direction:string,ladder:any,atr:number){const a=direction==="LONG"?ladder.below:ladder.above;if(a.length<3)return NaN;const x=a[2],buf=atr>0?atr*.25:Math.abs(x.point)*.0025;return direction==="LONG"?x.ob.bottom-buf:x.ob.top+buf}
+function stopFor(direction:string,ladder:any,atr:number){const a=direction==="LONG"?ladder.below:ladder.above;if(!a?.length)return NaN;const x=a[0],buf=atr>0?atr*.25:Math.abs(x.point)*.0025;return direction==="LONG"?x.ob.bottom-buf:x.ob.top+buf}
 function trendRelation(direction:string,trend:string){if(trend==="RANGO")return"RANGO";return(direction==="LONG"&&trend==="ALCISTA")||(direction==="SHORT"&&trend==="BAJISTA")?"A_FAVOR":"CONTRA_TENDENCIA"}
 function directionEligibility(direction:string,snap:any){
   const c1=snap?.context||{},c4=snap?.macroContext?.h4||{},
@@ -190,19 +190,30 @@ function directionEligibility(direction:string,snap:any){
         macdDirection=macd>signal?"LONG":macd<signal?"SHORT":"NEUTRAL",
         expected=direction==="LONG"?"ALCISTA":"BAJISTA",
         h1Trend=String(c1.trend||"RANGO"),h4Trend=String(c4.trend||"RANGO"),
-        macdOk=Number.isFinite(macd)&&Number.isFinite(signal)&&macdDirection===direction,
+        hist=n(c1.histogram),priorHist=n(c1.histogramPrev),
+        impulseOk=Number.isFinite(hist)&&Number.isFinite(priorHist)&&(direction==="LONG"?hist>0&&hist>priorHist:hist<0&&hist<priorHist),
+        macdOk=Number.isFinite(macd)&&Number.isFinite(signal)&&macdDirection===direction&&impulseOk,
         h1Ok=h1Trend===expected,h4Ok=h4Trend===expected,
-        trendOk=h1Ok&&h4Ok,eligible=macdOk&&trendOk,
+        structureOk=String(c1.structure||"RANGO")!==(direction==="LONG"?"BAJISTA":"ALCISTA"),trendOk=h1Ok&&h4Ok&&structureOk,eligible=macdOk&&trendOk,
         reasons=[...(!macdOk?["macd_direction_mismatch"]:[]),
                  ...(!h1Ok?["h1_trend_not_aligned"]:[]),
-                 ...(!h4Ok?["h4_trend_not_aligned"]:[])];
+                 ...(!h4Ok?["h4_trend_not_aligned"]:[]),...(!structureOk?["h1_structure_opposes"]:[])];
   return{eligible,relation:trendOk?"A_FAVOR":"CONTRA_TENDENCIA",macd,signal,
     histogram:Number.isFinite(macd)&&Number.isFinite(signal)?macd-signal:null,
     macdDirection,contextOk:Number.isFinite(macd)&&Number.isFinite(signal),
-    structureOk:trendOk,momentumScore:macdOk?1:0,rsiOk:null,macdOk,volumeOk:null,
+    structureOk,momentumScore:macdOk?1:0,rsiOk:null,macdOk,volumeOk:null,
     h1Trend,h4Trend,trendOk,trendTimeframes:["1h","4h"],
-    indicatorsRole:"H1_MACD_direction_H1_H4_trend_gate_OB_entry",emaFilter:false,
+    indicatorsRole:"H1_H4_trend_H1_MACD_improving_15m_OB_confirmation",emaFilter:false,
     reasons};
+}
+// Structural displacement is verified using candles closed before the OB was confirmed.
+function qualifiedOb(ob:OB,bars:Bar[],direction:string){
+  const i=bars.findIndex(x=>x.t===ob.originTime);
+  if(i<5||i+5>=bars.length)return false;
+  const before=bars.slice(i-5,i),after=bars.slice(i+1,i+6),pivot=bars[i];
+  return direction==="LONG"
+    ? Math.max(...after.map(x=>x.c))>Math.max(pivot.h,...before.map(x=>x.h))
+    : Math.min(...after.map(x=>x.c))<Math.min(pivot.l,...before.map(x=>x.l));
 }
 function rejectsZone(bar:Bar,level:Level,direction:string){
   const range=Math.max(1e-12,bar.h-bar.l),overlap=bar.l<=level.ob.top&&bar.h>=level.ob.bottom;
@@ -215,20 +226,17 @@ function rejectsZone(bar:Bar,level:Level,direction:string){
   return bar.h>=level.point&&bar.c<level.point&&bar.c<bar.o&&upperWick>=.20;
 }
 function tradePlan(direction:string,level:Level,snap:any,entry:number){
-  const atr=n(snap?.context?.atr14),entries=direction==="LONG"?snap?.ladder?.below:snap?.ladder?.above,
-        raw=direction==="LONG"?snap?.ladder?.above:snap?.ladder?.below;
-  if(!(atr>0)||!entries?.length||!raw?.length)return null;
-  const third=levelFromPublic(entries[Math.min(2,entries.length-1)]),
-        stop=direction==="LONG"?third.ob.bottom-ATR_STOP_BUFFER*atr:third.ob.top+ATR_STOP_BUFFER*atr,
-        risk=Math.abs(entry-stop);
+  const atr=n(snap?.context?.atr14),raw=direction==="LONG"?snap?.ladder?.above:snap?.ladder?.below;
+  if(!(atr>0)||!raw?.length)return null;
+  const stop=direction==="LONG"?level.ob.bottom-ATR_STOP_BUFFER*atr:level.ob.top+ATR_STOP_BUFFER*atr,
+    risk=Math.abs(entry-stop);
   if(!(risk>0)||(direction==="LONG"&&stop>=entry)||(direction==="SHORT"&&stop<=entry))return null;
   const targets=raw.map(levelFromPublic).filter((x:Level)=>direction==="LONG"?x.point>entry:x.point<entry);
   if(!targets.length)return null;
   const rr=Math.abs(targets[0].point-entry)/risk;
   if(!(rr>=MIN_RR_TO_TP1))return null;
-  return{stop,risk,rr,tp1:targets[0].point,
-    tp2:targets[1]?.point??targets[0].point,tp3:targets[2]?.point??targets[targets.length-1].point,
-    target_rank:targets[0].rank};
+  return{stop,risk,rr,tp1:targets[0].point,tp2:targets[1]?.point??targets[0].point,
+    tp3:targets[2]?.point??targets[targets.length-1].point,target_rank:targets[0].rank};
 }
 async function snapshotOne(sym:string){
   const row=await loadState(sym);if(!row)return{symbol:sym,ready:false,reason:"detector_not_initialized"};
@@ -237,6 +245,8 @@ async function snapshotOne(sym:string){
   const live=h1[h1.length-1];if(!live)return{symbol:sym,ready:false,reason:"missing_live_1h"};
   const h1c=h1.filter(x=>(x.closeTime||0)<now),h4c=h4.filter(x=>(x.closeTime||0)<now),d1c=d1.filter(x=>(x.closeTime||0)<now),lastClosed=h1c[h1c.length-1];
   const ladder=ladderFromState(st,live.c),c1=context(h1c),c4=context(h4c),cd=context(d1c);
+  ladder.below=ladder.below.filter(x=>qualifiedOb(x.ob,h1c,"LONG"));
+  ladder.above=ladder.above.filter(x=>qualifiedOb(x.ob,h1c,"SHORT"));
   if(!c1.ready||!c4.ready||!cd.ready||!lastClosed)return{symbol:sym,pair,ready:false,reason:"context_insufficient",price:live.c,historyProcessed:st.processed,contextBars:{h1:h1c.length,h4:h4c.length,d1:d1c.length,required:210},ladder:{reference_price:live.c,below:ladder.below.map(publicLevel),above:ladder.above.map(publicLevel)},generatedAt:iso()};
   const trends=[c1.trend,c4.trend,cd.trend],bull=trends.filter(x=>x==="ALCISTA").length,bear=trends.filter(x=>x==="BAJISTA").length,macro=bull>=2?"ALCISTA":bear>=2?"BAJISTA":"RANGO";
   const publicLadder={reference_price:live.c,below:ladder.below.map(publicLevel),above:ladder.above.map(publicLevel)},base={context:c1,macroContext:{trend:macro,h1:c1,h4:c4,d1:cd}};
@@ -292,15 +302,15 @@ async function insertLeg(row:any){
 }
 function setupId(sym:string,dir:string,when:number){return[VERSION,"crypto",sym,dir,Math.floor(when/60000)].join(":")}
 function signalFromConfirmation(sym:string,dir:string,level:Level,snap:any,id:string,bar:Bar,plan:any){
-  const eventTime=n(bar.closeTime)||bar.t+HOUR,gate=directionEligibility(dir,snap);
-  return{market:"crypto",symbol:sym,underlying:sym,direction:dir,signal_time:iso(eventTime),entry:level.point,stop:plan.stop,tp1:plan.tp1,tp2:plan.tp2,tp3:plan.tp3,source:"FORWARD",
-    context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"1m",trigger_basis:"1m_range_crosses_active_1h_OB_point",
-      entry_price_basis:"OB_center_line",entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
+  const eventTime=n(bar.closeTime)||bar.t+15*60000,gate=directionEligibility(dir,snap);
+  return{market:"crypto",symbol:sym,underlying:sym,direction:dir,signal_time:iso(eventTime),entry:bar.c,stop:plan.stop,tp1:plan.tp1,tp2:plan.tp2,tp3:plan.tp3,source:"FORWARD",
+    context:{strategy_version:VERSION,engine:ENGINE,setup_id:id,entry_rank:level.rank,operational_timeframe:"1h",trigger_timeframe:"15m",trigger_basis:"closed_15m_rejection_from_qualified_active_1h_ob",
+      entry_price_basis:"closed_15m_rejection_close",entry_level:publicLevel(level),ob_key:"1h:"+dir+":"+level.ob.originTime,
       ladder_basis:"pre_confirmation_detector_state",ladder_snapshot:snap.ladder,context:snap.context,macro_context:snap.macroContext,eligibility:gate,trend_relation:gate.relation,macd_direction:gate.macdDirection,proximity:snap.proximity,
-      entry_policy:"H1_MACD_direction_REQUIRES_H1_AND_H4_TREND_AGREEMENT; active_1H_OB_center_touch_defines_entry; TP1_reward_must_cover_structural_SL_risk",rule_revision:"MACD_OB_H1_H4_TREND_RR1_20261008",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
+      entry_policy:"H1_H4_tendency; improving_H1_MACD; displaced_OB; closed_15m_rejection; TP1_RR>=1.8",rule_revision:"CONFIRM15M_QUALIFIED_OB_RR18_20261009",exit_policy:"TP1_OR_STRUCTURAL_SL_WITH_1R_BE",
       rr_min:MIN_RR_TO_TP1,planned_rr:plan.rr,target_rank:plan.target_rank,initial_stop:plan.stop,
       protection_policy:"after_closed_1m_reaches_1R_move_active_stop_to_break_even_for_next_bar",
-      trigger_bar:{t:bar.t,closeTime:eventTime,o:bar.o,h:bar.h,l:bar.l,c:bar.c,v:bar.v},stop_basis:"third_entry_OB_far_edge_plus_0_25_ATR"}};
+      trigger_bar:{t:bar.t,closeTime:eventTime,o:bar.o,h:bar.h,l:bar.l,c:bar.c,v:bar.v},stop_basis:"selected_OB_far_edge_plus_0_25_ATR"}};
 }
 async function live(createEntries=true){
   const [{data:st,error:stErr},{data:prevRow,error:prevErr}]=await Promise.all([
@@ -321,7 +331,7 @@ async function live(createEntries=true){
   for(const snap0 of snaps){
     const sym=String(snap0.symbol),pair=sym+"USDT",prev=prevMap.get(sym)||null;
     if(!snap0.ready){
-      liveStates.push({symbol:sym,state:"NO_ANALYSIS",reason:snap0.reason,last_h1_close:n(prev?.last_h1_close)||null,last_m1_close:n(prev?.last_m1_close)||null,updated_at:iso()});
+      liveStates.push({symbol:sym,state:"NO_ANALYSIS",reason:snap0.reason,last_h1_close:n(prev?.last_h1_close)||null,last_m15_close:n(prev?.last_m15_close)||null,updated_at:iso()});
       continue;
     }
     funnel.ready++;
@@ -334,28 +344,29 @@ async function live(createEntries=true){
       if(currentGate?.contextOk){funnel.context_allowed++;if(currentGate?.structureOk){funnel.structure_allowed++;if(Number(currentGate?.momentumScore||0)>=1)funnel.momentum_allowed++;}}
       if(currentGate?.eligible)funnel.eligible_current++;
     }
-    let lastH1=n(prev?.last_h1_close)||0,lastM1=n(prev?.last_m1_close)||0;
-    let minuteBars:Bar[]=[];
-    try{const rows=await klines(pair,"1m",12);
-      minuteBars=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now()).sort((x:Bar,y:Bar)=>x.t-y.t);}catch{}
-    // Baseline on first observation; replay only bars strictly newer than the persisted watermark.
-    if(!lastM1&&minuteBars.length)lastM1=n(minuteBars[minuteBars.length-1].closeTime)||minuteBars[minuteBars.length-1].t+60000;
-    const freshBars=minuteBars.filter((bar:Bar)=>(n(bar.closeTime)||bar.t+60000)>lastM1);
+    let lastH1=n(prev?.last_h1_close)||0,lastM15=n(prev?.last_m15_close)||0;
+    let confirmationBars:Bar[]=[];
+    try{const rows=await klines(pair,"15m",16);
+      confirmationBars=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now()).sort((x:Bar,y:Bar)=>x.t-y.t);}catch{}
+    // Establish an initial baseline: do not replay stale historical touches.
+    if(!lastM15&&confirmationBars.length)
+      lastM15=n(confirmationBars[confirmationBars.length-1].closeTime)||confirmationBars[confirmationBars.length-1].t+15*60000;
+    const freshBars=confirmationBars.filter((bar:Bar)=>(n(bar.closeTime)||bar.t+15*60000)>lastM15);
     for(const bar of freshBars){
-      const barClose=n(bar.closeTime)||bar.t+60000;
-      if(createEntries&&prev&&n(prev.last_m1_close)>0){
+      const barClose=n(bar.closeTime)||bar.t+15*60000;
+      if(createEntries&&prev&&n(prev.last_m15_close)>0){
         funnel.confirmation_bars_checked++;
         if(!legacy.length&&!opens.length){
           const candidates=[
-            ...prox0.below.filter((x:Level)=>directionEligibility("LONG",snap0).eligible&&touched(bar,x))
+            ...prox0.below.filter((x:Level)=>directionEligibility("LONG",snap0).eligible&&x.ob.confirmTime+HOUR<=bar.t&&rejectsZone(bar,x,"LONG")&&bar.c<=x.ob.top+0.25*n(snap0.context?.atr14))
               .map((level:Level)=>({dir:"LONG",level})),
-            ...prox0.above.filter((x:Level)=>directionEligibility("SHORT",snap0).eligible&&touched(bar,x))
+            ...prox0.above.filter((x:Level)=>directionEligibility("SHORT",snap0).eligible&&x.ob.confirmTime+HOUR<=bar.t&&rejectsZone(bar,x,"SHORT")&&bar.c>=x.ob.bottom-0.25*n(snap0.context?.atr14))
               .map((level:Level)=>({dir:"SHORT",level}))
           ].sort((a:any,b:any)=>a.level.rank-b.level.rank);
           funnel.rejection_hits+=candidates.length;
           for(const candidate of candidates){
             const gate=directionEligibility(candidate.dir,snap0),
-                  plan=tradePlan(candidate.dir,candidate.level,snap0,candidate.level.point);
+                  plan=tradePlan(candidate.dir,candidate.level,snap0,bar.c);
             if(!plan)continue;
             funnel.rr_pass++;
             const id=setupId(sym,candidate.dir,barClose),
@@ -367,7 +378,7 @@ async function live(createEntries=true){
           }
         }
       }
-      lastM1=Math.max(lastM1,barClose);
+      lastM15=Math.max(lastM15,barClose);
     }
     try{const rows=await klines(pair,"1h",2),closed=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now());
       const bar=closed[closed.length-1];if(bar)lastH1=Math.max(lastH1,n(bar.closeTime)||bar.t+HOUR);}catch{}
@@ -377,7 +388,7 @@ async function live(createEntries=true){
       symbol:sym,price,state:operational.length?"OPEN":prox.state,proximity:prox,open_count:operational.length,
       setup_id:operational[0]?.context?.setup_id||null,direction:operational[0]?.direction||null,
       active_strategy_version:operational[0]?.strategy_version||null,legacy_active:legacy.length>0,
-      eligibility:eligible,last_h1_close:lastH1||null,last_bar_close:lastH1||null,last_m1_close:lastM1||null,
+      eligibility:eligible,last_h1_close:lastH1||null,last_bar_close:lastH1||null,last_m15_close:lastM15||null,
       baseline:!createEntries,updated_at:iso()
     });
   }
