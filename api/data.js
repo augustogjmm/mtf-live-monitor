@@ -10,6 +10,18 @@ const SB_URL=CUSTOM_BACKEND?(BACKEND_ENV.MTF_SUPABASE_URL||'').replace(/\/$/,'')
 const SB_ANON=CUSTOM_BACKEND?(BACKEND_ENV.MTF_SUPABASE_PUBLISHABLE_KEY||''):'sb_publishable_EbjOQ0SprPfdKLTQ6zER0w_DGsf128M';
 const CACHE_TTL=10*60*1000;
 let universeCache={at:0,data:null};
+const backendReads=new Map();
+async function sharedBackendRead(key,read){
+ const existing=backendReads.get(key);
+ if(existing&&(existing.pending||Date.now()<existing.expires))return existing.promise;
+ backendReads.delete(key);
+ if(backendReads.size>=32)backendReads.delete(backendReads.keys().next().value);
+ const entry={pending:true,expires:0,promise:null};
+ entry.promise=Promise.resolve().then(read).then(value=>{
+   entry.pending=false;entry.expires=Date.now()+20000;return value;
+ },error=>{if(backendReads.get(key)===entry)backendReads.delete(key);throw error});
+ backendReads.set(key,entry);return entry.promise;
+}
 function n(v){if(v===null||v===undefined||v==='')return NaN;const x=Number(v);return Number.isFinite(x)?x:NaN}
 function avg(a){const x=a.filter(Number.isFinite);return x.length?x.reduce((s,v)=>s+v,0)/x.length:NaN}
 function clamp(v,a=0,b=100){return Math.max(a,Math.min(b,v))}
@@ -186,7 +198,12 @@ async function supa(path,init={}){
  const backend=new URL(SB_URL);
  if(backend.protocol!=='https:'||backend.username||backend.password||backend.pathname!=='/'||backend.search||backend.hash)throw Error('URL Supabase inválida; se requiere origen HTTPS');
  if(SB_ANON.startsWith('sb_secret_'))throw Error('Usar una clave pública de Supabase, nunca una secret key');
- return json(SB_URL+path,{...init,headers:{apikey:SB_ANON,accept:'application/json',...(init.headers||{})}},12000);
+ const read=()=>json(SB_URL+path,{...init,headers:{apikey:SB_ANON,accept:'application/json',...(init.headers||{})}},12000);
+ // This server helper is exclusively for reads, including read-only RPC POSTs.
+ const method=String(init.method||'GET').toUpperCase();
+ const safeRpc=/^\/rest\/v1\/rpc\/(mtf_latest_cedear_snapshot|mtf_latest_merval_snapshot|mtf_latest_decisions|mtf_system_status|mtf_http_error_status|mtf_audit_status|mtf_adr_certification_status|mtf_stats_snapshot_fast|mtf_stats_price_inputs|mtf_monitor_state)$/.test(path);
+ return method==='GET'||(method==='POST'&&safeRpc)
+   ?sharedBackendRead(method+':'+path+':'+(init.body||''),read):read();
 }
 async function latestCedearServerSnapshot(){
  const j=await supa('/rest/v1/rpc/mtf_latest_cedear_snapshot',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
@@ -253,13 +270,16 @@ function cryptoClosedBarDiagnostic(structure){
  if(out.barClose)out.barClose=new Date(out.barClose).toISOString();
  return out;
 }
-async function runtimeSnapshot(market='crypto'){
+async function runtimeState(market,compact){
+ return compact?supa('/rest/v1/rpc/mtf_monitor_state',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({p_market:market})}):supa('/rest/v1/mtf_state?market=eq.'+market+'&select=meta,last_run_at&limit=1');
+}
+async function runtimeSnapshot(market='crypto',compact=false){
  if(!['crypto','cedear','merval'].includes(market))throw Error('market inválido');
  if(market==='crypto'){
    const [opens,structureRows,liveRows]=await Promise.all([
      supaAll('/rest/v1/mtf_signals?strategy_version=in.(MACD-OB-v2.0,MACD-OB-v1.0)&source=eq.FORWARD&status=eq.OPEN&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,strategy_version,context&order=signal_time.asc'),
-     supa('/rest/v1/mtf_state?market=eq.crypto_structure&select=meta,last_run_at&limit=1'),
-     supa('/rest/v1/mtf_state?market=eq.crypto_live&select=meta,last_run_at&limit=1')
+     runtimeState('crypto_structure',compact),
+     runtimeState('crypto_live',compact)
    ]);
    const structure=structureRows?.[0]?.meta?.snapshot||[],live=liveRows?.[0]?.meta?.snapshot||[],
          cryptoOpens=(opens||[]).filter(x=>x.market==='crypto'&&isOperationalOpen(x));
@@ -272,7 +292,7 @@ async function runtimeSnapshot(market='crypto'){
      liveStates:Array.isArray(live)?live:[],
      funnel:liveRows?.[0]?.meta?.funnel||null,
      hourlyConfirmation:liveRows?.[0]?.meta?.hourlyConfirmation||null,
-     lastClosedDiagnostic:cryptoClosedBarDiagnostic(structure),
+     lastClosedDiagnostic:compact?null:cryptoClosedBarDiagnostic(structure),
      liveGeneratedAt:liveRows?.[0]?.meta?.generated_at||liveRows?.[0]?.last_run_at||null,
      generatedAt:new Date().toISOString()
    };
@@ -282,7 +302,7 @@ async function runtimeSnapshot(market='crypto'){
  const [opens,decisions,liveRows]=await Promise.all([
    supaAll('/rest/v1/mtf_signals?strategy_version='+encodeURIComponent(activeVersionFilter)+'&source=eq.FORWARD&status=eq.OPEN&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,strategy_version,context&order=signal_time.desc'),
    supa('/rest/v1/rpc/mtf_latest_decisions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({p_market:market})}),
-   supa('/rest/v1/mtf_state?market=eq.'+(market==='merval'?'adr_live':'regulated_live')+'&select=meta,last_run_at&limit=1')
+   runtimeState(market==='merval'?'adr_live':'regulated_live',compact)
  ]);
  const snap=liveRows?.[0]?.meta?.snapshot||[],
        filteredOpens=(opens||[]).filter(x=>(!market||x.market===market)&&isOperationalOpen(x));
@@ -364,12 +384,11 @@ async function globalContext(){
 }
 
 async function statsSnapshot(){
- const [j,rr,ar,cr]=await Promise.all([
+ const [j,priceRows]=await Promise.all([
    supa('/rest/v1/rpc/mtf_stats_snapshot_fast',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),
-   supa('/rest/v1/mtf_state?market=eq.regulated_live&select=meta&limit=1').catch(()=>[]),
-   supa('/rest/v1/mtf_state?market=eq.adr_live&select=meta&limit=1').catch(()=>[]),
-   supa('/rest/v1/mtf_state?market=eq.crypto_live&select=meta&limit=1').catch(()=>[])
+   supa('/rest/v1/rpc/mtf_stats_price_inputs',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).catch(()=>[])
  ]);
+ const rr=priceRows.filter(x=>x.market==='regulated_live'),ar=priceRows.filter(x=>x.market==='adr_live'),cr=priceRows.filter(x=>x.market==='crypto_live');
  const names=new Map(),prices=new Map();
  for(const x of [...(rr?.[0]?.meta?.snapshot||[]),...(ar?.[0]?.meta?.snapshot||[])]){
    const key=String(x.market||'')+':'+String(x.symbol||'');
@@ -394,4 +413,4 @@ async function statsSnapshot(){
    generatedAt:j?.generated_at||new Date().toISOString()
  };
 }
-module.exports=async function handler(req,res){try{const op=String(req.query?.op||'');if(op==='stats'){res.setHeader('cache-control','no-store');return res.status(200).json(await statsSnapshot())}if(op==='runtime'){const market=String(req.query?.market||'crypto');res.setHeader('cache-control','no-store');if(!['crypto','cedear','merval'].includes(market))return res.status(400).json({error:'market inválido'});return res.status(200).json(await runtimeSnapshot(market))}if(op==='status'){res.setHeader('cache-control','no-store');return res.status(200).json(await statusSnapshot())}if(op==='canary'){res.setHeader('cache-control','no-store');return res.status(403).json({error:'Canary público deshabilitado en producción'})}res.setHeader('cache-control','s-maxage=120, stale-while-revalidate=600');if(op==='health')return res.status(200).json({ok:true,strategy_version:'MACD-OB-v2.0',regulated_strategy_version:'CEDEAR-MACD-OB-v2.0',adr_strategy_version:'ADR-OB-v1.0',ui_version:'6.3.3',build_id:'MTF-MONITOR-FORWARD-SAFETY'});if(op==='market-status'){res.setHeader('cache-control','s-maxage=20, stale-while-revalidate=20');return res.status(200).json(await marketStatus())}if(op==='global-context'){res.setHeader('cache-control','s-maxage=30, stale-while-revalidate=30');return res.status(200).json(await globalContext())}if(op==='cedears-panel'||op==='cedears')return res.status(200).json(await cedearPanelSnapshot());if(op==='cedears-batch')return res.status(200).json(await cedearBatch(req.query?.offset,req.query?.limit));if(op==='merval-panel')return res.status(200).json(await mervalPanelSnapshot());if(op==='merval-history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await mervalHistory(sym))}if(op==='history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await history(sym))}return res.status(400).json({error:'op inválido'})}catch(e){return res.status(500).json({error:String(e?.message||e)})}}
+module.exports=async function handler(req,res){try{const op=String(req.query?.op||'');if(req.query?.force)backendReads.clear();res.setHeader('Vercel-CDN-Cache-Control',req.query?.force?'no-store':'max-age=30, must-revalidate');if(op==='stats'){res.setHeader('cache-control','no-store');return res.status(200).json(await statsSnapshot())}if(op==='runtime'){const market=String(req.query?.market||'crypto');res.setHeader('cache-control','no-store');if(!['crypto','cedear','merval'].includes(market)){res.setHeader('Vercel-CDN-Cache-Control','no-store');return res.status(400).json({error:'market inválido'})};return res.status(200).json(await runtimeSnapshot(market,req.query?.view==='monitor'))}if(op==='status'){res.setHeader('cache-control','no-store');return res.status(200).json(await statusSnapshot())}if(op==='canary'){res.setHeader('Vercel-CDN-Cache-Control','no-store');res.setHeader('cache-control','no-store');return res.status(403).json({error:'Canary público deshabilitado en producción'})}res.setHeader('cache-control','s-maxage=120, stale-while-revalidate=600');if(op==='health')return res.status(200).json({ok:true,strategy_version:'MACD-OB-v2.0',regulated_strategy_version:'CEDEAR-MACD-OB-v2.0',adr_strategy_version:'ADR-OB-v1.0',ui_version:'6.3.3',build_id:'MTF-MONITOR-FORWARD-SAFETY'});if(op==='market-status'){res.setHeader('cache-control','s-maxage=20, stale-while-revalidate=20');return res.status(200).json(await marketStatus())}if(op==='global-context'){res.setHeader('cache-control','s-maxage=30, stale-while-revalidate=30');return res.status(200).json(await globalContext())}if(op==='cedears-panel'||op==='cedears')return res.status(200).json(await cedearPanelSnapshot());if(op==='cedears-batch')return res.status(200).json(await cedearBatch(req.query?.offset,req.query?.limit));if(op==='merval-panel')return res.status(200).json(await mervalPanelSnapshot());if(op==='merval-history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await mervalHistory(sym))}if(op==='history'){const sym=String(req.query?.symbol||'').trim().toUpperCase();if(!sym)return res.status(400).json({error:'symbol requerido'});return res.status(200).json(await history(sym))}res.setHeader('Vercel-CDN-Cache-Control','no-store');return res.status(400).json({error:'op inválido'})}catch(e){res.setHeader('Vercel-CDN-Cache-Control','no-store');res.setHeader('cache-control','no-store');return res.status(500).json({error:String(e?.message||e)})}}

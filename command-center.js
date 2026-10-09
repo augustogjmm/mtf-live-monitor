@@ -9,7 +9,7 @@ function pct(v){v=validNumber(v);return Number.isFinite(v)?(v>=0?'+':'')+v.toFix
 function rr(v){v=validNumber(v);return Number.isFinite(v)?(v>=0?'+':'')+v.toFixed(2)+'R':'—'}
 function mean(a){var x=(a||[]).map(validNumber).filter(Number.isFinite);return x.length?x.reduce(function(s,v){return s+v},0)/x.length:NaN}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]})}
-function json(u,ms){var c=new AbortController(),t=setTimeout(function(){c.abort()},ms||15000);return fetch(u,{cache:'no-store',signal:c.signal}).then(function(r){if(!r.ok)return r.text().then(function(x){throw Error(r.status+' '+x)});return r.json()}).finally(function(){clearTimeout(t)})}
+function json(u,ms){var c=new AbortController(),t=setTimeout(function(){c.abort()},ms||15000);return fetch(u,{signal:c.signal}).then(function(r){if(!r.ok)return r.text().then(function(x){throw Error(r.status+' '+x)});return r.json()}).finally(function(){clearTimeout(t)})}
 function at(obj,path,def){try{var x=obj;for(var i=0;i<path.length;i++){if(x==null)return def;x=x[path[i]]}return x==null?def:x}catch(e){return def}}
 function clsTrend(t){t=String(t||'RANGO').toUpperCase();return t==='ALCISTA'?'cc-up':t==='BAJISTA'?'cc-down':'cc-flat'}
 function trendText(t){t=String(t||'RANGO').toUpperCase();return (t==='ALCISTA'?'↑ ':t==='BAJISTA'?'↓ ':'→ ')+t}
@@ -248,16 +248,16 @@ function clearSelection(){
 }
 function renderAll(){setContext();renderOpportunities();renderMarkets();renderOperations();renderRadar();renderHealth();if(CC.selected){var r=allRows().find(function(x){return x.market===CC.selected.market&&x.sym===CC.selected.sym});if(r)renderSelected(r);else clearSelection()}else{var first=allRows().find(function(x){return CC.market==='CRYPTO'?x.market==='CRYPTO':x.market!=='CRYPTO'});if(first)selectAsset(first.market,first.sym);else clearSelection()}}
 function load(force){
- if(CC.busy)return Promise.resolve();CC.busy=true;var stamp=Date.now();
+ if(CC.busy||document.hidden)return Promise.resolve();CC.busy=true;var suffix=force?'&force='+Date.now():'';
  var tasks=[
-  json('/api/data?op=global-context&_='+stamp,15000).then(function(x){CC.context=x}).catch(function(){CC.context=null}),
-  json('/api/data?op=runtime&market=crypto&_='+stamp,16000).then(function(x){CC.crypto=x}).catch(function(){CC.crypto=null}),
-  json('/api/data?op=runtime&market=cedear&_='+stamp,16000).then(function(x){CC.cedear=x}).catch(function(){CC.cedear=null}),
-  json('/api/data?op=runtime&market=merval&_='+stamp,16000).then(function(x){CC.merval=x}).catch(function(){CC.merval=null}),
-  json('/api/data?op=stats&_='+stamp,16000).then(function(x){CC.stats=x}).catch(function(){CC.stats=null}),
-  json('/api/data?op=status&_='+stamp,16000).then(function(x){CC.status=x}).catch(function(){CC.status=null}),
-  json('/api/data?op=cedears-panel&_='+stamp,20000).then(function(x){CC.cedearPanel=x}).catch(function(){CC.cedearPanel=null}),
-  json('/api/data?op=merval-panel&_='+stamp,20000).then(function(x){CC.mervalPanel=x}).catch(function(){CC.mervalPanel=null})
+  json('/api/data?op=global-context'+suffix,15000).then(function(x){CC.context=x}).catch(function(){CC.context=null}),
+  json('/api/data?op=runtime&market=crypto&view=monitor'+suffix,16000).then(function(x){CC.crypto=x}).catch(function(){CC.crypto=null}),
+  json('/api/data?op=runtime&market=cedear&view=monitor'+suffix,16000).then(function(x){CC.cedear=x}).catch(function(){CC.cedear=null}),
+  json('/api/data?op=runtime&market=merval&view=monitor'+suffix,16000).then(function(x){CC.merval=x}).catch(function(){CC.merval=null}),
+  json('/api/data?op=stats'+suffix,16000).then(function(x){CC.stats=x}).catch(function(){CC.stats=null}),
+  json('/api/data?op=status'+suffix,16000).then(function(x){CC.status=x}).catch(function(){CC.status=null}),
+  json('/api/data?op=cedears-panel'+suffix,20000).then(function(x){CC.cedearPanel=x}).catch(function(){CC.cedearPanel=null}),
+  json('/api/data?op=merval-panel'+suffix,20000).then(function(x){CC.mervalPanel=x}).catch(function(){CC.mervalPanel=null})
  ];
  return Promise.allSettled(tasks).then(function(){renderAll()}).finally(function(){CC.busy=false})
 }
@@ -280,5 +280,5 @@ function bind(){
  var dx=document.querySelector('.detail-x');if(dx)dx.onclick=function(){CC.selected=null;if($('ccDetailBody'))$('ccDetailBody').innerHTML='<div class="cc-info-note">Seleccioná un activo del radar u oportunidades.</div>'};
  if($('reload'))$('reload').onclick=function(){if($('vm')&&!$('vm').classList.contains('hide'))load(true);else if(typeof oldReload==='function')oldReload()};showCommand()
 }
-clock();setInterval(clock,1000);bind();setInterval(function(){if($('vm')&&!$('vm').classList.contains('hide'))load(false)},60000);window.addEventListener('resize',function(){if(CC.selected){var r=allRows().find(function(x){return x.market===CC.selected.market&&x.sym===CC.selected.sym});if(r)selectAsset(r.market,r.sym)}})
+clock();setInterval(clock,1000);bind();setInterval(function(){if(!document.hidden&&$('vm')&&!$('vm').classList.contains('hide'))load(false)},60000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&$('vm')&&!$('vm').classList.contains('hide'))load(false)});window.addEventListener('resize',function(){if(CC.selected){var r=allRows().find(function(x){return x.market===CC.selected.market&&x.sym===CC.selected.sym});if(r)selectAsset(r.market,r.sym)}})
 })();

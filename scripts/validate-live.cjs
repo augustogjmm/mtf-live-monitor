@@ -17,7 +17,7 @@ async function request(query){
 (async()=>{
   const results=[];
   for(const market of ['crypto','cedear','merval']){
-    const body=await request({op:'runtime',market});
+    const body=await request({op:'runtime',market,view:'monitor'});
     assert.ok(Array.isArray(body.liveStates)&&body.liveStates.length>0,market+' must have runtime rows');
     const liveAge=age(body.liveGeneratedAt);
     assert.ok(liveAge>=0&&liveAge<(market==='crypto'?6:20)*60000,market+' runtime is stale');

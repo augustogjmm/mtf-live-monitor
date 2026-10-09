@@ -16,12 +16,12 @@ async function verify(fetcher=fetch) {
   assert.equal(health.ui_version,'6.3.3');
   assert.equal(health.build_id,'MTF-MONITOR-FORWARD-SAFETY');
   const html=await read('/',false);
-  assert.ok(html.includes('command-center.js?v=6.3.3-forward-safety'),'Expected frontend build is missing');
+  assert.ok(html.includes('command-center.js?v=6.3.3-egress-reduction'),'Expected frontend build is missing');
   const javascript=await read('/command-center.js',false);
   assert.ok(javascript.includes('runtimeFresh'),'Expected dashboard implementation is missing');
   const markets=[];
   for(const market of ['crypto','cedear','merval']){
-    const body=await read('/api/data?op=runtime&market='+market);
+    const body=await read('/api/data?op=runtime&market='+market+'&view=monitor');
     assert.ok(Array.isArray(body.liveStates)&&body.liveStates.length,market+' has no runtime');
     assert.ok(Array.isArray(body.opens),market+' has no operation state');
     const age=Date.now()-Date.parse(body.liveGeneratedAt);

@@ -45,9 +45,12 @@ function payload(url){
       args:['--no-sandbox']});
     const page=await browser.newPage({viewport:{width:1440,height:1000},timezoneId:'America/Argentina/Buenos_Aires'});
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    const apiRequests=[];
+    await page.clock.install();
     await page.route('**/*',async route=>{
       const url=new URL(route.request().url());
       if(url.origin===origin&&url.pathname==='/api/data'){
+        apiRequests.push(url);
         await route.fulfill(fail?{status:503,json:{error:'Test upstream outage'}}:{json:payload(url)});
       }else if(url.origin===origin)await route.continue();
       else if(url.hostname==='api.binance.com'){
@@ -60,6 +63,20 @@ function payload(url){
     await page.goto(origin,{waitUntil:'domcontentloaded'});
     await page.locator('#ccOppBody tr[data-ccsym]').first().waitFor();
     await alternateChart;
+    assert.ok(apiRequests.filter(x=>x.searchParams.get('op')==='runtime')
+      .every(x=>x.searchParams.get('view')==='monitor'),'Monitor must use compact reads');
+    assert.ok(apiRequests.every(x=>!x.searchParams.has('_')),'Polling must use shared cache keys');
+    await page.evaluate(()=>Object.defineProperty(document,'hidden',{configurable:true,value:true}));
+    const beforeHidden=apiRequests.length;
+    await page.clock.runFor(61000);
+    await page.waitForTimeout(100);
+    assert.equal(apiRequests.length,beforeHidden,'Hidden tabs must not poll any backend');
+    const resumed=page.waitForRequest(r=>r.url().includes('op=runtime'));
+    await page.evaluate(()=>{
+      Object.defineProperty(document,'hidden',{configurable:true,value:false});
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await resumed;
     assert.match(await page.locator('#ccRadarBody').innerText(),/ESPERAR CONF\./);
     assert.equal(await page.locator('#ccRadarBody tr[data-ccsym]').count(),20);
     await page.click('#ccRadarNext');
