@@ -6,8 +6,8 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false, autoRefreshToken: false } });
 
 const BYMA = "https://open.bymadata.com.ar/vanoms-be-core/rest/api/bymadata/free";
-const STRATEGY_VERSION = "CEDEAR-MACD-OB-v1.0";
-const MIN_RR = 1.0;
+const STRATEGY_VERSION = "CEDEAR-MACD-OB-v2.0";
+const MIN_RR = 1.8;
 const LEGACY_STRATEGY_VERSION = "OB-LADDER-v3.5";
 const STABLES = new Set(["USDT","USDC","DAI","FDUSD","TUSD","USDE","PYUSD","USDS","FRAX","USD1","USDD"]);
 const CRYPTO_FALLBACK = ["BTC","ETH","BNB","XRP","SOL","DOGE","ADA","TRX","AVAX","LINK","SUI","XLM","HBAR","BCH","LTC","DOT","UNI","AAVE","NEAR","APT"];
@@ -135,7 +135,7 @@ function tfAnalyzer(b:Bar[]){
   const shortRules=[c<a10,a10<a55,c<a55,Number.isFinite(a200)?c<a200:true,ml<ms,mh<=0,s55<=0];
   const longScore=longRules.filter(Boolean).length,shortScore=shortRules.filter(Boolean).length;
   const vols=b.slice(-20).map(x=>numericVolume(x)).filter(v=>v>0),vavg=vols.length?avg(vols):NaN,vr=Number.isFinite(vavg)&&vavg>0?numericVolume(b[i])/vavg:NaN;
-  return{ready:b.length>=55,longScore,shortScore,net:longScore-shortScore,close:c,ema10:a10,ema55:a55,ema200:a200,macd:ml,signal:ms,histogram:mh,ema55Slope:s55,volumeRatio:vr,longRules,shortRules};
+  return{ready:b.length>=55,longScore,shortScore,net:longScore-shortScore,close:c,ema10:a10,ema55:a55,ema200:a200,macd:ml,signal:ms,histogram:mh,histogramPrev:i>0?n(m.hist[i-1]):mh,ema55Slope:s55,volumeRatio:vr,longRules,shortRules};
 }
 function swingLevels(b:Bar[],direction:"LONG"|"SHORT",lookback=180){
   const out:{price:number;source:string}[]=[],start=Math.max(2,b.length-lookback),end=b.length-2;
@@ -191,10 +191,13 @@ function trendRelation(direction:"LONG"|"SHORT",trend:string){
 function regulatedRiskProfile(diag:any){
   const d=diag?.context||{},macd=n(d.macd),signal=n(d.signal),
         macdBull=Number.isFinite(macd)&&Number.isFinite(signal)&&macd>signal,
+        hist=n(d.histogram),histPrev=n(d.histogramPrev),momentum=Number.isFinite(hist)&&Number.isFinite(histPrev)&&hist>0&&hist>histPrev,
+        dailyBull=String(d.trend||"RANGO")==="ALCISTA",
         w=String(diag?.macroContext?.w1?.trend||diag?.macroContext?.trend||"RANGO");
-  return{relation:macdBull?"A_FAVOR":"MACD_NO_COMPRA",risk:macdBull?"HABILITADA":"BLOQUEADA",
+  const qualifies=macdBull&&momentum&&dailyBull&&w!=="BAJISTA";
+  return{relation:qualifies?"A_FAVOR":"SIN_CONFIRMACION",risk:qualifies?"HABILITADA":"BLOQUEADA",
     daily:String(d.trend||"RANGO"),weekly:w,macd,signal,histogram:Number.isFinite(macd)&&Number.isFinite(signal)?macd-signal:null,
-    macd_direction:macdBull?"COMPRA":"NO_COMPRA"};
+    macd_direction:qualifies?"COMPRA":"NO_COMPRA",momentum_improving:momentum,daily_bullish:dailyBull};
 }
 function publicLevel(x:LadderLevel){
   return{rank:x.rank,point:x.point,side:x.side,detector_side:x.detectorSide,origin_time:x.ob.originTime,confirm_time:x.ob.confirmTime,zone_bottom:x.ob.bottom,zone_top:x.ob.top};
@@ -213,24 +216,26 @@ function proximityFor(ladder:any,price:number,atr14:number,regulated=false){
 function structuralStop(direction:"LONG"|"SHORT",ladder:any,atr14:number){
   const side:LadderLevel[]=direction==="LONG"?ladder?.below||[]:ladder?.above||[];
   if(side.length<1)return NaN;
-  const third=side[Math.min(2,side.length-1)],buffer=Number.isFinite(atr14)&&atr14>0?atr14*.25:Math.abs(third.point)*.0025;
+  const third=side[0],buffer=Number.isFinite(atr14)&&atr14>0?atr14*.25:Math.abs(third.point)*.0025;
   return direction==="LONG"?third.ob.bottom-buffer:third.ob.top+buffer;
 }
 
 function ladderSignal(direction:"LONG"|"SHORT",level:LadderLevel,diag:any,timeframe:"1h"|"1d"){
   const targets:LadderLevel[]=direction==="LONG"?diag.ladder.above:diag.ladder.below;if(targets.length<1)return null;
-  const stop=n(diag?.stops?.[direction]);if(!Number.isFinite(stop))return null;
-  return{direction,entry:level.point,stop,tp1:targets[0].point,tp2:targets[1]?.point??targets[0].point,tp3:targets[2]?.point??targets[targets.length-1].point,context:{
+  const stop=timeframe==="1d"?level.ob.bottom-0.25*n(diag?.context?.atr14):n(diag?.stops?.[direction]);if(!Number.isFinite(stop))return null;
+  const entry=timeframe==="1d"?n(diag?.trigger?.c):level.point;
+  if(!(entry>stop))return null;
+  return{direction,entry,stop,tp1:targets[0].point,tp2:targets[1]?.point??targets[0].point,tp3:targets[2]?.point??targets[targets.length-1].point,context:{
     strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",operational_timeframe:timeframe,indicators_role:"context_only",
     proximity_rule:"NEAR_when_distance_to_nearest_entry_line_lte_1_ATR14",
-    trigger_basis:"entry_only_when_intraday_range_crosses_exact_OB_center_line",
-    stop_basis:"beyond_third_analyzer_entry_zone_plus_0_25_ATR",
+    trigger_basis:"confirmed_15m_recovery_above_daily_OB_center",
+    stop_basis:"selected_daily_OB_lower_edge_minus_0_25_ATR_REFERENCE_ONLY",
     entry_rank:level.rank,ob_key:timeframe+":"+direction+":"+String(level.ob.originTime),order_block:level.ob,entry_level:publicLevel(level),targets:targets.map(publicLevel),
     ladder_snapshot:{reference_price:diag.ladder.referencePrice,below:diag.ladder.below.map(publicLevel),above:diag.ladder.above.map(publicLevel)},
     proximity:diag.proximity,context:diag.context,macro_context:diag.macroContext,
     trend_relation:timeframe==="1d"?regulatedRiskProfile(diag).relation:trendRelation(direction,diag.macroContext?.trend||diag.context.trend),
     risk_profile:timeframe==="1d"?regulatedRiskProfile(diag).risk:null,
-    entry_policy:timeframe==="1d"?"D1_MACD_line_above_signal_enables_COMPRA_and_D1_OB_touch_defines_entry":"block_CONTRA_TENDENCIA_allow_A_FAVOR_or_RANGO_each_leg",
+    entry_policy:timeframe==="1d"?"D1_BULLISH_IMPROVING_MACD_W1_NOT_BEARISH_15M_CLOSE_REJECTION_RR18":"block_CONTRA_TENDENCIA_allow_A_FAVOR_or_RANGO_each_leg",
     exit_policy:timeframe==="1d"?"TP1_ONLY_NO_SL":"TP1_OR_SL",stop_policy:timeframe==="1d"?"NONE":"STRUCTURAL"}};
 }
 
@@ -645,7 +650,7 @@ async function activeSetupSignals(market:string,symbol:string){
   if(error)throw error;return data||[];
 }
 async function legacyOperationalSignals(market:string,symbol:string){
-  const {data,error}=await sb.from("mtf_signals").select("*").eq("strategy_version",LEGACY_STRATEGY_VERSION).eq("market",market).eq("symbol",symbol)
+  const {data,error}=await sb.from("mtf_signals").select("*").in("strategy_version",[LEGACY_STRATEGY_VERSION,"CEDEAR-MACD-OB-v1.0"]).eq("market",market).eq("symbol",symbol)
     .in("source",["FORWARD","MIGRATED_STRICT"]).in("status",["OPEN","TP1","TP2"]).order("signal_time");
   if(error)throw error;return data||[];
 }
@@ -847,12 +852,23 @@ async function processRegulatedLive(createEntries=true){
   if(retryItem&&!batch.some((x:any)=>x.market===retryItem.market&&x.sym===retryItem.sym))batch.push({...retryItem,retry_background:true});
   const nextRetryCursor=retryKeys.length?(retryCursor+1)%retryKeys.length:0;
 
+  const confirmedQuarterBars=(live:any)=>{
+    const m=new Map<number,any>();
+    for(const b of (live?.bars||[])){
+      const t=Number(b.t),c=Number(b.c);
+      if(!Number.isFinite(t)||!(c>0))continue;
+      const slot=Math.floor(t/900000)*900000;
+      if(!m.has(slot))m.set(slot,{t:slot,o:Number(b.o),h:Number(b.h),l:Number(b.l),c,count:0,first:t,last:t});
+      const z=m.get(slot);z.h=Math.max(z.h,Number(b.h));z.l=Math.min(z.l,Number(b.l));z.c=c;z.last=t;z.count++;
+    }
+    return [...m.values()].filter(z=>z.count>=12&&z.first<=z.t+120000&&z.last>=z.t+14*60000&&z.t+15*60000<=Date.now())
+      .sort((a,b)=>a.t-b.t).map(({t,o,h,l,c}:any)=>({t,o,h,l,c}));
+  };
   const freshTriggers=(live:any,prev:any)=>{
-    const bars:any[]=(live?.bars||[]).filter((b:any)=>Number.isFinite(+b.t)&&Number.isFinite(+b.h)&&Number.isFinite(+b.l)&&Number.isFinite(+b.c)).sort((a:any,b:any)=>+a.t-+b.t);
-    if(!bars.length)return prev?[]:[{t:live.t,o:live.o,h:live.h,l:live.l,c:live.price}];
-    const lastSeen=n(prev?.t);
-    const fresh=lastSeen>0?bars.filter((b:any)=>+b.t>lastSeen):[bars.at(-1)];
-    return fresh.map((b:any)=>({t:+b.t,o:+b.o,h:+b.h,l:+b.l,c:+b.c}));
+    const bars=confirmedQuarterBars(live);
+    const lastSeen=n(prev?.last_15m_close);
+    if(!(lastSeen>0))return[];
+    return bars.filter((b:any)=>b.t+15*60000>lastSeen);
   };
 
   const scanOne=async(item:any)=>{
@@ -865,8 +881,8 @@ async function processRegulatedLive(createEntries=true){
       // historical touches discovered after the opportunity has expired.
       const observedTriggers=freshTriggers(live,prev),
             triggers=observedTriggers.filter((bar:any)=>{
-              const ageMs=now-Number(bar?.t);
-              return Number.isFinite(ageMs)&&ageMs>=-30000&&ageMs<=5*60000;
+              const ageMs=now-(Number(bar?.t)+15*60000);
+              return Number.isFinite(ageMs)&&ageMs>=-30000&&ageMs<=20*60000;
             }),
             displayTrigger=observedTriggers.at(-1)||{t:live.t,o:live.price,h:live.price,l:live.price,c:live.price},
             diag:any=regulatedLiveDiagnostic(d,live.price,displayTrigger);
@@ -883,17 +899,23 @@ async function processRegulatedLive(createEntries=true){
         // Most minute bars never touch an OB. Avoid a database round-trip for
         // every non-event (up to 60 per asset), but re-read state before a
         // candidate signal to prevent stale or duplicate E2/E3.
-        const touchesNew=(stepDiag.touches?.long||[]).length>0;
+        const eligibleRecovery=(stepDiag.touches?.long||[]).filter((level:any)=>{
+          const range=Math.max(1e-12,trigger.h-trigger.l),lowerWick=(Math.min(trigger.o,trigger.c)-trigger.l)/range;
+          return trigger.c>trigger.o&&trigger.c>level.point&&trigger.l<=level.point&&lowerWick>=0.20
+            &&trigger.c<=level.ob.top+0.25*n(stepDiag.context?.atr14)
+            &&level.ob.confirmTime+24*60*60000<=trigger.t;
+        });
+        const touchesNew=eligibleRecovery.length>0;
         const touchesFrozen=active.length>0&&frozenSignals(active[0],trigger,stepDiag).length>0;
         if(!touchesNew&&!touchesFrozen)continue;
         active=await activeSetupSignals(market,sym);
         const entryAllowed=regulatedRiskProfile(stepDiag).relation==="A_FAVOR";
         let curs:any[]=[];
-        if(entryAllowed&&active.length){
+        if(entryAllowed&&active.length&&STRATEGY_VERSION!=="CEDEAR-MACD-OB-v2.0"){
           curs=frozenSignals(active[0],trigger,stepDiag)
             .filter(cur=>!active.some((x:any)=>Number(x?.context?.entry_rank||0)===Number(cur?.context?.entry_rank||0)));
         }else if(entryAllowed&&structureReady&&createEntries&&prev&&prev.actionable===true){
-          curs=(stepDiag.touches.long||[]).map((level:any)=>{
+          curs=eligibleRecovery.map((level:any)=>{
             const cur:any=ladderSignal("LONG",level,stepDiag,"1d");
             return cur?seedSetupContext(cur,market,sym,"1d",stepDiag):null;
           }).filter(Boolean);
@@ -901,13 +923,13 @@ async function processRegulatedLive(createEntries=true){
 
         for(const cur of curs){
           const inserted:any=await insertSignal({
-            market,symbol:sym,underlying,direction:"LONG",signal_time:iso(trigger.t||live.t||now),
+            market,symbol:sym,underlying,direction:"LONG",signal_time:iso((trigger.t||live.t||now)+15*60000),
             entry:cur.entry,stop:cur.stop,tp1:cur.tp1,tp2:cur.tp2,tp3:cur.tp3,source:"FORWARD",
             context:{...cur.context,live_trigger:true,live_price:trigger.c,live_source:live.source,trigger_bar:trigger,...extra}
           });
           if(inserted){
             active.push(inserted);added++;
-            created.push({market,symbol:sym,rank:cur.context?.entry_rank,setup_id:cur.context?.setup_id,entry:cur.entry,live:trigger.c,trigger_time:iso(trigger.t||now)})
+            created.push({market,symbol:sym,rank:cur.context?.entry_rank,setup_id:cur.context?.setup_id,entry:cur.entry,live:trigger.c,trigger_time:iso((trigger.t||now)+15*60000)})
           }
         }
       }
@@ -917,10 +939,10 @@ async function processRegulatedLive(createEntries=true){
       return{
         ok:true,ready:true,actionable:structureReady&&regulatedRiskProfile(diag).relation==="A_FAVOR"&&!legacy.length,market,symbol:sym,underlying,
         reason:!structureReady?`setup_incomplete_${below.length}x${above.length}`:(regulatedRiskProfile(diag).relation==="A_FAVOR"?null:"daily_macd_not_bullish"),
-        price:live.price,t:live.t,name:live.name||prev?.name||"",bar:displayTrigger,fresh_trigger:triggers.length>0,source:live.source,
+        price:live.price,t:live.t,name:live.name||prev?.name||"",bar:displayTrigger,fresh_trigger:triggers.length>0,source:live.source,last_15m_close:Math.max(n(prev?.last_15m_close)||0,...observedTriggers.map((x:any)=>x.t+15*60000),0),
         state:operational.length?"OPEN":diag.proximity?.state,
         proximity:diag.proximity,
-        entry_timing_rule:"NEW_TOUCH_WITHIN_5M_ONLY",late_trigger_bars_skipped:observedTriggers.length-triggers.length,
+        entry_timing_rule:"CLOSED_15M_OB_RECOVERY_WITHIN_20M",late_trigger_bars_skipped:observedTriggers.length-triggers.length,
         ladder:{reference_price:live.price,below,above,complete:structureReady,exact_analyzer:true},
         context:diag.context,macroContext:diag.macroContext,stops:diag.stops,
         entry_allowed:regulatedRiskProfile(diag).relation==="A_FAVOR",risk_profile:regulatedRiskProfile(diag),stop_policy:"STRUCTURAL_REFERENCE",exit_policy:"TP1_ONLY",
@@ -1075,7 +1097,7 @@ async function processCedears(lastMs:number,activatedAt:number,prepareOnly=false
         const candidates=d.filter(b=>b.t>lastMs&&b.t<=now&&sessionDates.has(underlying.toUpperCase().endsWith(".SA")?dayKey(b.t):usDayKey(b.t)));
         for(const c of candidates){
           const idx=d.findIndex(b=>b.t===c.t),prev=d[idx-1];if(!prev)continue;
-          const curs:any[]=evalCedearAt(d,c.t),diag:any=cedearDiagnosticAt(d,c.t);
+          const curs:any[]=STRATEGY_VERSION==="CEDEAR-MACD-OB-v2.0"?[]:evalCedearAt(d,c.t),diag:any=cedearDiagnosticAt(d,c.t);
           let insertedCount=0,decision="NO_ENTRY",reason=diag?.proximity?.state==="NEAR"?"near_entry_atr":diag?.proximity?.state==="IN_ZONE"?"entry_zone_active":"waiting_distance_atr";
           for(const cur of curs){
             const source=c.t>=activatedAt?"FORWARD":"BASELINE";
