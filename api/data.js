@@ -248,7 +248,7 @@ function cryptoClosedBarDiagnostic(structure){
 async function runtimeSnapshot(market='crypto'){
  if(market==='crypto'){
    const [opens,structureRows,liveRows]=await Promise.all([
-     supaAll('/rest/v1/mtf_signals?strategy_version=eq.MACD-OB-v1.0&source=eq.FORWARD&status=eq.OPEN&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,strategy_version,context&order=signal_time.asc'),
+     supaAll('/rest/v1/mtf_signals?strategy_version=in.(MACD-OB-v2.0,MACD-OB-v1.0)&source=eq.FORWARD&status=eq.OPEN&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,strategy_version,context&order=signal_time.asc'),
      supa('/rest/v1/mtf_state?market=eq.crypto_structure&select=meta,last_run_at&limit=1'),
      supa('/rest/v1/mtf_state?market=eq.crypto_live&select=meta,last_run_at&limit=1')
    ]);
@@ -268,9 +268,10 @@ async function runtimeSnapshot(market='crypto'){
      generatedAt:new Date().toISOString()
    };
  }
- const activeVersion=market==='merval'?'ADR-OB-v1.0':'CEDEAR-MACD-OB-v1.0';
+ const activeVersion=market==='merval'?'ADR-OB-v1.0':'CEDEAR-MACD-OB-v2.0';
+ const activeVersionFilter=market==='merval'?'eq.ADR-OB-v1.0':'in.(CEDEAR-MACD-OB-v2.0,CEDEAR-MACD-OB-v1.0)';
  const [opens,decisions,liveRows]=await Promise.all([
-   supaAll('/rest/v1/mtf_signals?strategy_version=eq.'+encodeURIComponent(activeVersion)+'&source=eq.FORWARD&status=eq.OPEN&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,strategy_version,context&order=signal_time.desc'),
+   supaAll('/rest/v1/mtf_signals?strategy_version='+encodeURIComponent(activeVersionFilter)+'&source=eq.FORWARD&status=eq.OPEN&select=id,market,symbol,underlying,direction,signal_time,created_at,entry,stop,tp1,tp2,tp3,status,hit1,hit2,hit3,hit1_at,hit2_at,hit3_at,best_r,worst_r,source,strategy_version,context&order=signal_time.desc'),
    supa('/rest/v1/rpc/mtf_latest_decisions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({p_market:market})}),
    supa('/rest/v1/mtf_state?market=eq.'+(market==='merval'?'adr_live':'regulated_live')+'&select=meta,last_run_at&limit=1')
  ]);
