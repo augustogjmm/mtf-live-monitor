@@ -55,10 +55,22 @@ certificadas por desempeño.
   insuficiente en los seis activos. No reconstruye el break-even de un minuto,
   no usa un período reservado fuera de muestra y no certifica desempeño.
 
+## Comprobación adicional del backend
+
+El acceso de administración al proyecto existente se comprobó con HTTP 200.
+La creación de un proyecto separado fue rechazada con HTTP 403 y las ramas
+requieren un plan pago. Se validaron restricciones e inserciones sobre el esquema
+real mediante una transacción revertida: tres mercados, protección contra
+duplicados, R/R, setups cerrados, break-even y recuperación de cursores.
+Todas las escrituras de prueba se revirtieron. Ver BACKEND_VALIDATION.md.
+Las cuatro funciones modificadas pasaron compilación en Supabase sin alterar
+sus versiones desplegadas durante esa comprobación.
+
 ## Pendiente para finalizar la certificación
 
 - No existe todavía un proyecto Supabase de pruebas identificado por el usuario.
-  No se ejecutaron migraciones, motores, cron ni pruebas SQL contra producción.
+  Las pruebas SQL sobre el esquema real se realizaron con rollback; no sustituyen
+  una ejecución completa en un backend separado.
   Crear un proyecto de pruebas y suministrar su configuración de forma segura
   para validar la escritura, deduplicación, fallos y recuperación.
 - Falta un backtest de ejecución con costos, latencia, liquidez histórica BYMA,

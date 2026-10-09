@@ -115,3 +115,10 @@ No se programa automáticamente para evitar comprobaciones repetidas fuera
 del alcance solicitado. Un despliegue exitoso y una comprobación funcional
 son evidencias distintas; los correos y preferencias de notificación requieren
 acceso a la cuenta correspondiente.
+
+## Backend
+
+Ver [validación y despliegue del backend](docs/BACKEND_VALIDATION.md) para
+las pruebas transaccionales sobre el esquema real y la compilación/publicación
+de las funciones Edge mediante la API oficial. Los informes y bundles anteriores
+se guardan fuera de Git. Nunca guardar tokens en el repositorio.
