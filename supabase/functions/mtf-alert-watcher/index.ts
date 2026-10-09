@@ -414,7 +414,7 @@ function regulatedRiskFromSnapshot(x:any){
   return{relation:"SIN_CONFLUENCIA",risk:"INTERMEDIO"};
 }
 async function syncPreEntryAlerts(marketGuard:any){
-  const {data:states,error}=await sb.from("mtf_state").select("market,meta,last_run_at").in("market",["crypto_live","crypto_structure","regulated_live","prealert_live"]);
+  const {data:states,error}=await sb.rpc("mtf_prealert_inputs");
   if(error)throw error;
   const sm=new Map<string,any>((states||[]).map((r:any)=>[String(r.market),r]));
   const prev=sm.get("prealert_live")?.meta||{},prevKeys=new Set<string>(Array.isArray(prev.keys)?prev.keys:[]),current:any[]=[];

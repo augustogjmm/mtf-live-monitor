@@ -4,11 +4,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../api/data.js'), 'utf8');
-function fixture(fetch, env={}) {
+function fixture(fetch, env={},clock=Date) {
   const timers = new Map();
   let seq = 0;
   const context = {
-    module:{exports:{}}, AbortController, fetch, URL, process:{env},
+    module:{exports:{}}, AbortController, fetch, URL, Date:clock, process:{env},
     setTimeout(fn, delay) { const id = ++seq; timers.set(id, {fn, delay}); return id; },
     clearTimeout(id) { timers.delete(id); }
   };
@@ -16,13 +16,13 @@ function fixture(fetch, env={}) {
   return {handler:context.module.exports, timers};
 }
 async function request(handler, query) {
-  let status = 200, body;
+  let status = 200, body, headers={};
   await handler({query}, {
-    setHeader() {},
+    setHeader(name,value) {headers[name]=value;},
     status(code) { status = code; return this; },
     json(value) { body = value; }
   });
-  return {status, body};
+  return {status, body, headers};
 }
 function response(value, status=200) {
   return {ok:status>=200&&status<300, status, text:async()=>JSON.stringify(value)};
@@ -78,6 +78,7 @@ function response(value, status=200) {
     init.signal.addEventListener('abort', ()=>reject(Error('Request aborted')), {once:true});
   }));
   const pending = request(timeout.handler, {op:'runtime', market:'crypto'});
+  await Promise.resolve(); // Shared reads start in the next microtask.
   assert.ok(timeout.timers.size > 0);
   for (const timer of timeout.timers.values()) {
     assert.equal(timer.delay, 12000);
@@ -91,5 +92,23 @@ function response(value, status=200) {
   const malformed = fixture(async()=>response({rows:[]}));
   await assert.rejects(malformed.handler.helpers.supaAll('/rest/v1/mtf_signals', 2, 4),
     /paginada inválida/);
+  let clock=Date.now(),reads=0,upstreamDown=false;
+  class TestClock extends Date {static now(){return clock}}
+  const cached=fixture(async()=>{reads++;if(upstreamDown)return response({},503);return response([])}, {},TestClock);
+  await Promise.all([request(cached.handler,{op:'runtime',market:'crypto'}),request(cached.handler,{op:'runtime',market:'crypto'})]);
+  assert.equal(reads,3,'Concurrent readers must share upstream requests');
+  const hit=await request(cached.handler,{op:'runtime',market:'crypto'});
+  assert.equal(reads,3);
+  assert.equal(hit.headers['Vercel-CDN-Cache-Control'],'max-age=30, must-revalidate');
+  clock+=20001;upstreamDown=true;
+  const expired=await request(cached.handler,{op:'runtime',market:'crypto'});
+  assert.equal(expired.status,500,'Expired success must not hide an outage');
+  assert.equal(expired.headers['Vercel-CDN-Cache-Control'],'no-store');
+  upstreamDown=false;
+  assert.equal((await request(cached.handler,{op:'runtime',market:'crypto'})).status,200,'Failures must not be cached');
+  const beforeForce=reads;
+  assert.equal((await request(cached.handler,{op:'runtime',market:'crypto',force:'1'})).headers['Vercel-CDN-Cache-Control'],'no-store');
+  assert.equal(reads,beforeForce+3,'Manual refresh must bypass backend cache');
+  assert.equal((await request(cached.handler,{op:'canary'})).headers['Vercel-CDN-Cache-Control'],'no-store');
   console.log('PASS: API inputs, runtime timestamps, upstream failures, timeouts and complete pagination');
 })().catch(error=>{console.error(error); process.exitCode=1;});

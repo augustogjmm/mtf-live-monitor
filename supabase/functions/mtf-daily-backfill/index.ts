@@ -798,7 +798,8 @@ async function processRegulatedLive(createEntries=true){
   const open=await bymaLiveOpen();
   if(createEntries&&!open)return{strategy_version:STRATEGY_VERSION,skipped:"byma_not_open"};
   const runDate=dateTZ("America/Argentina/Buenos_Aires"),now=Date.now(),created:any[]=[],errors:any[]=[],CHUNK=8;
-  const {data:prevRow}=await sb.from("mtf_state").select("meta").eq("market","regulated_live").maybeSingle();
+  const {data:prevRow,error:stateErr}=await sb.rpc("mtf_regulated_worker_state");
+  if(stateErr)throw stateErr;
   const prevSnapshot:any[]=prevRow?.meta?.snapshot||[],
         prevMap=new Map<string,any>(prevSnapshot.map((x:any)=>[String(x.market)+":"+String(x.symbol),x]));
 
@@ -1002,7 +1003,7 @@ async function processRegulatedLive(createEntries=true){
   });
   const freshCoveragePct=total>0?Math.min(100,freshQuoteAssets/total*100):0;
   const cachedCoveragePct=total>0?Math.min(100,liveSnapshot.length/total*100):0;
-  await sb.from("mtf_state").upsert({
+  const {error:saveErr}=await sb.rpc("mtf_save_regulated_worker_state",{p_state:{
     market:"regulated_live",last_processed_at:iso(now),last_run_at:iso(now),
     meta:{
       strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",
@@ -1015,7 +1016,8 @@ async function processRegulatedLive(createEntries=true){
       fresh_quote_assets_60m:freshQuoteAssets,stale_or_pending_assets:total-freshQuoteAssets
     },
     updated_at:iso(now)
-  },{onConflict:"market"});
+  },p_replaced:(results||[]).map((row:any)=>String(row.market)+":"+String(row.symbol))});
+  if(saveErr)throw saveErr;
 
   return{
     strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",
