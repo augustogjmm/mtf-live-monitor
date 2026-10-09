@@ -12,7 +12,8 @@
     "validate:live": "node --use-env-proxy scripts/validate-live.cjs",
     "test": "node tests/console-data-integrity.cjs && node tests/forward-safety.cjs && node tests/api-reliability.cjs && node tests/strategy-engines.cjs && node tests/execution-replay.cjs && node tests/deployment-validation.cjs",
     "evaluate:execution": "node scripts/evaluate-execution.cjs",
-    "validate:deployment": "node --use-env-proxy scripts/validate-deployment.cjs"
+    "validate:deployment": "node --use-env-proxy scripts/validate-deployment.cjs",
+    "deploy:edge": "node --use-env-proxy scripts/deploy-edge.cjs"
   },
   "devDependencies": {
     "playwright": "1.56.1"
