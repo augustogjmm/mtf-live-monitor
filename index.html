@@ -1625,7 +1625,7 @@ function cAudit(q,x){
 function regulatedRisk(q){
   const d=q?.context||{},m=Number(d.macd),sg=Number(d.signal),ok=Number.isFinite(m)&&Number.isFinite(sg)&&m>sg;
   return ok
-    ?{relation:'A FAVOR',risk:'HABILITADA',cls:'g',confluence:'MACD D1 COMPRA'}
+    ?{relation:'MACD FAVORABLE',risk:'PENDIENTE 15m + RR',cls:'y',confluence:'MACD D1 A FAVOR · NO ES ENTRADA'}
     :{relation:'MACD NO COMPRA',risk:'BLOQUEADA',cls:'y',confluence:'MACD D1 NO COMPRA'};
 }
 function regulatedRelation(q){return regulatedRisk(q).relation}
@@ -1637,7 +1637,7 @@ function zAudit(q,x){
   const d=q.context||{},w=q.macroContext?.w1||{},n=q.proximity?.nearest,r=regulatedRisk(q),isAdr=x?.kind==='MERVAL_ADR'||q?.version===ADR_STRATEGY_VERSION;
   const rule=isAdr
     ?`ADR v1.0 · D+S ALCISTA · vela 15m cerrada recupera OB diario con rechazo · RR ≥ 1,8 · invalidación técnica ${Number.isFinite(+q.technicalInvalidation)?F(q.technicalInvalidation):'—'} (referencia, no stop automático) · TP1 final`
-    :'CEDEAR MACD+OB v1 · MACD diario habilita compra · OB diario define entrada · sin filtro RR · salida completa en TP1';
+    :'CEDEAR MACD+OB v2 · MACD D1 a favor · D1 alcista y 1W no bajista · vela 15m cerrada confirma rechazo del OB diario · RR ≥ 1,8 · TP1 final';
   return `<h4>Lectura Diario / Semanal</h4><div class="detail-grid">${metric('Diario',trendBadge(d.trend||'RANGO'))}${metric('Semanal',trendBadge(w.trend||'RANGO'))}${metric('Confluencia',r.confluence,r.cls)}${metric('Riesgo compra',r.risk,r.cls)}${metric(isAdr?'OB candidato':'Próxima compra',n?`<span class="dir-long">${isAdr?'OB':'COMPRA '+n.rank}</span> · ${F(n.point)}`:'—')}${metric('Distancia',n?entryGapText(q,n):'—')}${isAdr?metric('Confirmación 15m',q.confirmationState||'ESPERANDO',q.confirmationState==='CONFIRMED'?'g':'y'):''}${isAdr?metric('RR planificado',Number.isFinite(+q.plannedRR)?(+q.plannedRR).toFixed(2)+'R':'—'):''}</div><div class="audit-section small">Diario · ATR14 ${F(d.atr14)} · EMA10 ${F(d.ema10)} · EMA55 ${F(d.ema55)} · EMA200 ${F(d.ema200)}<br>MACD ${F(d.macd)} · Señal ${F(d.signal)} · Volumen ${Number.isFinite(+d.volumeRatio)?(+d.volumeRatio).toFixed(2)+'x':'—'}<br>${rule}</div>`
 }
 function frozenSetupChartLevels(ops,showStop=true){
