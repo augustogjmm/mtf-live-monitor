@@ -88,3 +88,18 @@ Reutiliza funciones reales de los motores en una ejecución con efectos externos
 bloqueados. Guarda los datos descargados en una caché junto al informe.
 Es una muestra de seis activos y 30 días; no simula una cartera ni demuestra
 rentabilidad. Ver las limitaciones del informe antes de interpretar resultados.
+
+`npm run evaluate:execution -- artifacts/history-audit.json artifacts/execution-report.json`
+reproduce las confirmaciones de ese informe sobre su caché de velas. Modela
+entrada en una apertura posterior a la confirmación y a 60 segundos de demora,
+costos de 10 puntos básicos por ejecución y deslizamiento adverso de 5 puntos
+básicos. Descarta entradas demoradas más de 30 minutos y señales durante una
+posición abierta. Resuelve velas ambiguas con el resultado adverso. Los costos
+son supuestos de investigación y deben contrastarse con el mercado real.
+
+El modelo es aproximado: no reconstruye el break-even de un minuto en cripto
+ni la liquidez y conversión ARS de CEDEAR. ADR y CEDEAR mantienen posiciones
+abiertas hasta TP1; sus marcas pendientes no se cuentan como ganancias
+realizadas. No reemplaza el backtest completo de la estrategia. Cuando no hay
+operaciones cerradas, las métricas quedan nulas y el estado es
+`INSUFFICIENT_TRADES`.

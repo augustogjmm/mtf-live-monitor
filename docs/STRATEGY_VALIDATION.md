@@ -48,6 +48,12 @@ certificadas por desempeño.
 - La cohorte estadística activa consultada estaba vacía; las posiciones
   existentes estaban etiquetadas como legadas. No mezclar esa cohorte con
   rendimiento anterior.
+- Se agregó una simulación aproximada de ejecución con demora, costos,
+  deslizamiento, gaps y resolución adversa de velas ambiguas. La prueba cubre
+  además operaciones abiertas, bloqueo de posiciones simultáneas y entradas
+  SHORT. Ejecutada sobre la misma muestra histórica, informó evidencia
+  insuficiente en los seis activos. No reconstruye el break-even de un minuto,
+  no usa un período reservado fuera de muestra y no certifica desempeño.
 
 ## Pendiente para finalizar la certificación
 

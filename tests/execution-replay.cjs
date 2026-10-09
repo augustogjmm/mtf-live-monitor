@@ -1,0 +1,34 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {replay}=require('../scripts/lib/execution-replay.cjs');
+const candle=(t,o,h,l,c)=>({t,closeTime:t+899999,o,h,l,c});
+const signal={time:899999,entry:100,stop:90,tp1:120,direction:'LONG'};
+const bars=[candle(0,100,125,85,105),candle(900000,100,101,99,100),
+  candle(1800000,100,121,89,110),candle(2700000,85,95,80,90)];
+const base={feeBps:0,slippageBps:0};
+let r=replay([signal],bars,base);
+assert.equal(r.trades[0].entryTime,1800000,'Never execute in confirmation bar or before latency');
+assert.equal(r.trades[0].ambiguous,true);
+assert.equal(r.trades[0].netR,-1,'Ambiguous candle must not be labeled a winner');
+r=replay([signal],bars,{...base,feeBps:10,slippageBps:5});
+assert.ok(r.trades[0].netR< -1,'Fees and adverse fills reduce result');
+r=replay([signal],bars,{...base,stopEnabled:false});
+assert.equal(r.trades[0].reason,'TARGET');
+r=replay([signal,{...signal,time:1800001}],bars,{...base,stopEnabled:false});
+assert.equal(r.skipped[0].reason,'position_already_open');
+r=replay([signal],[bars[0],bars[1],candle(1800000,100,110,99,105)],base);
+assert.equal(r.metrics.open,1);
+assert.equal(r.metrics.expectancyNetR,null,'Open marks cannot be reported as closed profit');
+r=replay([signal],[bars[0],candle(3600000,100,121,99,120)],base);
+assert.equal(r.skipped[0].reason,'no_timely_entry_bar');
+r=replay([signal],[bars[0],bars[1],candle(1800000,100,110,99,105),bars[3]],base);
+assert.equal(r.trades[0].reason,'STOP_GAP');
+assert.equal(r.trades[0].exit,85);
+r=replay([{...signal,direction:'SHORT',stop:110,tp1:80}],
+  [bars[0],bars[1],candle(1800000,100,105,79,85)],base);
+assert.equal(r.trades[0].netR,2);
+assert.equal(replay([],bars).metrics.winRate,null);
+assert.throws(()=>replay([signal],bars,{feeBps:-1}),/Invalid/);
+assert.throws(()=>replay([{...signal,stop:null}],bars),/Invalid signal/);
+assert.throws(()=>replay([], [bars[0],bars[0]]),/overlapping/);
+console.log('PASS: execution latency, adverse ambiguity, gaps, costs, overlap, short trades and insufficient evidence');
