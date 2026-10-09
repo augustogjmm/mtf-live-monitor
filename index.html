@@ -11,6 +11,7 @@
 .market-guard{display:block;margin-top:4px;font-size:10px;font-weight:700;letter-spacing:.03em}.guard-live{color:#3ad389}.guard-ok{color:#baa7ff}.guard-warn{color:#f6c552}.guard-bad{color:#ff687c}.market-banner{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:6px}.market-banner .badge{margin:0}.guard-box{border:1px solid #292d30;background:#080808;border-radius:8px;padding:8px 10px;margin-top:8px}.guard-box b{display:block;margin-bottom:2px}
 
 .cond-mini{display:inline-block;font-size:10px;line-height:1.4;padding:2px 5px;margin:1px 2px 1px 0;border:1px solid #30353b;border-radius:5px;white-space:nowrap}.cond-mini.ok{color:#36d49b;border-color:#16543f}.cond-mini.no{color:#ff687c;border-color:#5c2730}
+.cc-radar-controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid #173149}.cc-radar-controls input,.cc-radar-controls select,.cc-radar-controls button{background:#061725;color:#dcebf5;border:1px solid #23455e;border-radius:4px;padding:6px;font-size:11px;min-width:0}.cc-radar-controls input{flex:1;min-width:120px}.cc-radar-controls span{color:#8ea5b6;font-size:10px}.cc-radar-controls button:disabled,.cc-radar-controls select:disabled{opacity:.45}.reference-radar{display:flex;flex-direction:column}.reference-radar .cc-head,.reference-radar .cc-radar-controls{flex-shrink:0}.reference-radar .cc-table-wrap{flex:1;min-height:0;max-height:360px;overflow:auto}
 </style>
 <style id="resend-theme">
 :root{
@@ -1018,7 +1019,7 @@ html,body{height:100%;background:#030b14!important}
     <button class="cc-jump view-nav" data-jump="ccRadar">Radar</button>
     <button class="cc-jump view-nav" data-jump="ccActiveOps">Operaciones</button>
     <button id="ts" class="view-nav">Estadísticas</button>
-    <button class="cc-jump view-nav" data-jump="ccCalendar">Calendario</button>
+    <button class="cc-jump view-nav" data-jump="ccHealth">Estado</button>
   </nav>
   <div class="command-right">
     <div class="live-clock"><span class="live-dot"></span><b>EN VIVO</b><time id="hdrTime">--:--:--</time><small id="hdrDate">--/--/----</small></div>
@@ -1129,6 +1130,12 @@ html,body{height:100%;background:#030b14!important}
           <button data-ccradarfilter="WAIT">En espera <span id="ccRadarWait">(0)</span></button>
         </div>
       </div>
+      <div class="cc-radar-controls">
+        <input id="ccRadarSearch" type="search" placeholder="Buscar activo o empresa" aria-label="Buscar activo o empresa">
+        <select id="ccRadarUniverse" aria-label="Mercado del radar"><option value="ALL">Todos los regulados</option><option value="CEDEAR">CEDEAR</option><option value="MERVAL">ADR</option></select>
+        <span id="ccRadarPage" aria-live="polite">0 activos</span>
+        <button id="ccRadarPrev" type="button" aria-label="Página anterior">‹</button><button id="ccRadarNext" type="button" aria-label="Página siguiente">›</button>
+      </div>
       <div class="cc-table-wrap">
         <table class="cc-table radar-table"><colgroup><col style="width:13%"><col style="width:11%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:13%"><col style="width:12%"></colgroup>
           <thead><tr><th>ACTIVO</th><th>PRECIO</th><th colspan="3">TENDENCIA</th><th>OB1</th><th>OB2</th><th>OB3</th><th>ESTADO</th><th>ACCIÓN</th></tr>
@@ -1157,7 +1164,7 @@ html,body{height:100%;background:#030b14!important}
       <div class="cc-detail-body" id="ccDetailBody"><div class="cc-info-note">Seleccioná un activo del radar u oportunidades.</div></div>
     </aside>
 
-    <article class="cc-panel hidden-footer" id="ccCalendar"><div class="cc-head"><h2>CALENDARIO</h2></div><div class="cc-calendar-body">SIN DATOS</div></article>
+
     <div class="hidden-footer"><div id="ccHealthRow"></div><span id="ccHealthTs"></span></div>
   </div>
 </section>
@@ -1218,8 +1225,6 @@ function loadLocalSignals(){return []}
 let tab='c',C=[],Z=[],CM=new Map,ZM=new Map,selC='',selZ='',cFilter='all',zFilter='all',statsQuick='ALL',sig=[];
 let serverSig=[],statsData=[],statsState=[],runtimeOpen=[],runtimeDecisions=[],runtimeStructure=[],runtimeLive=[],runtimeFunnel=null,runtimeClosedDiagnostic=null,runtimeHourlyConfirmation=null,zRuntimeOpen=[],zRuntimeDecisions=[],ZMARKET=null,ZLIQUIDITY=null;const ZCACHE='mtf_usd_market_snapshot_v330_regulated_dw',STRATEGY_VERSION='MACD-OB-v2.0',CEDEAR_STRATEGY_VERSION='CEDEAR-MACD-OB-v2.0',ADR_STRATEGY_VERSION='ADR-OB-v1.0',STATS_UI_BUILD='2.0.0-clean-20261008';
 try{localStorage.removeItem('mtf_usd_market_snapshot_v118');}catch{}
-const STATUS_SB_URL='https://swhfftkhqmbtmbnoskoj.supabase.co';
-const STATUS_SB_KEY='sb_publishable_EbjOQ0SprPfdKLTQ6zER0w_DGsf128M';
 function save(){}
 function statusText(s,dir='',market=''){if(s==='LONG')return 'ENTRADA LONG';if(s==='SHORT')return 'ENTRADA SHORT';if(s==='NEAR')return market==='CRYPTO'?`CERCA ${dir} · NO ENTRADA`:'CERCA · NO ENTRADA';if(s==='BEAR')return 'BAJISTA / EVITAR';return 'ESPERA'}
 function statusTone(s){return s==='LONG'?'long':s==='SHORT'?'short':s==='NEAR'?'near':s==='BEAR'?'bear':'wait'}
@@ -1231,7 +1236,7 @@ function marketGuardClass(){const c=ZMARKET?.combined?.code;return c==='LIVE'?'g
 function marketGuardText(){return ZMARKET?.combined?.text||'Estado de mercados no disponible'}
 function marketGuardHtml(){if(!ZMARKET)return'';const c=ZMARKET.combined?.code||'',short=c==='LIVE'?'MERCADOS ABIERTOS':c==='COMPLETE'?'RUEDA COMPLETA':c==='USA_CLOSED'?'USA CERRADO':c==='BYMA_CLOSED'?'BYMA CERRADO':c==='WEEKEND'?'SIN RUEDA':c==='PREOPEN'?'PREAPERTURA':c==='STALE'?'DATOS DEMORADOS':'MERCADOS CERRADOS';return `<span class="market-guard ${marketGuardClass()}">${short}</span>`}
 function renderMarketBanner(){const el=$('zmarket');if(!el)return;if(!ZMARKET){el.innerHTML='<span class="badge y">Mercados: sin estado</span>';return}const b=ZMARKET.byma||{},u=ZMARKET.usa||{},cls=ZMARKET.combined?.code==='LIVE'?'g':ZMARKET.combined?.code==='COMPLETE'?'b':'y';el.innerHTML=`<span class="badge ${cls}">${marketGuardText()}</span><span class="badge">${b.text||'BYMA —'}</span><span class="badge">${u.text||'USA —'}</span>`}
-function marketGuardBox(){if(!ZMARKET)return'';const b=ZMARKET.byma||{},u=ZMARKET.usa||{};return `<div class="guard-box"><b class="${marketGuardClass()}">${marketGuardText()}</b><div class="small">${b.text||'BYMA —'}${b.lastBarAt?' · última '+new Date(b.lastBarAt).toLocaleString('es-AR'):''}</div><div class="small">${u.text||'USA —'}${u.lastBarAt?' · última '+new Date(u.lastBarAt).toLocaleString('es-AR'):''}</div></div>`}
+function marketGuardBox(){if(!ZMARKET)return'';const b=ZMARKET.byma||{},u=ZMARKET.usa||{};return `<div class="guard-box"><b class="${marketGuardClass()}">${marketGuardText()}</b><div class="small">${b.text||'BYMA —'}${b.lastBarAt?' · última '+new Date(b.lastBarAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}):''}</div><div class="small">${u.text||'USA —'}${u.lastBarAt?' · última '+new Date(u.lastBarAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}):''}</div></div>`}
 function resultText(s){return({OPEN:'ABIERTA',TP1:'TP1 ALCANZADO · CERRADA',TP2:'REFERENCIA TP2',TP3:'REFERENCIA TP3',SL:'STOP · CERRADA',AMBIGUOUS:'AMBIGUA · EXCLUIDA'})[s]||s}
 function statVersion(x){return typeof x==='object'?String(x?.version||''):''}
 function statStatus(x){return typeof x==='object'?String(x?.status||''):String(x||'')}
@@ -1378,7 +1383,7 @@ function zOperationalLabel(q,x){
   return '<span class="signal-pill signal-wait">ESPERAR'+(n&&Number.isFinite(+n.distanceAtr)?' · '+Number(n.distanceAtr).toFixed(2)+' ATR':'')+'</span>';
 }
 function show(t){tab=t;for(const x of ['c','z','s','h']){const v=$('v'+x),b=$('t'+x);if(v)v.classList.toggle('hide',x!==t);if(b)b.classList.toggle('on',x===t)}if(t==='c')loadC();if(t==='z')loadZ();if(t==='s')stats();if(t==='h')loadHealth()}
-$('tc').onclick=()=>show('c');$('tz').onclick=()=>show('z');$('ts').onclick=()=>show('s');$('th').onclick=()=>show('h');document.querySelectorAll('[data-cfilter]').forEach(c=>c.onclick=()=>setCFilter(c.dataset.cfilter));document.querySelectorAll('[data-zfilter]').forEach(c=>c.onclick=()=>setZFilter(c.dataset.zfilter));document.querySelectorAll('[data-sfilter]').forEach(c=>c.onclick=()=>setStatsQuick(c.dataset.sfilter));
+for(const [id,view] of [['tc','c'],['tz','z'],['ts','s'],['th','h']]){const button=$(id);if(button)button.onclick=()=>show(view)};document.querySelectorAll('[data-cfilter]').forEach(c=>c.onclick=()=>setCFilter(c.dataset.cfilter));document.querySelectorAll('[data-zfilter]').forEach(c=>c.onclick=()=>setZFilter(c.dataset.zfilter));document.querySelectorAll('[data-sfilter]').forEach(c=>c.onclick=()=>setStatsQuick(c.dataset.sfilter));
 function closeDetail(m){if(m==='c'){selC='';$('cgrid')?.classList.remove('has-detail');$('cchartPanel')?.classList.add('hide');document.querySelectorAll('#cr tr.selected').forEach(r=>r.classList.remove('selected'));$('cdet').className='empty';$('cdet').textContent='Seleccioná un activo para ver el razonamiento completo.'}else{selZ='';$('zgrid')?.classList.remove('has-detail');$('zchartPanel')?.classList.add('hide');document.querySelectorAll('#zr tr.selected').forEach(r=>r.classList.remove('selected'));$('zdet').className='empty';$('zdet').textContent='Seleccioná un activo para ver el razonamiento completo.'}}
 $('cclose').onclick=()=>closeDetail('c');$('zclose').onclick=()=>closeDetail('z');
 $('reload').onclick=()=>{if(tab==='c'){closeDetail('c');loadC(true)}else if(tab==='z'){closeDetail('z');loadZ(true)}else if(tab==='s')stats();else loadHealth(true)};
@@ -1390,22 +1395,8 @@ async function refreshMarketStatus(){
    if(x?.combined){ZMARKET=x;renderMarketBanner();if(Z.length)renderZ();return x}
    primaryErr='respuesta sin combined';
  }catch(e){primaryErr=String(e?.message||e)}
- try{
-   const u=STATUS_SB_URL+'/rest/v1/mtf_state?market=eq.market_guard&select=meta,last_run_at&order=last_run_at.desc&limit=1';
-   const r=await fetch(u,{cache:'no-store',headers:{apikey:STATUS_SB_KEY,accept:'application/json'}});
-   if(!r.ok)throw Error('Supabase '+r.status+' '+await r.text());
-   const rows=await r.json(),row=rows?.[0];
-   if(row?.meta){
-     const age=row.last_run_at?Date.now()-new Date(row.last_run_at).getTime():Infinity;
-     ZMARKET={...row.meta,_source:'supabase-direct',_ageMs:age};
-     if(age>180000){ZMARKET={...ZMARKET,combined:{...(ZMARKET.combined||{}),code:'STALE',text:'Estado de mercados desactualizado · última lectura '+new Date(row.last_run_at).toLocaleTimeString('es-AR'),actionable:false}}}
-     renderMarketBanner();if(Z.length)renderZ();return ZMARKET;
-   }
-   throw Error('market_guard vacío');
- }catch(e){
-   ZMARKET={generatedAt:new Date().toISOString(),byma:{code:'ERROR',text:'BYMA sin estado'},usa:{code:'ERROR',text:'USA sin estado'},combined:{code:'STALE',text:'No se pudo leer el estado de mercados',actionable:false,validDaily:false},_errors:[primaryErr,String(e?.message||e)]};
-   renderMarketBanner();if(Z.length)renderZ();return ZMARKET;
- }
+ ZMARKET={generatedAt:new Date().toISOString(),byma:{code:'ERROR',text:'BYMA sin estado'},usa:{code:'ERROR',text:'USA sin estado'},combined:{code:'STALE',text:'No se pudo leer el estado de mercados',actionable:false,validDaily:false},_errors:[primaryErr]};
+ renderMarketBanner();if(Z.length)renderZ();return ZMARKET;
 }
 
 const st=new Set(['USDT','USDC','DAI','FDUSD','TUSD','USDE','USDS','PYUSD','FRAX','USD1','USDD']),fb='BTC ETH BNB XRP SOL DOGE ADA TRX AVAX LINK SUI XLM BCH HBAR LTC DOT UNI AAVE NEAR APT'.split(' ');
@@ -1609,7 +1600,7 @@ function drawPrice(canvas,bars,tf,opt={}){
   if(Number.isFinite(current)){const yy=Y(current);c.save();c.setLineDash([5,5]);c.strokeStyle='rgba(255,255,255,.62)';c.lineWidth=1;c.beginPath();c.moveTo(pad.l,yy);c.lineTo(w-pad.r,yy);c.stroke();c.restore();const tx=w-pad.r+5,ty=Math.max(pad.t,Math.min(h-pad.b-22,yy-11));c.fillStyle='#8052ff';c.fillRect(tx,ty,102,22);c.fillStyle='#fff';c.font='600 11px Inter,system-ui';c.fillText(F(current),tx+8,ty+15);c.font='10px Inter,system-ui'}
   canvas._chart={bars,tf,X,Y,pad,w,h,redraw:(hover)=>drawPrice(canvas,bars,tf,{...opt,hover})};
   if(Number.isInteger(opt.hover)){const i=opt.hover,xx=X(i);c.strokeStyle='#6e727a';c.setLineDash([3,3]);c.beginPath();c.moveTo(xx,pad.t);c.lineTo(xx,h-pad.b);c.stroke();c.setLineDash([])}
-  if(!canvas._bound){canvas._bound=true;canvas.addEventListener('mousemove',e=>{const q=canvas._chart;if(!q)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,i=Math.max(0,Math.min(q.bars.length-1,Math.floor((x-q.pad.l)/(q.w-q.pad.l-q.pad.r)*q.bars.length))),b=q.bars[i],hov=canvas.id[0]==='c'?$('chover'):$('zhover');if(hov){hov.style.display='block';hov.textContent=`${new Date(b.t).toLocaleString('es-AR')} · O ${F(b.o)} · H ${F(b.h)} · L ${F(b.l)} · C ${F(b.c)}`}q.redraw(i)});canvas.addEventListener('mouseleave',()=>{const q=canvas._chart,hov=canvas.id[0]==='c'?$('chover'):$('zhover');if(hov)hov.style.display='none';if(q)q.redraw(null)})}
+  if(!canvas._bound){canvas._bound=true;canvas.addEventListener('mousemove',e=>{const q=canvas._chart;if(!q)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,i=Math.max(0,Math.min(q.bars.length-1,Math.floor((x-q.pad.l)/(q.w-q.pad.l-q.pad.r)*q.bars.length))),b=q.bars[i],hov=canvas.id[0]==='c'?$('chover'):$('zhover');if(hov){hov.style.display='block';hov.textContent=`${new Date(b.t).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})} · O ${F(b.o)} · H ${F(b.h)} · L ${F(b.l)} · C ${F(b.c)}`}q.redraw(i)});canvas.addEventListener('mouseleave',()=>{const q=canvas._chart,hov=canvas.id[0]==='c'?$('chover'):$('zhover');if(hov)hov.style.display='none';if(q)q.redraw(null)})}
 }
 function drawVolume(canvas,bars){
   const {c,w,h}=pc(canvas),p={l:8,r:38,t:8,b:18},pw=w-p.l-p.r,ph=h-p.t-p.b,vals=bars.map(x=>+x.v||0),mxv=Math.max(1,...vals),bw=Math.max(1,Math.min(7,pw/Math.max(1,bars.length)*.65));
@@ -1714,20 +1705,10 @@ function nextCryptoFullRefresh(now=Date.now()){
 }
 function cryptoTime(t){return t?new Date(t).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'—'}
 function updateCryptoAutoText(){const el=$('cauto');if(!el)return;const next=nextCryptoFullRefresh();el.textContent=`· 1H · ATR14 · ${cryptoLastFullRefresh?'última '+cryptoTime(cryptoLastFullRefresh)+' · ':''}próxima ~${cryptoTime(next)}`}
-async function cryptoRuntimeDirect(){
-  const u=STATUS_SB_URL+'/rest/v1/mtf_state?market=in.(crypto_structure,crypto_live)&select=market,meta,last_run_at',r=await fetch(u,{cache:'no-store',headers:{apikey:STATUS_SB_KEY,accept:'application/json'}});
-  if(!r.ok)throw Error('Supabase runtime '+r.status);
-  const rows=await r.json(),s=rows.find(x=>x.market==='crypto_structure'),l=rows.find(x=>x.market==='crypto_live');
-  if(!s?.meta?.snapshot)throw Error('crypto_structure directo vacío');
-  return{structureStates:Array.isArray(s.meta.snapshot)?s.meta.snapshot:[],structureGeneratedAt:s.meta.generated_at||s.last_run_at||null,liveStates:Array.isArray(l?.meta?.snapshot)?l.meta.snapshot:[],liveGeneratedAt:l?.meta?.generated_at||l?.last_run_at||null,funnel:l?.meta?.funnel||null,hourlyConfirmation:l?.meta?.hourlyConfirmation||null,_source:'supabase-direct'}
-}
 async function refreshCryptoRuntime(){
   if(cryptoRuntimeRefreshing)return;cryptoRuntimeRefreshing=true;
   try{
-    const [apiTry,directTry]=await Promise.allSettled([J('/api/data?op=runtime&market=crypto&_='+Date.now(),12000),cryptoRuntimeDirect()]);
-    if(apiTry.status==='rejected'&&directTry.status==='rejected')throw Error('API '+apiTry.reason+' · directo '+directTry.reason);
-    const api=apiTry.status==='fulfilled'?(apiTry.value||{}):{},direct=directTry.status==='fulfilled'?directTry.value:null,
-          rt=direct?{...api,...direct,opens:Array.isArray(api?.opens)?api.opens:runtimeOpen}:api;
+    const rt=await J('/api/data?op=runtime&market=crypto&_='+Date.now(),15000);
     runtimeOpen=Array.isArray(rt?.opens)?rt.opens:runtimeOpen;runtimeStructure=Array.isArray(rt?.structureStates)?rt.structureStates:[];runtimeLive=Array.isArray(rt?.liveStates)?rt.liveStates:[];runtimeFunnel=rt?.funnel||null;runtimeClosedDiagnostic=rt?.lastClosedDiagnostic||null;runtimeHourlyConfirmation=rt?.hourlyConfirmation||null;
     const bySym=new Map(runtimeStructure.map(x=>[x.symbol,x])),liveMap=new Map(runtimeLive.map(x=>[x.symbol,x]));
     C=runtimeStructure.map(x=>({s:x.symbol,p:x.pair||x.symbol+'USDT',name:assetName('CRYPTO',x.symbol),reason:x.reason||''}));
@@ -1743,7 +1724,7 @@ async function loadC(force=false){
   try{await refreshCryptoRuntime();$('cbar').style.width='100%';$('cstat').textContent='Activo · Analyzer canónico 1H · scanner live 1m · contexto 1H/4H/D';$('cdot').className='dot live'}
   catch(e){$('cstat').textContent='Error: '+e.message;$('cdot').className='dot'}finally{cryptoLoading=false}
 }
-async function pollCryptoBackendCycle(){try{const u=STATUS_SB_URL+'/rest/v1/mtf_state?market=eq.crypto_live&select=last_run_at&limit=1',r=await fetch(u,{cache:'no-store',headers:{apikey:STATUS_SB_KEY,accept:'application/json'}});if(!r.ok)return;const rows=await r.json(),t=rows?.[0]?.last_run_at?new Date(rows[0].last_run_at).getTime():0;if(!t)return;if(!cryptoLastBackendRun){cryptoLastBackendRun=t;return}if(t>cryptoLastBackendRun){cryptoLastBackendRun=t;if(tab==='c')await loadC(true);else{C=[];CM.clear()}}}catch{}}
+async function pollCryptoBackendCycle(){try{const rt=await J('/api/data?op=runtime&market=crypto&_='+Date.now(),15000),t=rt?.liveGeneratedAt?new Date(rt.liveGeneratedAt).getTime():0;if(!t)return;if(!cryptoLastBackendRun){cryptoLastBackendRun=t;return}if(t>cryptoLastBackendRun){cryptoLastBackendRun=t;if(tab==='c')await loadC(true);else{C=[];CM.clear()}}}catch{}}
 function detailC(sym){
   selC=sym;$('cgrid')?.classList.add('has-detail');let q=CM.get(sym),asset=C.find(x=>x.s===sym);
   const ops=runtimeOpensFor('crypto',sym).sort((a,b)=>(+a.context?.entry_rank||0)-(+b.context?.entry_rank||0)),frozen=canonicalLadderSnapshot(ops[0]?.context?.ladder_snapshot||null);
@@ -1881,7 +1862,7 @@ function zTypeLabel(x){if(x?.kind==='MERVAL_ADR')return'ADR argentino';return'CE
 function zTypePill(x){const c=x?.kind==='MERVAL_ADR'?'adr':'cedear';return `<span class="type-pill type-${c}">${zTypeLabel(x)}</span>`}
 function saveZCache(){try{const rows=Z.map(x=>({symbol:x.symbol,name:x.name,underlying:x.u||x.underlying,series:x.series,kind:x.kind,method:x.method,sourcePanel:x.sourcePanel,rank:x.rank,adtv20:x.adtv20,persistence:x.persistence,spreadPct:x.spreadPct,liquidity:x.liquidity,currentVolumeAmount:x.currentVolumeAmount,src:x.src,q:ZM.get(x.symbol)||null,hist:x.hist||null}));localStorage.setItem(ZCACHE,JSON.stringify({at:Date.now(),rows}))}catch{}}
 function readAnyZCache(){try{const c=JSON.parse(localStorage.getItem(ZCACHE)||'null');return c&&Array.isArray(c.rows)&&c.rows.length?c:null}catch{return null}}
-function loadZCache(){try{const c=readAnyZCache();if(!c)return false;Z=c.rows.map(r=>({...r,u:r.underlying,cached:true}));ZM.clear();for(const r of Z){if(r.q)ZM.set(r.symbol,r.q)}renderZ();$('zstat').textContent='Servidor/fuente temporalmente no disponible · mostrando snapshot visual guardado · '+new Date(c.at).toLocaleString('es-AR');$('zdot').className='dot';return true}catch{return false}}
+function loadZCache(){try{const c=readAnyZCache();if(!c)return false;Z=c.rows.map(r=>({...r,u:r.underlying,cached:true}));ZM.clear();for(const r of Z){if(r.q)ZM.set(r.symbol,r.q)}renderZ();$('zstat').textContent='Servidor/fuente temporalmente no disponible · mostrando snapshot visual guardado · '+new Date(c.at).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'});$('zdot').className='dot';return true}catch{return false}}
 let zLoading=false,zRuntimeRefreshing=false,zLastFullRefresh=0,zLastCedearBackendRun=0,zLastMervalBackendRun=0,zCompletedCedearDate='',zCompletedMervalDate='';
 function zClock(t){return t?new Date(t).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'—'}
 function latestZCloseDate(){let latest=0;for(const q of ZM.values())if(Number.isFinite(+q?.time))latest=Math.max(latest,+q.time);return latest?new Date(latest).toLocaleDateString('es-AR'):'—'}
@@ -2059,11 +2040,11 @@ function statRowOpen(x){
   const st=statSituation(x),leg=(x.legCount||1)+' entrada'+((x.legCount||1)>1?'s':''),ctx=x.trendRelation?x.trendRelation.replaceAll('_',' '):'—',
         mv=Number.isFinite(+x.movePct)?+x.movePct:NaN,mvHtml=Number.isFinite(mv)?`<b class="${mv>=0?'g':'r'}">${mv>=0?'+':''}${mv.toFixed(2)}%</b>`:'—',
         stopCell=x.m==='CRYPTO'?statLevel(x,'stop'):'—';
-  return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span></td><td>${new Date(x.time).toLocaleString('es-AR')}</td><td>${F(x.entry)}</td><td>${Number.isFinite(+x.currentPrice)?F(x.currentPrice):'—'}</td><td>${mvHtml}</td><td>${stopCell}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
+  return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span></td><td>${new Date(x.time).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})}</td><td>${F(x.entry)}</td><td>${Number.isFinite(+x.currentPrice)?F(x.currentPrice):'—'}</td><td>${mvHtml}</td><td>${stopCell}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
 }
 function statRowClosed(x){
-  const st=statSituation(x),closed=x.closedAt?new Date(x.closedAt).toLocaleString('es-AR'):'—',leg=(x.legCount||1)+' entrada'+((x.legCount||1)>1?'s':''),ctx=x.trendRelation?x.trendRelation.replaceAll('_',' '):'—',stopCell=x.m==='CRYPTO'?statLevel(x,'stop'):'—';
-  return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span><div class="small">${st.read}</div></td><td>${new Date(x.time).toLocaleString('es-AR')}</td><td>${closed}</td><td>${F(x.entry)}</td><td>${stopCell}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
+  const st=statSituation(x),closed=x.closedAt?new Date(x.closedAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}):'—',leg=(x.legCount||1)+' entrada'+((x.legCount||1)>1?'s':''),ctx=x.trendRelation?x.trendRelation.replaceAll('_',' '):'—',stopCell=x.m==='CRYPTO'?statLevel(x,'stop'):'—';
+  return `<tr><td>${marketLabel(x.m)}</td><td>${assetCell(x.m,x.sym,x.name,x.underlying)}</td><td><b>${leg}</b></td><td><span class="state-pill ${st.cls}">${st.label}</span><div class="small">${st.read}</div></td><td>${new Date(x.time).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})}</td><td>${closed}</td><td>${F(x.entry)}</td><td>${stopCell}</td><td>${statLevel(x,'tp1')}</td><td>${statLevel(x,'tp2')}</td><td>${statLevel(x,'tp3')}</td><td>${ctx}</td><td>${Number.isFinite(+x.bestR)?(+x.bestR).toFixed(2)+'R':'—'} / ${Number.isFinite(+x.worstR)?(+x.worstR).toFixed(2)+'R':'—'}</td></tr>`
 }
 function resultR(x){const R=Math.abs((+x.entry)-(+x.stop));if(!(R>0))return NaN;if(statWin(x)){const target=x.version==='OB-LADDER-v3.5'?+x.tp3:+x.tp1;return x.dir==='SHORT'?((+x.entry)-target)/R:(target-(+x.entry))/R}if(x?.status==='SL')return-1;return NaN}
 function avgNum(a){const v=a.map(Number).filter(Number.isFinite);return v.length?v.reduce((s,x)=>s+x,0)/v.length:NaN}
@@ -2104,7 +2085,7 @@ async function stats(){
     data=serverSig.map(x=>({version:x.strategy_version,m:x.market==='crypto'?'CRYPTO':x.market==='merval'?'MERVAL':'CEDEAR',sym:x.symbol,name:x.name||'',underlying:x.underlying||'',dir:x.direction,time:new Date(x.signal_time).getTime(),closedAt:x.closed_at||null,entry:+x.entry,stop:+x.stop,tp1:+x.tp1,tp2:+x.tp2,tp3:+x.tp3,status:x.status,hit1:!!x.hit1,hit2:!!x.hit2,hit3:!!x.hit3,hit1At:x.hit1_at||null,hit2At:x.hit2_at||null,hit3At:x.hit3_at||null,bestR:+x.best_r,worstR:+x.worst_r,entryRank:+x.context?.entry_rank||null,legCount:+x.leg_count||((x.legs||[]).length||1),trendRelation:x.context?.trend_relation||'',currentPrice:x.current_price==null?null:+x.current_price,movePct:x.move_pct==null?null:+x.move_pct,context:x.context||{}}));
     const sum=payload?.summary||{},rec=payload?.reconciliation||{};
     const ast=$('salertstate');if(ast)ast.textContent=`· ${rec.valid_setups??sum.total??data.length} operaciones válidas · ${rec.valid_entries??'—'} entradas ejecutadas · Telegram ${rec.valid_entries_with_telegram??'—'}/${rec.valid_entries??'—'}`;
-    const st=$('sstate');if(st)st.textContent=`Snapshot servidor ${payload?.generatedAt?new Date(payload.generatedAt).toLocaleString('es-AR'):'—'} · ${payload?.definition||'base operativa única'}`;
+    const st=$('sstate');if(st)st.textContent=`Snapshot servidor ${payload?.generatedAt?new Date(payload.generatedAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}):'—'} · ${payload?.definition||'base operativa única'}`;
   }catch(e){const st=$('sstate');if(st)st.textContent='No se pudo leer el snapshot estadístico del servidor: '+String(e?.message||e);data=[]}
   statsData=data;try{bindStatsFilters();renderStats()}catch(e){const st=$('sstate');if(st)st.textContent='Error renderizando estadísticas: '+String(e?.message||e);console.error(e)}
 }
@@ -2172,10 +2153,10 @@ function initScanSplitters(){
 }
 initScanSplitters();
 
-const UI_VERSION='6.3.2',BUILD_ID='MTF-MONITOR-DATA-INTEGRITY',JOB_NAMES={1:'Crypto structure',2:'Preparación CEDEAR',3:'Watcher / daemon',7:'CEDEAR live',8:'Crypto live',11:'ADR live v1'};let healthData=null,healthBusy=false;
+const UI_VERSION='6.3.3',BUILD_ID='MTF-MONITOR-FORWARD-SAFETY',JOB_NAMES={1:'Crypto structure',2:'Preparación CEDEAR',3:'Watcher / daemon',7:'CEDEAR live',8:'Crypto live',11:'ADR live v1'};let healthData=null,healthBusy=false;
 function ageMs(v){const t=v?new Date(v).getTime():NaN;return Number.isFinite(t)?Date.now()-t:Infinity}
 function fmtAge(v){const a=ageMs(v);if(!Number.isFinite(a))return'—';const m=Math.max(0,Math.round(a/60000));if(m<2)return'ahora';if(m<60)return m+' min';const h=Math.floor(m/60),rm=m%60;if(h<36)return h+' h '+rm+' min';return Math.floor(h/24)+' d'}
-function dt(v){return v?new Date(v).toLocaleString('es-AR'):'—'}
+function dt(v){return v?new Date(v).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}):'—'}
 function dateKey(v,tz='America/Argentina/Buenos_Aires'){if(!v)return'';try{return new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(v))}catch{return''}}
 function H(level,label,reason='',value=''){return{level,label,reason,value}}
 function healthJob(id){return (healthData?.jobs||[]).find(x=>+x.jobid===+id)||{}}
@@ -2250,11 +2231,10 @@ $('healthRefresh').onclick=()=>loadHealth(true);$('healthCanary').onclick=health
 
 refreshMarketStatus();
 setInterval(()=>refreshMarketStatus().catch(()=>{}),30000);
-setInterval(()=>{if(tab==='c')refreshCryptoRuntime().catch(()=>{});if(tab==='z')refreshZRuntime().catch(()=>{});if(tab==='s')stats().catch(()=>{});pollCryptoBackendCycle().catch(()=>{});pollZBackendCycle().catch(()=>{})},60000);
+setInterval(()=>{const activeView=$('v'+tab);if(!activeView||activeView.classList.contains('hide'))return;if(tab==='c')refreshCryptoRuntime().catch(()=>{});if(tab==='z')refreshZRuntime().catch(()=>{});if(tab==='s')stats().catch(()=>{});pollCryptoBackendCycle().catch(()=>{});pollZBackendCycle().catch(()=>{})},60000);
 setInterval(()=>{updateCryptoAutoText();updateZAutoText()},30000);
-pollCryptoBackendCycle().catch(()=>{});
-pollZBackendCycle().catch(()=>{});
+if(!$('vm')){pollCryptoBackendCycle().catch(()=>{});pollZBackendCycle().catch(()=>{});}
 
-loadC();
+if(!$('vm'))loadC();
 })();
-</script><script src="/command-center.js?v=6.3.2-data-integrity"></script></main></body></html>
+</script><script src="/command-center.js?v=6.3.3-forward-safety"></script></main></body></html>
