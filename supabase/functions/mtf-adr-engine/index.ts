@@ -242,11 +242,19 @@ function selftest(){
 }
 async function pool<T,R>(a:T[],limit:number,fn:(x:T)=>Promise<R>){let i=0;const o:(R|null)[]=new Array(a.length).fill(null);await Promise.all(Array.from({length:Math.min(limit,a.length)},async()=>{while(i<a.length){const j=i++;try{o[j]=await fn(a[j])}catch(_){o[j]=null}}}));return o}
 
+function forwardConfirmation(bar:Bar,lastSeen:number,now:number){
+ const close=bar.t+15*60000,age=now-close;
+ return Number.isFinite(lastSeen)&&lastSeen>0&&bar.t>lastSeen&&
+   Number.isFinite(age)&&age>=0&&age<=20*60000&&
+   [bar.o,bar.h,bar.l,bar.c].every(v=>typeof v==="number"&&Number.isFinite(v))&&
+   bar.l>0&&bar.h>=Math.max(bar.o,bar.c)&&bar.l<=Math.min(bar.o,bar.c);
+}
 async function run(mode:"baseline"|"live"){
  const cycleId="adr:"+iso();
  const marketOpen=await usaOpen();if(mode==="live"&&!marketOpen)return{ok:true,strategy_version:VERSION,engine:ENGINE,skipped:"usa_not_open"};
- const {data:state}=await sb.from("mtf_state").select("meta").eq("market","adr_live").maybeSingle(),
-       prev:any[]=state?.meta?.snapshot||[],prevMap=new Map(prev.map((x:any)=>[String(x.symbol),x])),
+ const {data:state,error:stateError}=await sb.from("mtf_state").select("meta").eq("market","adr_live").maybeSingle();
+ if(stateError)throw stateError;
+ const prev:any[]=state?.meta?.snapshot||[],prevMap=new Map(prev.map((x:any)=>[String(x.symbol),x])),
        cursor=Math.max(0,Math.floor(n(state?.meta?.cursor)||0))%ADRS.length,
        batch=mode==="baseline"?ADRS:Array.from({length:Math.min(CHUNK,ADRS.length)},(_,i)=>ADRS[(cursor+i)%ADRS.length]),
        nextCursor=mode==="baseline"?0:(cursor+batch.length)%ADRS.length,
@@ -259,7 +267,7 @@ async function run(mode:"baseline"|"live"){
          diag:any=diagnostic(daily,last.c);if(!diag.ready)throw new Error(diag.reason||"not_ready");
    funnel.ready++;if(diag.entry_allowed)funnel.dw_bullish++;if(["NEAR","IN_ZONE"].includes(diag.proximity.state))funnel.near_or_zone++;
    const active=await openFor(item.symbol),lastSeen=mode==="baseline"?last.t:n(prevRow?.last_processed_15m),
-         fresh=mode==="baseline"?[]:intra.filter(b=>b.t>lastSeen),plans:any[]=[];
+         fresh=mode==="baseline"?[]:intra.filter(b=>forwardConfirmation(b,lastSeen,Date.now())),plans:any[]=[];
    for(const b of fresh){
     funnel.confirmation_bars++;const p=confirmationPlan(b,diagnostic(daily,b.c));if(!p)continue;
     funnel.rejection_pass++;funnel.target_pass++;funnel.rr_pass++;plans.push(p);
@@ -281,14 +289,18 @@ async function run(mode:"baseline"|"live"){
  });
  const merged=new Map<string,any>(prev.map((x:any)=>[String(x.symbol),x]));for(const r of results)if(r)merged.set(String((r as any).symbol),r);
  const snapshot=[...merged.values()].filter((x:any)=>ADRS.some(a=>a.symbol===x.symbol));
- await sb.from("mtf_state").upsert({market:"adr_live",last_processed_at:iso(),last_run_at:iso(),meta:{
+ const {error:saveError}=await sb.from("mtf_state").upsert({market:"adr_live",last_processed_at:iso(),last_run_at:iso(),meta:{
   strategy_version:VERSION,engine:ENGINE,baseline:mode==="baseline",generated_at:iso(),snapshot,cursor:nextCursor,
   universe_size:ADRS.length,chunk_size:mode==="baseline"?ADRS.length:CHUNK,funnel,certification_schema:"ADR_CERT_V1"
  },updated_at:iso()},{onConflict:"market"});
+ if(saveError)throw saveError;
  return{ok:true,strategy_version:VERSION,engine:ENGINE,mode,market_open:marketOpen,created:created.length,created_signals:created,funnel,errors};
 }
 
 Deno.serve(async(req:Request)=>{
+ if(!SERVICE_ROLE||req.headers.get("authorization")!==`Bearer ${SERVICE_ROLE}`){
+  return new Response(JSON.stringify({ok:false,error:"unauthorized"}),{status:401,headers:{"content-type":"application/json"}});
+ }
  try{
   const body=await req.json().catch(()=>({})),raw=String(body?.mode||"live").toLowerCase();
   if(raw==="selftest")return new Response(JSON.stringify(selftest()),{headers:{"content-type":"application/json"}});

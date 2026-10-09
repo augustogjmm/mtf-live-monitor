@@ -1,0 +1,18 @@
+{
+  "name": "mtf-live-monitor",
+  "version": "6.3.3",
+  "private": true,
+  "description": "Monitor de señales manuales para cripto, CEDEAR y ADR",
+  "engines": {
+    "node": ">=24.5"
+  },
+  "scripts": {
+    "dev": "node --use-env-proxy scripts/dev-server.cjs",
+    "test:browser": "node tests/browser-smoke.cjs",
+    "validate:live": "node --use-env-proxy scripts/validate-live.cjs",
+    "test": "node tests/console-data-integrity.cjs && node tests/forward-safety.cjs && node tests/api-reliability.cjs && node tests/strategy-engines.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

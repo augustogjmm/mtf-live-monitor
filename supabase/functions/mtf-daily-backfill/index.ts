@@ -746,6 +746,14 @@ async function bymaLiveOpen(){
     return String(data?.meta?.byma?.code||"").toUpperCase()==="OPEN";
   }catch(_){return false;}
 }
+function confirmedCedearRecovery(trigger:Bar,level:LadderLevel,diag:any){
+  if(![trigger.t,trigger.o,trigger.h,trigger.l,trigger.c].every(Number.isFinite)||
+     trigger.l<=0||trigger.h<Math.max(trigger.o,trigger.c)||trigger.l>Math.min(trigger.o,trigger.c))return false;
+  const range=Math.max(1e-12,trigger.h-trigger.l),lowerWick=(Math.min(trigger.o,trigger.c)-trigger.l)/range;
+  return trigger.c>trigger.o&&trigger.c>level.point&&trigger.l<=level.point&&lowerWick>=0.20
+    &&trigger.c<=level.ob.top+0.25*n(diag.context?.atr14)
+    &&level.ob.confirmTime+24*60*60000<=trigger.t;
+}
 function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:number;o?:number;h?:number;l?:number;c?:number},staticDaily?:any){
   if(!daily?.length||daily.length<55)return{ready:false,reason:"insufficient_daily_history_lt55"};
   // Daily/weekly OHLC, OB set, indicators and stop don't change between 1m
@@ -899,12 +907,7 @@ async function processRegulatedLive(createEntries=true){
         // Most minute bars never touch an OB. Avoid a database round-trip for
         // every non-event (up to 60 per asset), but re-read state before a
         // candidate signal to prevent stale or duplicate E2/E3.
-        const eligibleRecovery=(stepDiag.touches?.long||[]).filter((level:any)=>{
-          const range=Math.max(1e-12,trigger.h-trigger.l),lowerWick=(Math.min(trigger.o,trigger.c)-trigger.l)/range;
-          return trigger.c>trigger.o&&trigger.c>level.point&&trigger.l<=level.point&&lowerWick>=0.20
-            &&trigger.c<=level.ob.top+0.25*n(stepDiag.context?.atr14)
-            &&level.ob.confirmTime+24*60*60000<=trigger.t;
-        });
+        const eligibleRecovery=(stepDiag.touches?.long||[]).filter((level:any)=>confirmedCedearRecovery(trigger,level,stepDiag));
         const touchesNew=eligibleRecovery.length>0;
         const touchesFrozen=active.length>0&&frozenSignals(active[0],trigger,stepDiag).length>0;
         if(!touchesNew&&!touchesFrozen)continue;
@@ -1171,7 +1174,7 @@ function nyDailyReady(){
 }
 
 Deno.serve(async(req:Request)=>{
- if(req.headers.get("authorization")!==`Bearer ${SERVICE_ROLE}`){
+ if(!SERVICE_ROLE||req.headers.get("authorization")!==`Bearer ${SERVICE_ROLE}`){
   return new Response(JSON.stringify({ok:false,error:"unauthorized"}),{status:401,headers:{"content-type":"application/json"}});
  }
  try{

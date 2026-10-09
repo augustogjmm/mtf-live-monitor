@@ -447,7 +447,7 @@ async function syncPreEntryAlerts(marketGuard:any){
 }
 
 Deno.serve(async(req:Request)=>{
-  if(req.headers.get("authorization")!==`Bearer ${SERVICE_ROLE}`){
+  if(!SERVICE_ROLE||req.headers.get("authorization")!==`Bearer ${SERVICE_ROLE}`){
     return new Response(JSON.stringify({ok:false,error:"unauthorized"}),{status:401,headers:{"content-type":"application/json"}});
   }
   try{

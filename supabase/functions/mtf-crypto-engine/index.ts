@@ -18,7 +18,7 @@ type OB={origin:number;confirm:number;originTime:number;confirmTime:number;top:n
 type DetectorState={os:number;bulls:OB[];bears:OB[];tail:Bar[];processed:number;lastOpen:number|null;lastEval?:any};
 type Level={rank:number;point:number;side:"below"|"above";detectorSide:"bull"|"bear";ob:OB};
 
-const n=(v:any)=>Number(v);
+const n=(v:any)=>{if(v===null||v===undefined||v==="")return NaN;const x=Number(v);return Number.isFinite(x)?x:NaN};
 const iso=(ms=Date.now())=>new Date(ms).toISOString();
 function clone<T>(x:T):T{return JSON.parse(JSON.stringify(x))}
 async function fetchJson(url:string,init:any={},timeout=20000){
@@ -312,6 +312,28 @@ function signalFromConfirmation(sym:string,dir:string,level:Level,snap:any,id:st
       protection_policy:"after_closed_1m_reaches_1R_move_active_stop_to_break_even_for_next_bar",
       trigger_bar:{t:bar.t,closeTime:eventTime,o:bar.o,h:bar.h,l:bar.l,c:bar.c,v:bar.v},stop_basis:"selected_OB_far_edge_plus_0_25_ATR"}};
 }
+// Forward entries must use context known before the confirmation candle opened.
+// Missed candles are acknowledged below, but never replayed as live entries.
+function confirmationSnapshot(current:any,previous:any,barClose:number){
+  return Date.parse(current?.generatedAt||"")<=barClose?current:previous?.confirmation_snapshot;
+}
+function confirmationSafety(snap:any,bar:Bar,now:number){
+  const generated=Date.parse(snap?.generatedAt||""),
+        contextClose=Number(snap?.lastClosed1h?.closeTime),
+        open=Number(bar?.t),close=Number(bar?.closeTime);
+  if(![generated,contextClose,open,close,now].every(Number.isFinite)||contextClose<=0)
+    return "missing_confirmation_clock";
+  if(close<open||close-open>15*60000||close>=now)return "invalid_confirmation_clock";
+  if(contextClose>open)return "context_after_confirmation_open";
+  if(generated>close)return "snapshot_after_confirmation_close";
+  if(now-generated>20*60000||now<generated)return "stale_structure";
+  if(now-close>5*60000)return "stale_confirmation";
+  const values=[bar.o,bar.h,bar.l,bar.c,bar.v];
+  if(!values.every(v=>typeof v==="number"&&Number.isFinite(v))||
+     bar.l<=0||bar.v<0||bar.h<Math.max(bar.o,bar.c)||
+     bar.l>Math.min(bar.o,bar.c))return "invalid_confirmation_bar";
+  return null;
+}
 async function live(createEntries=true){
   const [{data:st,error:stErr},{data:prevRow,error:prevErr}]=await Promise.all([
     sb.from("mtf_state").select("*").eq("market","crypto_structure").maybeSingle(),
@@ -322,7 +344,7 @@ async function live(createEntries=true){
   const prevMap=new Map<string,any>((prevRow?.meta?.snapshot||[]).map((x:any)=>[String(x.symbol),x]));
   let hourlyConfirmation:any=prevRow?.meta?.hourlyConfirmation||null;
   const prices=await currentPrices(),liveStates:any[]=[],created:any[]=[],
-        funnel:any={assets:snaps.length,ready:0,near_or_zone:0,context_allowed:0,structure_allowed:0,momentum_allowed:0,eligible_current:0,confirmation_bars_checked:0,rejection_hits:0,rr_pass:0,entries:0};
+        funnel:any={assets:snaps.length,ready:0,near_or_zone:0,context_allowed:0,structure_allowed:0,momentum_allowed:0,eligible_current:0,confirmation_bars_checked:0,confirmation_blocks:{},rejection_hits:0,rr_pass:0,entries:0};
   const {data:currentOpenRows,error:currentOpenErr}=await sb.from("mtf_signals").select("*")
     .in("strategy_version",[VERSION,"MACD-OB-v1.0"]).eq("market","crypto").eq("source","FORWARD").eq("status","OPEN").order("signal_time");
   if(currentOpenErr)throw currentOpenErr;
@@ -354,23 +376,33 @@ async function live(createEntries=true){
     const freshBars=confirmationBars.filter((bar:Bar)=>(n(bar.closeTime)||bar.t+15*60000)>lastM15);
     for(const bar of freshBars){
       const barClose=n(bar.closeTime)||bar.t+15*60000;
+      // Keep the pre-close snapshot across minute polls so a concurrent
+      // structure refresh cannot replace it with post-confirmation context.
+      const entrySnapshot=confirmationSnapshot(snap0,prev,barClose);
+      const safetyReason=confirmationSafety(entrySnapshot,bar,Date.now());
+      if(safetyReason){
+        funnel.confirmation_blocks[safetyReason]=(funnel.confirmation_blocks[safetyReason]||0)+1;
+        lastM15=Math.max(lastM15,barClose);
+        continue;
+      }
+      const entryLadder={below:(entrySnapshot.ladder?.below||[]).map(levelFromPublic),above:(entrySnapshot.ladder?.above||[]).map(levelFromPublic)};
       if(createEntries&&prev&&n(prev.last_m15_close)>0){
         funnel.confirmation_bars_checked++;
         if(!legacy.length&&!opens.length){
           const candidates=[
-            ...prox0.below.filter((x:Level)=>directionEligibility("LONG",snap0).eligible&&x.ob.confirmTime+HOUR<=bar.t&&rejectsZone(bar,x,"LONG")&&bar.c<=x.ob.top+0.25*n(snap0.context?.atr14))
+            ...entryLadder.below.filter((x:Level)=>directionEligibility("LONG",entrySnapshot).eligible&&x.ob.confirmTime+HOUR<=bar.t&&rejectsZone(bar,x,"LONG")&&bar.c<=x.ob.top+0.25*n(entrySnapshot.context?.atr14))
               .map((level:Level)=>({dir:"LONG",level})),
-            ...prox0.above.filter((x:Level)=>directionEligibility("SHORT",snap0).eligible&&x.ob.confirmTime+HOUR<=bar.t&&rejectsZone(bar,x,"SHORT")&&bar.c>=x.ob.bottom-0.25*n(snap0.context?.atr14))
+            ...entryLadder.above.filter((x:Level)=>directionEligibility("SHORT",entrySnapshot).eligible&&x.ob.confirmTime+HOUR<=bar.t&&rejectsZone(bar,x,"SHORT")&&bar.c>=x.ob.bottom-0.25*n(entrySnapshot.context?.atr14))
               .map((level:Level)=>({dir:"SHORT",level}))
           ].sort((a:any,b:any)=>a.level.rank-b.level.rank);
           funnel.rejection_hits+=candidates.length;
           for(const candidate of candidates){
-            const gate=directionEligibility(candidate.dir,snap0),
-                  plan=tradePlan(candidate.dir,candidate.level,snap0,bar.c);
+            const gate=directionEligibility(candidate.dir,entrySnapshot),
+                  plan=tradePlan(candidate.dir,candidate.level,entrySnapshot,bar.c);
             if(!plan)continue;
             funnel.rr_pass++;
             const id=setupId(sym,candidate.dir,barClose),
-                  row=signalFromConfirmation(sym,candidate.dir,candidate.level,snap0,id,bar,plan),
+                  row=signalFromConfirmation(sym,candidate.dir,candidate.level,entrySnapshot,id,bar,plan),
                   ins=await insertLeg(row);
             if(ins){opens.push(ins);funnel.entries++;created.push({symbol:sym,direction:candidate.dir,
               rank:candidate.level.rank,setup_id:id,entry:row.entry,stop:row.stop,tp1:row.tp1,
@@ -389,7 +421,7 @@ async function live(createEntries=true){
       setup_id:operational[0]?.context?.setup_id||null,direction:operational[0]?.direction||null,
       active_strategy_version:operational[0]?.strategy_version||null,legacy_active:legacy.length>0,
       eligibility:eligible,last_h1_close:lastH1||null,last_bar_close:lastH1||null,last_m15_close:lastM15||null,
-      baseline:!createEntries,updated_at:iso()
+      confirmation_snapshot:snap0,baseline:!createEntries,updated_at:iso()
     });
   }
   const meta={strategy_version:VERSION,engine:ENGINE,generated_at:iso(),baseline:!createEntries,funnel,hourlyConfirmation,snapshot:liveStates};
@@ -399,7 +431,7 @@ async function live(createEntries=true){
   return{ready:true,baseline:!createEntries,created:created.length,created_signals:created,states:liveStates.length,funnel};
 }
 Deno.serve(async(req:Request)=>{
-  if(req.headers.get("authorization")!==`Bearer ${SERVICE_ROLE}`){
+  if(!SERVICE_ROLE||req.headers.get("authorization")!==`Bearer ${SERVICE_ROLE}`){
     return new Response(JSON.stringify({ok:false,error:"unauthorized"}),{status:401,headers:{"content-type":"application/json"}});
   }
   try{
