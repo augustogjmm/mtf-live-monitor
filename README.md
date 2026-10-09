@@ -103,3 +103,15 @@ abiertas hasta TP1; sus marcas pendientes no se cuentan como ganancias
 realizadas. No reemplaza el backtest completo de la estrategia. Cuando no hay
 operaciones cerradas, las métricas quedan nulas y el estado es
 `INSUFFICIENT_TRADES`.
+
+## Comprobación del despliegue
+
+`npm run validate:deployment -- artifacts/production-check.json` comprueba
+la aplicación publicada en https://mtf-monitor.vercel.app: versión de frontend,
+API, los tres mercados, estadísticas y salud. Sólo realiza lecturas.
+También puede ejecutarse desde GitHub Actions mediante el workflow manual
+**MTF production read-only check**. Guarda un informe sin credenciales.
+No se programa automáticamente para evitar comprobaciones repetidas fuera
+del alcance solicitado. Un despliegue exitoso y una comprobación funcional
+son evidencias distintas; los correos y preferencias de notificación requieren
+acceso a la cuenta correspondiente.
