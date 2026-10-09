@@ -224,7 +224,7 @@ function ladderSignal(direction:"LONG"|"SHORT",level:LadderLevel,diag:any,timefr
   const targets:LadderLevel[]=direction==="LONG"?diag.ladder.above:diag.ladder.below;if(targets.length<1)return null;
   const stop=timeframe==="1d"?level.ob.bottom-0.25*n(diag?.context?.atr14):n(diag?.stops?.[direction]);if(!Number.isFinite(stop))return null;
   const entry=timeframe==="1d"?n(diag?.trigger?.c):level.point;
-  if(!(entry>stop))return null;
+  if(!(direction==="LONG"?entry>stop:entry<stop))return null;
   return{direction,entry,stop,tp1:targets[0].point,tp2:targets[1]?.point??targets[0].point,tp3:targets[2]?.point??targets[targets.length-1].point,context:{
     strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",operational_timeframe:timeframe,indicators_role:"context_only",
     proximity_rule:"NEAR_when_distance_to_nearest_entry_line_lte_1_ATR14",
@@ -914,7 +914,7 @@ async function processRegulatedLive(createEntries=true){
         if(entryAllowed&&active.length&&STRATEGY_VERSION!=="CEDEAR-MACD-OB-v2.0"){
           curs=frozenSignals(active[0],trigger,stepDiag)
             .filter(cur=>!active.some((x:any)=>Number(x?.context?.entry_rank||0)===Number(cur?.context?.entry_rank||0)));
-        }else if(entryAllowed&&structureReady&&createEntries&&prev&&prev.actionable===true){
+        }else if(entryAllowed&&active.length===0&&structureReady&&createEntries&&prev&&prev.actionable===true){
           curs=eligibleRecovery.map((level:any)=>{
             const cur:any=ladderSignal("LONG",level,stepDiag,"1d");
             return cur?seedSetupContext(cur,market,sym,"1d",stepDiag):null;
