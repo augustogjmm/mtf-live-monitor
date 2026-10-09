@@ -8,7 +8,7 @@ async function verify(fetcher=fetch) {
   async function read(route,json=true){
     const response=await fetcher(ORIGIN+route,{redirect:'error',signal:AbortSignal.timeout(20000)});
     assert.equal(response.status,200,route+' must return HTTP 200');
-    checks.push({route,status:response.status});
+    checks.push({route,status:response.status,cache:response.headers?.get('x-vercel-cache')??null});
     return json?response.json():response.text();
   }
   const health=await read('/api/data?op=health');
@@ -47,5 +47,8 @@ if(require.main===module) verify().then(report=>{
     fs.writeFileSync(output,JSON.stringify(report,null,2));
   }
   console.log(JSON.stringify(report,null,2));
-}).catch(error=>{console.error(error.message);process.exitCode=1});
+}).catch(error=>{
+  const message=String(error.message).replaceAll('%','%25').replaceAll('\r','%0D').replaceAll('\n','%0A');
+  console.error('::error::'+message);process.exitCode=1;
+});
 module.exports={verify};
