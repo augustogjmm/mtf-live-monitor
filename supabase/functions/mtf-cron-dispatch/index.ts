@@ -18,6 +18,16 @@ async function recordRuntimeError(action:string,target:string,statusCode:number|
   }catch(_){}
 }
 
+function isBymaPreopen(now:Date){
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).formatToParts(now);
+  const hour = Number(parts.find((p)=>p.type==="hour")?.value||"0");
+  const minute = Number(parts.find((p)=>p.type==="minute")?.value||"0");
+  return hour*60+minute<10*60+30;
+}
+
 Deno.serve(async (req: Request) => {
   const suppliedSecret=req.headers.get("x-cron-secret");
   const {data:validSecret,error:secretError}=await sb.rpc("mtf_validate_cron_secret",{p_secret:suppliedSecret});
@@ -29,6 +39,15 @@ Deno.serve(async (req: Request) => {
   }
   const body = await req.json().catch(() => ({}));
   const action = String(body.action || "scan").toLowerCase();
+  // BYMA's CEDEAR session starts at 10:30 Buenos Aires time.
+  // Keep 10:00–10:25 cron cycles observable without treating absent pre-open
+  // quotes as an upstream outage. After 10:30, real failures still propagate.
+  if (action === "prepare-cedear" && isBymaPreopen(new Date())) {
+    return new Response(JSON.stringify({
+      ok: true, action, skipped: "BYMA_PREOPEN",
+      retry: true, next_regular_session: "10:30 America/Argentina/Buenos_Aires"
+    }), {headers: {"content-type": "application/json"}});
+  }
   let target = "mtf-daily-backfill";
   let targetBody:any = {};
   if (action === "watcher" || action === "alert-test") {
