@@ -62,3 +62,19 @@ esta versión de los motores. Su RPC es SECURITY INVOKER, sólo ejecutable por
 service_role, y devuelve el rol real de la conexión. Sus permisos pasaron una
 prueba transaccional revertida. Las pruebas locales cubren las cuatro funciones,
 claves actuales, JWT alternativos, claims falsificados y caída del verificador.
+
+## Tiempo de respuesta de salud
+
+La revisión final detectó un HTTP 500 en la sonda de `mtf_system_status`: el
+registro de PostgREST indicó `canceling statement due to statement timeout`.
+La consulta recorría repetidamente el historial de cron para los mismos trabajos.
+La migración `20261009183000_bounded_status_cron_queries.sql` materializa una
+lectura de los trabajos relevantes y comparte sus datos entre las métricas.
+Mantiene el último evento histórico y los contadores de 24 horas. No cambia
+permisos, límites de tiempo ni registros del historial.
+
+`tests/status-query-regression.sql`, con la migración sustituida en su marcador,
+comparó la respuesta JSON completa anterior y nueva dentro de una transacción
+REPEATABLE READ; fueron iguales y los cambios de prueba se revirtieron. La
+migración comprueba los fragmentos de la definición antes de reemplazarlos
+y falla si la versión encontrada no es la esperada. Es idempotente.
