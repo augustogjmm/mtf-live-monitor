@@ -46,7 +46,7 @@ assert.match(source, /CC\.status=x}\)\.catch\(function\(\)\{CC\.status=null\}\)/
 assert.match(source, /LEGADO · ABIERTA/); // Legacy carries must not look like v2 results.
 assert.match(source, /rechazo de OB en 15m/);
 const dispatch = fs.readFileSync(path.join(root, 'supabase', 'functions', 'mtf-cron-dispatch', 'index.ts'), 'utf8');
-const helper = dispatch.match(/function isBymaPreopen\\(now:Date\\)\\{[\\s\\S]*?\\n\\}/);
+const helper = dispatch.match(/function isBymaPreopen\(now:Date\)\{[\s\S]*?\n\}/);
 assert.ok(helper, 'Expected BYMA preopen guard');
 const bymaPreopen = new Function(helper[0].replace('now:Date', 'now') + '; return isBymaPreopen;')();
 assert.equal(bymaPreopen(new Date('2026-10-09T13:20:00Z')), true);
