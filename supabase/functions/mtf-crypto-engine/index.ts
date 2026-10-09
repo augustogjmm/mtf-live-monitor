@@ -260,7 +260,7 @@ async function snapshotOne(sym:string){
 async function structure(){
   let base=await universe();
   const [{data:openRows,error:openErr},{data:prevStructure,error:prevStructErr}]=await Promise.all([
-    sb.from("mtf_signals").select("symbol,strategy_version,status").eq("strategy_version",VERSION).eq("market","crypto").eq("source","FORWARD").eq("status","OPEN"),
+    sb.from("mtf_signals").select("symbol,strategy_version,status").in("strategy_version",[VERSION,"MACD-OB-v1.0"]).eq("market","crypto").eq("source","FORWARD").eq("status","OPEN"),
     sb.from("mtf_state").select("meta").eq("market","crypto_structure").maybeSingle()
   ]);
   if(openErr)throw openErr;if(prevStructErr)throw prevStructErr;
@@ -290,7 +290,7 @@ async function structure(){
 function levelFromPublic(p:any):Level{return{rank:n(p.rank),point:n(p.point),side:p.side==="above"?"above":"below",detectorSide:p.detector_side==="bear"?"bear":"bull",ob:{origin:0,confirm:0,originTime:n(p.origin_time),confirmTime:n(p.confirm_time),top:n(p.zone_top),bottom:n(p.zone_bottom),avg:n(p.point)}}}
 function touched(bar:Bar,x:Level){return bar.l<=x.point&&bar.h>=x.point}
 async function openSignals(sym:string){
-  const {data,error}=await sb.from("mtf_signals").select("*").eq("strategy_version",VERSION).eq("market","crypto").eq("symbol",sym).eq("status","OPEN").order("signal_time");if(error)throw error;return data||[];
+  const {data,error}=await sb.from("mtf_signals").select("*").in("strategy_version",[VERSION,"MACD-OB-v1.0"]).eq("market","crypto").eq("symbol",sym).eq("status","OPEN").order("signal_time");if(error)throw error;return data||[];
 }
 async function legacyOperationalSignals(_sym:string){return[];}
 async function insertLeg(row:any){
@@ -324,7 +324,7 @@ async function live(createEntries=true){
   const prices=await currentPrices(),liveStates:any[]=[],created:any[]=[],
         funnel:any={assets:snaps.length,ready:0,near_or_zone:0,context_allowed:0,structure_allowed:0,momentum_allowed:0,eligible_current:0,confirmation_bars_checked:0,rejection_hits:0,rr_pass:0,entries:0};
   const {data:currentOpenRows,error:currentOpenErr}=await sb.from("mtf_signals").select("*")
-    .eq("strategy_version",VERSION).eq("market","crypto").eq("source","FORWARD").eq("status","OPEN").order("signal_time");
+    .in("strategy_version",[VERSION,"MACD-OB-v1.0"]).eq("market","crypto").eq("source","FORWARD").eq("status","OPEN").order("signal_time");
   if(currentOpenErr)throw currentOpenErr;
   const openBySymbol=new Map<string,any[]>();
   for(const row of currentOpenRows||[]){const s=String(row.symbol||"");if(!openBySymbol.has(s))openBySymbol.set(s,[]);openBySymbol.get(s)!.push(row)}
