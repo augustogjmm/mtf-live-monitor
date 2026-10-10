@@ -4,7 +4,7 @@ const {verify}=require('../scripts/validate-deployment.cjs');
 function fixture(change=()=>{}){
   return async url=>{
     const route=new URL(url),now=new Date().toISOString();
-    let value=route.pathname==='/'?'command-center.js?v=6.3.3-egress-reduction':
+    let value=route.pathname==='/'?'command-center.js?v=6.3.3-backend-migration':
       route.pathname==='/command-center.js'?'function runtimeFresh(){}':
       route.searchParams.get('op')==='health'?{ok:true,ui_version:'6.3.3',build_id:'MTF-MONITOR-FORWARD-SAFETY'}:
       route.searchParams.get('op')==='runtime'?{liveStates:[{symbol:'TEST'}],opens:[],liveGeneratedAt:now,structureGeneratedAt:now}:

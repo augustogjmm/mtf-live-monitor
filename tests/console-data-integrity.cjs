@@ -10,7 +10,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 new Function(source); // Parse without running the browser initialization.
 new Function(api);
-assert.match(html, /command-center\.js\?v=6\.3\.3-egress-reduction/);
+assert.match(html, /command-center\.js\?v=6\.3\.3-backend-migration/);
 assert.match(html, /ESTADÍSTICAS v2 · NUEVA COHORTE/);
 assert.match(html, /CEDEAR MACD\+OB Diario v2/);
 assert.doesNotMatch(html, /CEDEAR MACD\+OB Diario v1/);
