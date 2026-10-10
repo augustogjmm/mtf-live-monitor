@@ -91,14 +91,14 @@ export class MtfMonitor {
     const engine=this.engine('crypto'),snapshot=new Map((previous?.meta?.snapshot||[]).map(x=>[x.symbol,x]));
     for(const symbol of batch){
       try{snapshot.set(symbol,await engine.snapshotOne(symbol));}
-      catch(error){snapshot.set(symbol,{symbol,ready:false,reason:String(error.message),generatedAt:new Date().toISOString()});}
+      catch(error){snapshot.set(symbol,{symbol,ready:false,error:true,reason:String(error.message),generatedAt:new Date().toISOString()});}
     }
     const now=new Date().toISOString(),saved=await this.store.from('mtf_state').upsert({market:'crypto_structure',
       last_run_at:now,last_processed_at:now,updated_at:now,
       meta:{...previous?.meta,generated_at:now,snapshot:[...snapshot.values()],scan_universe:symbols,chunk_size:batch.length}},{onConflict:'market'});
     if(saved.error)throw Error(saved.error.message);
     this.saveSetting({...this.setting(),cryptoCursor:(start+batch.length)%symbols.length});
-    if(batch.every(symbol=>!snapshot.get(symbol)?.generatedAt||snapshot.get(symbol)?.reason==='detector_not_initialized'||snapshot.get(symbol)?.reason?.includes('budget')))throw Error('No fresh crypto structure in this batch');
+    if(batch.every(symbol=>snapshot.get(symbol)?.error||!snapshot.get(symbol)?.generatedAt||snapshot.get(symbol)?.reason==='detector_not_initialized'||snapshot.get(symbol)?.reason?.includes('budget')))throw Error('No fresh crypto structure in this batch');
   }
   async alarm(){
     if(!this.setting().enabled)return;
@@ -110,7 +110,7 @@ export class MtfMonitor {
       ['crypto_structure',1,()=>this.cryptoStructure()],
       ['crypto_live',2,async()=>{
         const result=await this.engine('crypto').live(!this.setting().baseline);
-        if(result.ready===false)throw Error(result.reason||'Crypto structure not ready');
+        if(result.ready===false||result.funnel?.ready===0)throw Error(result.reason||'Crypto structure not ready');
         this.saveSetting({...this.setting(),baseline:false});
       }],
       ['watcher',1,async()=>{
