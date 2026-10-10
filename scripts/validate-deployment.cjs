@@ -16,7 +16,7 @@ async function verify(fetcher=fetch) {
   assert.equal(health.ui_version,'6.3.3');
   assert.equal(health.build_id,'MTF-MONITOR-FORWARD-SAFETY');
   const html=await read('/',false);
-  assert.ok(html.includes('command-center.js?v=6.3.3-egress-reduction'),'Expected frontend build is missing');
+  assert.ok(html.includes('command-center.js?v=6.3.3-backend-migration'),'Expected frontend build is missing');
   const javascript=await read('/command-center.js',false);
   assert.ok(javascript.includes('runtimeFresh'),'Expected dashboard implementation is missing');
   const markets=[];

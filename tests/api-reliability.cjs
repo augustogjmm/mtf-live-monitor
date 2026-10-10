@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../api/data.js'), 'utf8');
-function fixture(fetch, env={},clock=Date) {
+function fixture(fetch, env={MTF_BACKEND_URL:'https://backend.example.com'},clock=Date) {
   const timers = new Map();
   let seq = 0;
   const context = {
@@ -34,26 +34,28 @@ function response(value, status=200) {
   assert.equal((await request(local.handler, {op:'runtime', market:'other'})).status, 400);
   assert.equal((await request(local.handler, {op:'canary'})).status, 403);
   assert.equal(calls, 0);
+  const disconnected=fixture(async()=>{throw Error('Disabled provider reached network');},{});
+  assert.equal((await request(disconnected.handler,{op:'runtime',market:'crypto'})).status,503);
+  assert.equal((await request(disconnected.handler,{op:'health'})).body.backend_configured,false);
   let stagingCalls=0;
   const staging=fixture(async (url, init)=>{
     stagingCalls++;
     assert.ok(url.startsWith('https://staging.example.com/rest/v1/'));
-    assert.equal(init.headers.apikey,'sb_publishable_test');
+    assert.equal(init.headers.apikey,undefined);
     return response([]);
-  },{MTF_SUPABASE_URL:'https://staging.example.com/',MTF_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test'});
+  },{MTF_BACKEND_URL:'https://staging.example.com/'});
   assert.equal((await request(staging.handler,{op:'runtime',market:'crypto'})).status,200);
   assert.equal(stagingCalls,3);
   for(const env of [
-    {MTF_SUPABASE_URL:'https://staging.example.com'},
-    {MTF_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test'},
-    {MTF_SUPABASE_URL:'http://staging.example.com',MTF_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test'},
-    {MTF_SUPABASE_URL:'https://staging.example.com/path',MTF_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test'},
-    {MTF_SUPABASE_URL:'https://staging.example.com',MTF_SUPABASE_PUBLISHABLE_KEY:'sb_secret_wrong'}
+    {MTF_BACKEND_URL:'http://staging.example.com'},
+    {MTF_BACKEND_URL:'https://staging.example.com/path'},
+    {MTF_BACKEND_URL:'https://staging.example.com?key=wrong'},
+    {MTF_BACKEND_URL:'https://swhfftkhqmbtmbnoskoj.supabase.co'}
   ]) {
     const invalid=fixture(async()=>{throw Error('Invalid configuration reached network');},env);
     const result=await request(invalid.handler,{op:'runtime',market:'crypto'});
     assert.equal(result.status,500);
-    assert.match(result.body.error,/Supabase|pública/);
+    assert.match(result.body.error,/Supabase|backend/);
   }
   assert.ok(!fs.readFileSync(path.join(__dirname,'../index.html'),'utf8').includes('supabase.co'),
     'Browser must never fall back to the production backend');
@@ -94,7 +96,7 @@ function response(value, status=200) {
     /paginada inválida/);
   let clock=Date.now(),reads=0,upstreamDown=false;
   class TestClock extends Date {static now(){return clock}}
-  const cached=fixture(async()=>{reads++;if(upstreamDown)return response({},503);return response([])}, {},TestClock);
+  const cached=fixture(async()=>{reads++;if(upstreamDown)return response({},503);return response([])}, {MTF_BACKEND_URL:'https://backend.example.com'},TestClock);
   await Promise.all([request(cached.handler,{op:'runtime',market:'crypto'}),request(cached.handler,{op:'runtime',market:'crypto'})]);
   assert.equal(reads,3,'Concurrent readers must share upstream requests');
   const hit=await request(cached.handler,{op:'runtime',market:'crypto'});
