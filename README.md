@@ -1,3 +1,5 @@
+> **Migración en curso:** Supabase está desconectado y sus nueve cron apagados. El reemplazo gratuito usa Cloudflare Workers + SQLite Durable Objects. Falta conectar la cuenta del propietario para activar el backend; las lecturas runtime devuelven 503 hasta entonces. Ver [guía de migración](docs/CLOUDFLARE_MIGRATION.md).
+
 # MTF Live Monitor
 
 Monitor de señales para operar **manualmente** en cripto, CEDEAR y ADR.

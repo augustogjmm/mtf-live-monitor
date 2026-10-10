@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+execFileSync(process.execPath,['scripts/build-cloudflare.cjs'],{stdio:'pipe'});
+const {SQLiteStore}=await import('../backend/sqlite-store.mjs');
+const {readRequest}=await import('../backend/public-api.mjs');
+const {MtfMonitor}=await import('../artifacts/cloudflare/cloudflare-worker.mjs');
+function database(){
+ const db=new DatabaseSync(':memory:');
+ const sql={exec:(query,...bindings)=>{if(query.includes('CREATE TABLE')){db.exec(query);return []}return db.prepare(query).all(...bindings)}};
+ sql.exec(fs.readFileSync('backend/schema.sql','utf8'));
+ const transaction=fn=>{db.exec('BEGIN');try{const value=fn();db.exec('COMMIT');return value}catch(error){db.exec('ROLLBACK');throw error}};
+ return {db,sql,transaction,store:new SQLiteStore(sql,transaction)};
+}
+const {store}=database();
+const signal={market:'crypto',symbol:'BTC',source:'FORWARD',strategy_version:'MACD-OB-v2.0',status:'OPEN',direction:'LONG',entry:100,stop:90,tp1:120,signal_time:'2026-10-10T00:00:00Z',context:{setup_id:'a',entry_rank:1}};
+let inserted=await store.from('mtf_signals').insert(signal).select('*').single();assert.equal(inserted.error,null);
+assert.equal((await store.from('mtf_signals').insert({...signal,context:{setup_id:'b',entry_rank:1}})).error.code,'23505');
+assert.ok((await store.from('mtf_signals').insert({...signal,symbol:'BAD',tp1:110})).error);
+assert.ok((await store.from('mtf_signals').insert({...signal,symbol:'BAD',direction:null})).error);
+assert.equal((await store.from('mtf_signals').update({stop:100}).eq('id',inserted.data.id)).error,null,'break-even update allowed');
+assert.ok((await store.from('mtf_signals').update({entry:101}).eq('id',inserted.data.id)).error);
+assert.ok((await store.from('mtf_signals').delete().eq('id',inserted.data.id)).error);
+assert.equal((await store.from('mtf_signals').update({status:'BE'}).eq('id',inserted.data.id)).error,null);
+assert.ok((await store.from('mtf_signals').update({status:'OPEN'}).eq('id',inserted.data.id)).error);
+assert.equal((await store.from('mtf_signals').insert({...signal})).error.code,'23505','same setup cannot be replayed after closure');
+await store.from('mtf_strategy_registry').insert({version:'MACD-OB-v2.0',frozen:true,rules:{rr:1.8}});
+assert.ok((await store.from('mtf_strategy_registry').update({frozen:false}).eq('version','MACD-OB-v2.0')).error);
+await store.from('mtf_state').upsert({market:'regulated_live',meta:{snapshot:[{market:'cedear',symbol:'A',price:10,t:Date.now(),ready:true},{market:'cedear',symbol:'B',price:20,t:1,ready:true}]}});
+const merged=await store.rpc('mtf_save_regulated_worker_state',{p_state:{market:'regulated_live',meta:{snapshot:[{market:'cedear',symbol:'A',price:11,t:Date.now(),ready:true},{market:'cedear',symbol:'B'}]}},p_replaced:['cedear:A']});
+assert.equal(merged.error,null);const snapshot=store.readState('regulated_live').meta.snapshot;
+assert.equal(snapshot[0].price,11);assert.equal(snapshot[1].price,20);assert.equal(snapshot[1].ready,false);
+assert.equal((await readRequest(store,new Request('https://worker/rest/v1/rpc/mtf_save_regulated_worker_state',{method:'POST',body:'{}'}))).status,403);
+assert.equal((await readRequest(store,new Request('https://worker/rest/v1/mtf_alert_config'))).status,404);
+assert.equal((await readRequest(store,new Request('https://worker/rest/v1/mtf_signals?limit=1001'))).status,400);
+const clean=database().store;clean.import({mtf_analyzer_state:[{market:'crypto',symbol:'BTC',timeframe:'1h',state:{}}],mtf_strategy_registry:[{version:'a'},{version:'b'}]});
+assert.equal((await clean.from('mtf_strategy_registry').select('*')).data.length,2);
+assert.throws(()=>clean.import({}),/empty/);
+const bad=database().store;assert.throws(()=>bad.import({mtf_analyzer_state:[{market:'crypto',symbol:'BTC',timeframe:'1h'}],unsupported:[]}),/Unsupported/);
+assert.equal(bad.rows('SELECT count(*) AS n FROM mtf_records')[0].n,0,'failed imports roll back');
+const local=database();let alarm,deleted=false;
+const actor=new MtfMonitor({blockConcurrencyWhile:fn=>fn(),storage:{sql:local.sql,transactionSync:local.transaction,setAlarm:async n=>alarm=n,deleteAlarm:async()=>deleted=true}},{ADMIN_TOKEN:'x'.repeat(40)});
+const admin=(path,body={})=>new Request('https://worker/admin/'+path,{method:'POST',headers:{authorization:'Bearer '+'x'.repeat(40)},body:JSON.stringify(body)});
+assert.equal((await actor.fetch(new Request('https://worker/admin/status'))).status,401);
+assert.equal((await actor.fetch(admin('start'))).status,409);
+assert.equal((await actor.fetch(admin('import',{mtf_analyzer_state:[{market:'crypto',symbol:'BTC',timeframe:'1h',state:{}}]}))).status,200);
+assert.equal((await actor.fetch(admin('start'))).status,200);assert.ok(alarm>Date.now());
+assert.equal(actor.setting().baseline,true);assert.equal(actor.setting().regulatedBaseline,true);assert.equal(actor.setting().adrBaseline,true);
+assert.equal((await actor.fetch(admin('stop'))).status,200);assert.equal(deleted,true);assert.equal(actor.setting().enabled,false);
+await actor.fetch(admin('start'));
+const jobs=[];actor.cryptoStructure=async()=>jobs.push('structure');
+actor.engine=name=>name==='crypto'?{live:async entries=>{assert.equal(entries,false);jobs.push('crypto');return {ready:true}}}:{engineKey:'test',handler:async()=>{jobs.push('watcher');return Response.json({ok:true})}};
+// Freeze the scheduler on a Saturday so the test has no market-window dependency.
+const NativeDate=globalThis.Date;globalThis.Date=class extends NativeDate{constructor(...args){super(...(args.length?args:['2026-10-10T12:00:00Z']))}static now(){return NativeDate.parse('2026-10-10T12:00:00Z')}};
+try{for(let i=0;i<4;i++)await actor.alarm();assert.deepEqual(jobs,['structure','crypto','watcher']);assert.equal((await actor.store.from('mtf_jobs').select('*')).data.length,4);await actor.alarm();assert.equal(jobs.length,3);assert.equal(actor.setting().baseline,false)}finally{globalThis.Date=NativeDate}
+const {createEngine}=await import('../artifacts/cloudflare/adr.mjs');const checks=await createEngine(store).selftest();assert.equal(checks.passed,8);
+console.log('Cloudflare backend: real SQLite import/rollback, preserved snapshots, risk and identity guards, readonly API, admin authentication, activation baseline and ADR 8/8 passed');
