@@ -141,6 +141,8 @@ class Query {
           }
           if(previous&&this.ignore)continue;
           const row={...(previous?.row||{}),...clone(input)};
+          if(!previous&&['mtf_signals','mtf_alert_events','mtf_runtime_errors','mtf_decision_audit'].includes(this.bucket))row.created_at??=new Date().toISOString();
+          if(!previous&&this.bucket==='mtf_alert_events'){row.status??='PENDING';row.attempts??=0;}
           if(!keys[this.bucket]&&row.id==null){row.id=this.store.rows('INSERT INTO mtf_ids DEFAULT VALUES RETURNING id')[0].id;}
           this.store.write(this.bucket,row,previous?.key,this.operation==='insert');rows.push(row);
         }

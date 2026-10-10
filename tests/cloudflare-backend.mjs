@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
 execFileSync(process.execPath,['scripts/build-cloudflare.cjs'],{stdio:'pipe'});
 const {SQLiteStore}=await import('../backend/sqlite-store.mjs');
-const {readRequest}=await import('../backend/public-api.mjs');
+const {readRequest,publicRpc}=await import('../backend/public-api.mjs');
 const {MtfMonitor}=await import('../artifacts/cloudflare/cloudflare-worker.mjs');
 function database(){
  const db=new DatabaseSync(':memory:');
@@ -31,6 +31,9 @@ await store.from('mtf_state').upsert({market:'regulated_live',meta:{snapshot:[{m
 const merged=await store.rpc('mtf_save_regulated_worker_state',{p_state:{market:'regulated_live',meta:{snapshot:[{market:'cedear',symbol:'A',price:11,t:Date.now(),ready:true},{market:'cedear',symbol:'B'}]}},p_replaced:['cedear:A']});
 assert.equal(merged.error,null);const snapshot=store.readState('regulated_live').meta.snapshot;
 assert.equal(snapshot[0].price,11);assert.equal(snapshot[1].price,20);assert.equal(snapshot[1].ready,false);
+const protectedSignal=await store.from('mtf_signals').insert({...signal,symbol:'ETH',context:{setup_id:'be',entry_rank:1}}).select('*').single();
+await store.from('mtf_signals').update({status:'SL',context:{setup_id:'be',entry_rank:1,exit_reason:'BREAK_EVEN'}}).eq('id',protectedSignal.data.id);
+assert.equal((await publicRpc(store,'mtf_stats_snapshot_fast')).operations.find(x=>x.symbol==='ETH').status,'BE');
 assert.equal((await readRequest(store,new Request('https://worker/rest/v1/rpc/mtf_save_regulated_worker_state',{method:'POST',body:'{}'}))).status,403);
 assert.equal((await readRequest(store,new Request('https://worker/rest/v1/mtf_alert_config'))).status,404);
 assert.equal((await readRequest(store,new Request('https://worker/rest/v1/mtf_signals?limit=1001'))).status,400);

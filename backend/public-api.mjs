@@ -39,7 +39,7 @@ export async function publicRpc(store,name,args={},options={}){
     const registry=await rows(store,'mtf_strategy_registry');
     const activated=registry.filter(x=>active.has(x.version)).map(x=>x.activated_at).filter(Boolean).sort().at(-1)||null;
     const activation=new Map(registry.map(x=>[x.version,x.activated_at]));
-    const operations=(await rows(store,'mtf_signals')).filter(x=>x.source==='FORWARD'&&active.has(x.strategy_version)&&!x.context?.stats_epoch_excluded&&!x.context?.audit_duplicate&&(!activation.get(x.strategy_version)||x.signal_time>=activation.get(x.strategy_version)));
+    const operations=(await rows(store,'mtf_signals')).filter(x=>x.source==='FORWARD'&&active.has(x.strategy_version)&&!x.context?.stats_epoch_excluded&&!x.context?.audit_duplicate&&(!activation.get(x.strategy_version)||Date.parse(x.signal_time)>=Date.parse(activation.get(x.strategy_version)))).map(x=>({...x,status:x.status==='SL'&&x.context?.exit_reason==='BREAK_EVEN'?'BE':x.status}));
     const closed=operations.filter(x=>['TP1','TP2','TP3','SL','BE','CLOSED','AMBIGUOUS'].includes(x.status));
     return {operations,summary:{total:operations.length,open:operations.filter(x=>x.status==='OPEN').length,closed:closed.length},
       metrics:{validated:false},alerts:{},reconciliation:{},definition:'Señales FORWARD de la cohorte activa; rentabilidad sin validar',
@@ -59,7 +59,7 @@ export async function publicRpc(store,name,args={},options={}){
     const state=store.readState('adr_live'),registry=(await rows(store,'mtf_strategy_registry')).find(x=>x.version==='ADR-OB-v1.0');
     const signals=(await rows(store,'mtf_signals')).filter(x=>x.strategy_version==='ADR-OB-v1.0'&&x.source==='FORWARD'&&x.market==='merval');
     const opens=signals.filter(x=>x.status==='OPEN'),job=(await rows(store,'mtf_jobs')).find(x=>x.name==='adr_live');
-    const violations=signals.filter(x=>x.direction!=='LONG'||Number(x.context?.planned_rr)<1.8||x.context?.context?.trend!=='ALCISTA'||x.context?.macro_context?.w1?.trend!=='ALCISTA'||x.context?.stop_policy!=='REFERENCE_ONLY_NO_AUTO_EXIT'||x.context?.exit_policy!=='TP1_FINAL'||['TP2','TP3'].includes(x.status));
+    const violations=signals.filter(x=>x.direction!=='LONG'||!(Number(x.context?.planned_rr)>=1.8)||x.context?.context?.trend!=='ALCISTA'||x.context?.macro_context?.w1?.trend!=='ALCISTA'||x.context?.stop_policy!=='REFERENCE_ONLY_NO_AUTO_EXIT'||x.context?.exit_policy!=='TP1_FINAL'||['TP2','TP3'].includes(x.status));
     return {runtime:{...state,snapshot_count:state?.meta?.snapshot?.length||0},strategy:registry||{},performance_validated:false,
       signals:{total:signals.length,open:opens.length,violations:violations.length},checks:{registry_frozen:registry?.frozen===true,
         runtime_version_ok:state?.meta?.strategy_version==='ADR-OB-v1.0',runtime_engine_ok:state?.meta?.engine==='ADR_DW_15M_RECOVERY_V1',
