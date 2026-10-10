@@ -16,7 +16,7 @@ Retención: decisiones 24 horas, errores 3 días y trabajo CEDEAR 7 días, prese
 
 ## Límites del plan gratuito
 
-Cloudflare incluye Workers y Durable Objects con SQLite en su plan Free. Existen cuotas: Workers 100.000 solicitudes/día; Durable Objects 100.000 solicitudes/día y 13.333 GB-s/día; SQLite 5 millones de filas leídas/día, 100.000 escritas/día y 5 GB almacenados. Las alarmas y los índices consumen parte de esas cuotas. El Worker HTTP tiene 10 ms de CPU; el cálculo se ejecuta dentro del Durable Object, cuyo límite predeterminado es 30 segundos de CPU por invocación. El tiempo esperando HTTP y la CPU son límites distintos.
+Cloudflare incluye Workers y Durable Objects con SQLite en su plan Free. Existen cuotas: Workers 100.000 solicitudes/día; Durable Objects 100.000 solicitudes/día y 13.000 GB-s/día; SQLite 5 millones de filas leídas/día, 100.000 escritas/día y 5 GB almacenados. Las alarmas y los índices consumen parte de esas cuotas. El Worker HTTP tiene 10 ms de CPU; el cálculo se ejecuta dentro del Durable Object, cuyo límite predeterminado es 30 segundos de CPU por invocación. El tiempo esperando HTTP y la CPU son límites distintos.
 
 No se activa ningún plan de pago. Debe medirse el consumo real tras el despliegue: las pruebas locales no acreditan cumplimiento de cuotas ni disponibilidad ilimitada. Referencias oficiales: [Workers](https://developers.cloudflare.com/workers/platform/limits/), [Durable Objects](https://developers.cloudflare.com/durable-objects/platform/pricing/), [límites SQLite](https://developers.cloudflare.com/durable-objects/platform/limits/).
 

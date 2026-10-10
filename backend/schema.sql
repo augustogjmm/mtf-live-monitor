@@ -59,9 +59,9 @@ CREATE TRIGGER IF NOT EXISTS mtf_registry_frozen_guard BEFORE UPDATE ON mtf_reco
 WHEN OLD.bucket='mtf_strategy_registry' AND json_extract(OLD.value,'$.frozen')=1
   AND NEW.value<>OLD.value
 BEGIN SELECT RAISE(ABORT,'Strategy registry is frozen'); END;
-CREATE INDEX IF NOT EXISTS mtf_market_lookup ON mtf_records(bucket,json_extract(value,'$.market'));
-CREATE INDEX IF NOT EXISTS mtf_run_lookup ON mtf_records(bucket,json_extract(value,'$.run_date'),json_extract(value,'$.symbol'));
-CREATE INDEX IF NOT EXISTS mtf_job_lookup ON mtf_records(bucket,json_extract(value,'$.name'));
+CREATE INDEX IF NOT EXISTS mtf_market_lookup ON mtf_records(bucket,json_extract(value,'$.market')) WHERE bucket IN ('mtf_signals','mtf_analyzer_state','mtf_decision_audit');
+CREATE INDEX IF NOT EXISTS mtf_run_lookup ON mtf_records(bucket,json_extract(value,'$.run_date'),json_extract(value,'$.symbol')) WHERE bucket='mtf_cedear_work';
+CREATE INDEX IF NOT EXISTS mtf_job_lookup ON mtf_records(bucket,json_extract(value,'$.name')) WHERE bucket='mtf_jobs';
 
 CREATE UNIQUE INDEX IF NOT EXISTS mtf_alert_event_dedupe ON mtf_records (
  json_extract(value,'$.group_key'),json_extract(value,'$.event_type')
