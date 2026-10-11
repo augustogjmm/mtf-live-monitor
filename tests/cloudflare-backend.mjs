@@ -52,10 +52,19 @@ assert.equal((await actor.fetch(admin('start'))).status,200);assert.ok(alarm>Dat
 assert.equal(actor.setting().baseline,true);assert.equal(actor.setting().regulatedBaseline,true);assert.equal(actor.setting().adrBaseline,true);
 assert.equal((await actor.fetch(admin('stop'))).status,200);assert.equal(deleted,true);assert.equal(actor.setting().enabled,false);
 await actor.fetch(admin('start'));
+actor.saveSetting({...actor.setting(),regulatedBaseline:false,adrBaseline:false});
 const jobs=[];actor.cryptoStructure=async()=>jobs.push('structure');
 actor.engine=name=>name==='crypto'?{live:async entries=>{assert.equal(entries,false);jobs.push('crypto');return {ready:true}}}:{engineKey:'test',handler:async()=>{jobs.push('watcher');return Response.json({ok:true})}};
 // Freeze the scheduler on a Saturday so the test has no market-window dependency.
 const NativeDate=globalThis.Date;globalThis.Date=class extends NativeDate{constructor(...args){super(...(args.length?args:['2026-10-10T12:00:00Z']))}static now(){return NativeDate.parse('2026-10-10T12:00:00Z')}};
 try{for(let i=0;i<4;i++)await actor.alarm();assert.deepEqual(jobs,['structure','crypto','watcher']);assert.equal((await actor.store.from('mtf_jobs').select('*')).data.length,4);await actor.alarm();assert.equal(jobs.length,3);assert.equal(actor.setting().baseline,false)}finally{globalThis.Date=NativeDate}
 const {createEngine}=await import('../artifacts/cloudflare/adr.mjs');const checks=await createEngine(store).selftest();assert.equal(checks.passed,8);
+const {createMarketFetch}=await import('../backend/market-fetch.mjs');
+let outbound=0;const marketFetch=createMarketFetch(store,{fetch:async url=>{outbound++;assert.ok(String(url).startsWith('https://mtf-monitor.vercel.app/api/crypto-data?path='));return Response.json([[1,2,3]])}});
+assert.deepEqual(await (await marketFetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=1000')).json(),[[1,2,3]]);
+await marketFetch('https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=1000');assert.equal(outbound,1,'closed context cache shares provider hosts');
+await marketFetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=16');await marketFetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=16');assert.equal(outbound,3,'confirmation candles remain live');
+store.put('market_data_cache','/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=1000',{expires:1,data:[]});await marketFetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=1000');assert.equal(outbound,4,'expired context is refreshed');
+await store.from('mtf_state').upsert({market:'crypto_structure',meta:{snapshot:[{symbol:'BTC'},{symbol:'ETH'}]}});
+const quoteFetch=createMarketFetch(store,{fetch:async url=>{const path=new URL(url).searchParams.get('path');assert.deepEqual(JSON.parse(new URL(path,'https://api.binance.com').searchParams.get('symbols')),['BTCUSDT','ETHUSDT']);return Response.json([]);}});await quoteFetch('https://api.binance.com/api/v3/ticker/price');
 console.log('Cloudflare backend: real SQLite import/rollback, preserved snapshots, risk and identity guards, readonly API, admin authentication, activation baseline and ADR 8/8 passed');

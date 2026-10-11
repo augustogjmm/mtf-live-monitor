@@ -1,4 +1,4 @@
-> **Migración en curso:** Supabase está desconectado y sus nueve cron apagados. El reemplazo gratuito usa Cloudflare Workers + SQLite Durable Objects. Falta conectar la cuenta del propietario para activar el backend; las lecturas runtime devuelven 503 hasta entonces. Ver [guía de migración](docs/CLOUDFLARE_MIGRATION.md).
+> **Backend gratuito:** Cloudflare Workers + SQLite Durable Objects conserva los datos del monitor. Supabase está desconectado y sus nueve cron apagados. Ver [guía de migración y operación](docs/CLOUDFLARE_MIGRATION.md); el panel de salud informa la disponibilidad real de cada mercado.
 
 # MTF Live Monitor
 
