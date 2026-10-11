@@ -97,6 +97,15 @@ helpers.CC.status = {
   api_generated_at: new Date().toISOString()
 };
 assert.equal(helpers.healthCompact().scanner, 'error'); // No telemetry is not healthy.
+helpers.CC.status.alerts.telegram_linked=false;
+assert.equal(helpers.healthCompact().telegram,'unconfigured');
+assert.equal(helpers.healthCompact().watcher,'ok');
+helpers.CC.status.jobs=[{name:'watcher',active:true,last_status:'failed'}];
+assert.equal(helpers.healthCompact().watcher,'error');
+helpers.CC.status.jobs=[{name:'watcher',active:true,last_status:'succeeded'}];
+helpers.CC.status.alerts.last_watcher_at=new Date(Date.now()-13*60000).toISOString();
+assert.equal(helpers.healthCompact().watcher,'error');
+
 const rows = helpers.regulatedRows({liveStates: [{symbol: 'AAL', price: null, context: {}}]}, 'CEDEAR');
 assert.ok(Number.isNaN(rows[0].price));
 
