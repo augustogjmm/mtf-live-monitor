@@ -67,4 +67,16 @@ await marketFetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval
 store.put('market_data_cache','/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=1000',{expires:1,data:[]});await marketFetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=1000');assert.equal(outbound,4,'expired context is refreshed');
 await store.from('mtf_state').upsert({market:'crypto_structure',meta:{snapshot:[{symbol:'BTC'},{symbol:'ETH'}]}});
 const quoteFetch=createMarketFetch(store,{fetch:async url=>{const path=new URL(url).searchParams.get('path');assert.deepEqual(JSON.parse(new URL(path,'https://api.binance.com').searchParams.get('symbols')),['BTCUSDT','ETHUSDT']);return Response.json([]);}});await quoteFetch('https://api.binance.com/api/v3/ticker/price');
-console.log('Cloudflare backend: real SQLite import/rollback, preserved snapshots, risk and identity guards, readonly API, admin authentication, activation baseline and ADR 8/8 passed');
+const {createEngine:createWatcher}=await import('../artifacts/cloudflare/watcher.mjs');
+const watchStore=database().store,watchSince=new Date(Date.now()-300000).toISOString();
+await watchStore.from('mtf_alert_config').insert({id:1,enabled:true,entry_direction:'BOTH',activated_at:'2026-10-09T00:00:00Z',last_watcher_at:watchSince});
+await watchStore.from('mtf_signals').insert({...signal,signal_time:new Date(Date.now()-360000).toISOString(),created_at:'2026-10-09T00:00:00Z'});
+const watcher=createWatcher(watchStore,{engineKey:'watch-test',fetch:async url=>{
+ if(String(url).includes('binance'))return Response.json({error:'provider unavailable'},{status:503});
+ return Response.json({});
+}});
+const failedWatch=await watcher.handler(new Request('https://worker/',{method:'POST',headers:{authorization:'Bearer watch-test','content-type':'application/json'},body:'{}'}));
+assert.equal(failedWatch.status,500,'provider failure must fail the watcher cycle');
+assert.match((await failedWatch.json()).error,/Watcher crypto:BTC data unavailable/);
+assert.equal((await watchStore.from('mtf_alert_config').select('*').eq('id',1).single()).data.last_watcher_at,watchSince,'failed cycle preserves the replay cursor');
+console.log('Cloudflare backend: real SQLite import/rollback, preserved snapshots, risk and identity guards, readonly API, admin authentication, activation baseline, watcher failure recovery and ADR 8/8 passed');
