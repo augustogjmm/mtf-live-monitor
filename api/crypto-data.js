@@ -9,7 +9,7 @@ module.exports=async function handler(req,res){
   const raw=String(req.query?.path||'');if(!raw.startsWith('/api/v3/'))throw Error('Invalid market path');
   target=new URL(raw,HOSTS[0]);if(target.origin!==HOSTS[0])throw Error('Invalid market origin');
   if(target.pathname==='/api/v3/klines'){
-   if(!pair(target.searchParams.get('symbol')||'')||!['15m','1h','4h','1d'].includes(target.searchParams.get('interval')))throw Error('Invalid symbol or interval');
+   if(!pair(target.searchParams.get('symbol')||'')||!['1m','15m','1h','4h','1d'].includes(target.searchParams.get('interval')))throw Error('Invalid symbol or interval');
    const limit=Number(target.searchParams.get('limit')||1000);if(!Number.isInteger(limit)||limit<1||limit>1000)throw Error('Invalid candle limit');
    for(const [key,value]of target.searchParams){if(!['symbol','interval','limit','startTime','endTime'].includes(key))throw Error('Invalid parameter');if(['startTime','endTime'].includes(key)&&(!/^\d+$/.test(value)||!Number.isSafeInteger(Number(value))||Number(value)>Date.now()+86400000))throw Error('Invalid candle timestamp');}
   }else if(target.pathname==='/api/v3/ticker/price'){

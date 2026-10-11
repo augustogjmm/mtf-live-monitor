@@ -562,7 +562,7 @@ Deno.serve(async(req:Request)=>{
           if(rep.market==="crypto")bars=await cryptoBars(rep.symbol,fetchFrom);
           else if(rep.market==="merval"&&String(rep.context?.pricing_method||"").toUpperCase()==="SYNTH")bars=await mervalSyntheticBars(rep.symbol,fetchFrom);
           else bars=await cedearBars(rep.underlying||rep.symbol,fetchFrom);
-        }catch(_){bars=[]}
+        }catch(error){throw new Error(`Watcher ${rep.market}:${rep.symbol} data unavailable: ${String((error as Error).message||error)}`)}
         cache.set(dataKey,bars);
       }
       checked++;

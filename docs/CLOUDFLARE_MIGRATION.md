@@ -38,7 +38,7 @@ Sin cuenta y autenticación del propietario no puede desplegarse este servicio. 
 
 ## Validación realizada
 
-`npm test` incluye ocho suites y la nueva prueba sobre SQLite real: importación y rollback, preservación de snapshots, protecciones de riesgo e identidad, cierre sin reapertura, baseline al activar, denegación de escrituras públicas y autenticación administrativa. `npm run test:browser` verifica los tres mercados, estadísticas, móvil y fallos de API. Los ocho controles ADR pasan en los módulos compilados. El respaldo real se importó en una base SQLite local y se comprobaron todos los conteos.
+`npm test` ejecuta nueve suites, incluyendo SQLite real y la API de datos crypto: importación y rollback, preservación de snapshots, protecciones de riesgo e identidad, cierre sin reapertura, baseline al activar, denegación de escrituras públicas y autenticación administrativa. `npm run test:browser` verifica los tres mercados, estadísticas, móvil y fallos de API. Los ocho controles ADR pasan en los módulos compilados. El respaldo real se importó en una base SQLite local y se comprobaron todos los conteos.
 
 También se ejecutaron los tres motores en baseline contra proveedores reales usando únicamente la copia SQLite local: crypto procesó 20 activos, CEDEAR 9 y ADR completó el ciclo; todos devolvieron cero señales nuevas y cero errores. Esto no escribió en producción ni activó alertas.
 
@@ -56,3 +56,7 @@ Las cotizaciones solicitan únicamente el universo monitoreado (hasta 50 pares),
 Las credenciales administrativas se generan una vez y se conservan en un archivo privado fuera del repositorio. El despliegue reutiliza esa credencial y configura los secretos antes de actualizar un Worker existente, evitando que el proceso use una credencial diferente de la herramienta de mantenimiento. No publicar ese archivo ni los respaldos. La lectura de `/admin/export` requiere autenticación y sirve para respaldar sin truncar señales.
 
 El consumo mensual de Vercel y las cuotas diarias de Cloudflare deben verificarse con uso real. La evidencia final de las rutas de producción y los motores se guarda fuera del repositorio en `/workspace/.mtf-validation`; un despliegue exitoso por sí solo no prueba que el proveedor de datos esté disponible.
+
+El 11 de octubre de 2026 se verificó HTTP 200 en las ocho rutas de producción, incluidas las lecturas de los tres mercados, estadísticas y estado. Las velas Binance reales llegaron por Vercel y los motores crypto, CEDEAR y ADR completaron ciclos en Cloudflare. Se conservaron las 19 señales importadas y no se generaron entradas durante el baseline crypto. CEDEAR muestra datos vencidos fuera de rueda; el heartbeat del motor no oculta esa condición. Los errores de las pruebas iniciales permanecen en el historial y vencen según la retención, sin truncar la base.
+
+La API también admite las velas de un minuto, limitadas a 1.000, que el watcher usa para comprobar niveles de operaciones abiertas. Un fallo al obtener esas velas hace fallar el ciclo y conserva `last_watcher_at`, permitiendo reintentar el intervalo pendiente. La prueba sobre SQLite real comprueba esa conservación; la API mantiene bloqueadas las operaciones de trading y las consultas a cuentas privadas.
