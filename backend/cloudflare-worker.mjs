@@ -1,6 +1,7 @@
 import schema from './schema.mjs';
 import {SQLiteStore} from './sqlite-store.mjs';
 import {readRequest} from './public-api.mjs';
+import {createMarketFetch} from './market-fetch.mjs';
 import {createEngine as cryptoEngine} from './crypto.mjs';
 import {createEngine as adrEngine} from './adr.mjs';
 import {createEngine as regulatedEngine} from './regulated.mjs';
@@ -31,6 +32,12 @@ export class MtfMonitor {
         if(request.method==='GET'&&path==='/admin/status')return json({provider:'cloudflare-sqlite',settings:this.setting(),
           jobs:(await this.store.from('mtf_jobs').select('*')).data,
           records:this.store.rows('SELECT bucket,count(*) AS rows FROM mtf_records GROUP BY bucket')});
+        if(request.method==='GET'&&path==='/admin/provider-status'){
+          const probes=await Promise.all(['https://api.binance.com/api/v3/time','https://data-api.binance.vision/api/v3/time','https://www.cloudflare.com/cdn-cgi/trace'].map(async url=>{try{const response=await fetch(url,{headers:{'user-agent':'MTF-Monitor/6.3.3 (+https://mtf-monitor.vercel.app)','accept':'application/json'},signal:AbortSignal.timeout(10000)});return {url,status:response.status,body:(await response.text()).slice(0,400)};}catch(error){return {url,error:error.message};}}));return json({jurisdiction:this.ctx.id.jurisdiction,probes});
+        }
+        if(request.method==='GET'&&path==='/admin/export'){
+          const backup={};for(const table of ['mtf_state','mtf_signals','mtf_cedear_work','mtf_alert_config','mtf_alert_events','mtf_analyzer_state','mtf_strategy_registry','mtf_alert_delivery_ledger','mtf_decision_audit','mtf_runtime_errors','mtf_jobs']){const result=await this.store.from(table).select('*');if(result.error)throw Error(result.error.message);backup[table]=result.data;}return json({backup});
+        }
         if(request.method!=='POST')return json({error:'method unavailable'},405);
         if(path==='/admin/import'){
           if(this.setting().enabled)return json({error:'Stop engines before import'},409);
@@ -53,13 +60,7 @@ export class MtfMonitor {
     }catch(error){return json({error:String(error.message).slice(0,300)},500);}
   }
   engine(name){
-    let calls=0;const deadline=Date.now()+45000;
-    const boundedFetch=(url,options)=>{
-      if(++calls>42)throw Error('Free-plan outbound budget exhausted; retry next scheduled cycle');
-      const remaining=deadline-Date.now();if(remaining<=0)throw Error('Scheduled cycle time budget exhausted');
-      const timeout=AbortSignal.timeout(remaining),signal=options?.signal?AbortSignal.any([options.signal,timeout]):timeout;
-      return fetch(url,{...options,signal});
-    };
+    const boundedFetch=createMarketFetch(this.store);
     return factories[name](this.store,{fetch:boundedFetch,variables:{
       TELEGRAM_BOT_TOKEN:this.env.TELEGRAM_BOT_TOKEN||'',TELEGRAM_CHAT_ID:this.env.TELEGRAM_CHAT_ID||''}});
   }
@@ -84,7 +85,7 @@ export class MtfMonitor {
   async cryptoStructure(){
     const previous=this.store.readState('crypto_structure'),setting=this.setting();
     const base=previous?.meta?.universe||previous?.meta?.scan_universe||[];
-    const opens=(await this.store.from('mtf_signals').select('symbol').eq('market','crypto').eq('status','OPEN')).data||[];
+    const opens=(await this.store.from('mtf_signals').select('symbol').eq('market','crypto').eq('source','FORWARD').in('strategy_version',['MACD-OB-v1.0','MACD-OB-v2.0']).eq('status','OPEN')).data||[];
     const symbols=[...new Set([...base,...opens.map(x=>x.symbol)])];
     if(!symbols.length)throw Error('Imported crypto universe missing');
     const start=(setting.cryptoCursor||0)%symbols.length,batch=Array.from({length:Math.min(5,symbols.length)},(_,i)=>symbols[(start+i)%symbols.length]);
@@ -118,8 +119,8 @@ export class MtfMonitor {
           method:'POST',headers:{authorization:'Bearer '+engine.engineKey,'content-type':'application/json'},body:'{}'}));
         if(!response.ok){const body=await response.json();throw Error(body.error||'Watcher failed');}
       }],
-      ...(regulatedWindow?[['regulated_live',1,async()=>{const result=await this.engine('regulated').processRegulatedLive(!this.setting().regulatedBaseline);if(result.next_cursor===0||(this.store.readState('regulated_live')?.meta?.full_cycle_completed))this.saveSetting({...this.setting(),regulatedBaseline:false});if(result.errors?.length>=result.scanned_this_run&&result.scanned_this_run>0)throw Error('Regulated batch has no successful assets');}]]:[]),
-      ...(adrWindow?[['adr_live',5,async()=>{await this.engine('adr').run(this.setting().adrBaseline?'baseline':'live');this.saveSetting({...this.setting(),adrBaseline:false});}]]:[]),
+      ...((regulatedWindow||this.setting().regulatedBaseline)?[['regulated_live',1,async()=>{const result=await this.engine('regulated').processRegulatedLive(!this.setting().regulatedBaseline);if(result.next_cursor===0||(this.store.readState('regulated_live')?.meta?.full_cycle_completed))this.saveSetting({...this.setting(),regulatedBaseline:false});if(result.errors?.length>=result.scanned_this_run&&result.scanned_this_run>0)throw Error('Regulated batch has no successful assets');}]]:[]),
+      ...((adrWindow||this.setting().adrBaseline)?[['adr_live',5,async()=>{await this.engine('adr').run(this.setting().adrBaseline?'baseline':'live');this.saveSetting({...this.setting(),adrBaseline:false});}]]:[]),
       ...(regulatedWindow?[['cedear_prepare',1,async()=>{
         const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Argentina/Buenos_Aires',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
         if(this.setting().preparedDate===today)return;
@@ -146,7 +147,8 @@ export default {
   async fetch(request,env,ctx){
     const url=new URL(request.url);
     if(url.pathname==='/health')return json({ok:true,provider:'cloudflare-sqlite',paid_plan_required:false});
-    const stub=env.MONITOR.get(env.MONITOR.idFromName('mtf-production-v1'));
+    const namespace=env.MONITOR.jurisdiction('eu');
+    const stub=namespace.get(namespace.idFromName('mtf-production-v1'));
     if(url.pathname.startsWith('/admin/'))return stub.fetch(request);
     const cache=globalThis.caches?.default;
     let key;

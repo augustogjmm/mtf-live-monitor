@@ -24,12 +24,16 @@ async function main(){
  const metadata={main_module:'cloudflare-worker.mjs',compatibility_date:'2026-10-01',keep_bindings:['secret_text'],
   bindings:[{type:'durable_object_namespace',name:'MONITOR',class_name:'MtfMonitor'}],
   ...(!existing?{migrations:{new_tag:'v1',steps:[{new_sqlite_classes:['MtfMonitor']}]}}:{})};
+ const adminFile=process.env.MTF_CLOUDFLARE_ADMIN_FILE||path.resolve('..','.mtf-migration','cloudflare-admin-token');
+ const adminToken=fs.existsSync(adminFile)?fs.readFileSync(adminFile,'utf8').trim():crypto.randomBytes(32).toString('hex');
+ if(!/^[a-f0-9]{64}$/i.test(adminToken))throw Error('Invalid private admin credential file');
+ fs.mkdirSync(path.dirname(adminFile),{recursive:true,mode:0o700});fs.writeFileSync(adminFile,adminToken,{mode:0o600});
+ if(existing)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'ADMIN_TOKEN',text:adminToken,type:'secret_text'});
  const form=new FormData();form.set('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
  for(const name of fs.readdirSync(directory).filter(x=>x.endsWith('.mjs')))
   form.set(name,new Blob([fs.readFileSync(path.join(directory,name))],{type:'application/javascript+module'}),name);
  await api('/workers/scripts/'+worker,'PUT',form);
- const adminToken=crypto.randomBytes(32).toString('hex');
- await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'ADMIN_TOKEN',text:adminToken,type:'secret_text'});
+ if(!existing)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'ADMIN_TOKEN',text:adminToken,type:'secret_text'});
  // Telegram is optional. Omit it unless an actual bot token is securely configured.
  if(process.env.TELEGRAM_BOT_TOKEN)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'TELEGRAM_BOT_TOKEN',text:process.env.TELEGRAM_BOT_TOKEN,type:'secret_text'});
  await api('/workers/scripts/'+worker+'/subdomain','POST',{enabled:true,previews_enabled:false});

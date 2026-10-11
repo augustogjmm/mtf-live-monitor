@@ -34,9 +34,11 @@ function response(value, status=200) {
   assert.equal((await request(local.handler, {op:'runtime', market:'other'})).status, 400);
   assert.equal((await request(local.handler, {op:'canary'})).status, 403);
   assert.equal(calls, 0);
-  const disconnected=fixture(async()=>{throw Error('Disabled provider reached network');},{});
+  const disconnected=fixture(async()=>{throw Error('Disabled provider reached network');},{MTF_BACKEND_URL:''});
   assert.equal((await request(disconnected.handler,{op:'runtime',market:'crypto'})).status,503);
   assert.equal((await request(disconnected.handler,{op:'health'})).body.backend_configured,false);
+  const production=fixture(async url=>{assert.ok(url.startsWith('https://mtf-monitor-backend.augusto-garciajm.workers.dev/'));return response([]);},{});
+  assert.equal((await request(production.handler,{op:'runtime',market:'crypto'})).status,200);
   let stagingCalls=0;
   const staging=fixture(async (url, init)=>{
     stagingCalls++;

@@ -20,7 +20,7 @@ for(const [name,exports] of Object.entries(engines)){
   }\n`;
   fs.writeFileSync(path.join(output,name+'.mjs'),wrapper);
 }
-for(const name of ['sqlite-store','public-api','cloudflare-worker'])
+for(const name of ['sqlite-store','public-api','market-fetch','cloudflare-worker'])
   fs.copyFileSync('backend/'+name+'.mjs',path.join(output,name+'.mjs'));
 const schema=fs.readFileSync('backend/schema.sql','utf8');
 fs.writeFileSync(path.join(output,'schema.mjs'),'export default '+JSON.stringify(schema)+';\n');
