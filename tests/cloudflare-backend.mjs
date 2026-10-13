@@ -31,6 +31,10 @@ await store.from('mtf_state').upsert({market:'regulated_live',meta:{snapshot:[{m
 const merged=await store.rpc('mtf_save_regulated_worker_state',{p_state:{market:'regulated_live',meta:{snapshot:[{market:'cedear',symbol:'A',price:11,t:Date.now(),ready:true},{market:'cedear',symbol:'B'}]}},p_replaced:['cedear:A']});
 assert.equal(merged.error,null);const snapshot=store.readState('regulated_live').meta.snapshot;
 assert.equal(snapshot[0].price,11);assert.equal(snapshot[1].price,20);assert.equal(snapshot[1].ready,false);
+const compactStatus=await publicRpc(store,'mtf_system_status');
+assert.equal(compactStatus.states.regulated_live.snapshot_count,2);
+assert.equal(compactStatus.states.regulated_live.meta.snapshot,undefined,'status does not resend every asset payload');
+assert.equal(store.readState('regulated_live').meta.snapshot.length,2,'compacting status preserves stored and runtime data');
 const protectedSignal=await store.from('mtf_signals').insert({...signal,symbol:'ETH',context:{setup_id:'be',entry_rank:1}}).select('*').single();
 await store.from('mtf_signals').update({status:'SL',context:{setup_id:'be',entry_rank:1,exit_reason:'BREAK_EVEN'}}).eq('id',protectedSignal.data.id);
 assert.equal((await publicRpc(store,'mtf_stats_snapshot_fast')).operations.find(x=>x.symbol==='ETH').status,'BE');

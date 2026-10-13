@@ -20,6 +20,7 @@ Los resultados son investigación sobre activos seleccionados, sin un universo h
 - La estructura elimina activos que ya no pertenecen al universo ni tienen operaciones abiertas canónicas, evitando mantener filas con errores antiguos indefinidamente.
 - ADR procesa los 14 activos cada cinco minutos; anteriormente rotaba bloques de cuatro, con un recorrido de aproximadamente veinte minutos que podía perder confirmaciones.
 - CEDEAR conserva el recorrido general y el reintento, y agrega una vía rápida limitada a ocho candidatos que ya admiten entradas y están cerca o dentro de sus zonas. No modifica filtros ni reproduce velas vencidas. Activos fuera de esta vía siguen sujetos al tiempo del recorrido general; no se promete cobertura instantánea del universo completo.
+- El estado del sistema devuelve resúmenes en vez de repetir los snapshots completos de todos los activos. La respuesta anterior superaba 1,8 MB; las cotizaciones completas permanecen en las rutas de cada mercado.
 - El panel distingue salud técnica de estrategia: muestra `SIN VALIDAR` y el número de confirmaciones y entradas registradas. No se inventan operaciones para aumentar actividad.
 
 ## Reproducir
