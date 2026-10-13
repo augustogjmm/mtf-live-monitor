@@ -9,7 +9,7 @@ const exportsByEngine = {
     'directionEligibility','qualifiedOb','rejectsZone','tradePlan','levelFromPublic',
     'confirmationSafety','confirmationSnapshot','authorizedEngineRequest'],
   'mtf-adr-engine': ['diagnostic','confirmationPlan','selftest','forwardConfirmation','weeksFromDaily','authorizedEngineRequest'],
-  'mtf-daily-backfill': ['regulatedLiveDiagnostic','regulatedRiskProfile','confirmedCedearRecovery','ladderSignal','MIN_RR','authorizedEngineRequest']
+  'mtf-daily-backfill': ['regulatedLiveDiagnostic','regulatedRiskProfile','confirmedCedearRecovery','ladderSignal','MIN_RR','authorizedEngineRequest','boundedHotCandidates']
 };
 function loadEngine(name, options={}) {
   const names = exportsByEngine[name];

@@ -89,7 +89,7 @@ export class MtfMonitor {
     const symbols=[...new Set([...base,...opens.map(x=>x.symbol)])];
     if(!symbols.length)throw Error('Imported crypto universe missing');
     const start=(setting.cryptoCursor||0)%symbols.length,batch=Array.from({length:Math.min(5,symbols.length)},(_,i)=>symbols[(start+i)%symbols.length]);
-    const engine=this.engine('crypto'),snapshot=new Map((previous?.meta?.snapshot||[]).map(x=>[x.symbol,x]));
+    const engine=this.engine('crypto'),snapshot=new Map((previous?.meta?.snapshot||[]).filter(x=>symbols.includes(x.symbol)).map(x=>[x.symbol,x]));
     for(const symbol of batch){
       try{snapshot.set(symbol,await engine.snapshotOne(symbol));}
       catch(error){snapshot.set(symbol,{symbol,ready:false,error:true,reason:String(error.message),generatedAt:new Date().toISOString()});}
@@ -112,6 +112,7 @@ export class MtfMonitor {
       ['crypto_live',2,async()=>{
         const result=await this.engine('crypto').live(!this.setting().baseline);
         if(result.ready===false||result.funnel?.ready===0)throw Error(result.reason||'Crypto structure not ready');
+        if(result.funnel?.data_errors>0)throw Error('Crypto confirmation data unavailable for '+result.funnel.data_errors+' assets; cursors preserved');
         this.saveSetting({...this.setting(),baseline:false});
       }],
       ['watcher',1,async()=>{
