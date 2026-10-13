@@ -28,14 +28,20 @@ async function main(){
  const adminToken=fs.existsSync(adminFile)?fs.readFileSync(adminFile,'utf8').trim():crypto.randomBytes(32).toString('hex');
  if(!/^[a-f0-9]{64}$/i.test(adminToken))throw Error('Invalid private admin credential file');
  fs.mkdirSync(path.dirname(adminFile),{recursive:true,mode:0o700});fs.writeFileSync(adminFile,adminToken,{mode:0o600});
- if(existing)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'ADMIN_TOKEN',text:adminToken,type:'secret_text'});
+ if(existing){
+  const current=await fetch('https://'+worker+'.'+subdomain.subdomain+'.workers.dev/admin/status',{
+   headers:{authorization:'Bearer '+adminToken},signal:AbortSignal.timeout(30000)});
+  if(current.status===401)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'ADMIN_TOKEN',text:adminToken,type:'secret_text'});
+  else if(!current.ok)throw Error('Existing administrative authentication could not be verified (HTTP '+current.status+')');
+ }
+ if(existing&&process.env.TELEGRAM_BOT_TOKEN)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'TELEGRAM_BOT_TOKEN',text:process.env.TELEGRAM_BOT_TOKEN,type:'secret_text'});
  const form=new FormData();form.set('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
  for(const name of fs.readdirSync(directory).filter(x=>x.endsWith('.mjs')))
   form.set(name,new Blob([fs.readFileSync(path.join(directory,name))],{type:'application/javascript+module'}),name);
  await api('/workers/scripts/'+worker,'PUT',form);
  if(!existing)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'ADMIN_TOKEN',text:adminToken,type:'secret_text'});
  // Telegram is optional. Omit it unless an actual bot token is securely configured.
- if(process.env.TELEGRAM_BOT_TOKEN)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'TELEGRAM_BOT_TOKEN',text:process.env.TELEGRAM_BOT_TOKEN,type:'secret_text'});
+ if(!existing&&process.env.TELEGRAM_BOT_TOKEN)await api('/workers/scripts/'+worker+'/secrets','PUT',{name:'TELEGRAM_BOT_TOKEN',text:process.env.TELEGRAM_BOT_TOKEN,type:'secret_text'});
  await api('/workers/scripts/'+worker+'/subdomain','POST',{enabled:true,previews_enabled:false});
  const origin='https://'+worker+'.'+subdomain.subdomain+'.workers.dev';
  const admin=async(route,body)=>{
