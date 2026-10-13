@@ -363,7 +363,7 @@ async function live(createEntries=true){
   const prevMap=new Map<string,any>((prevRow?.meta?.snapshot||[]).map((x:any)=>[String(x.symbol),x]));
   let hourlyConfirmation:any=prevRow?.meta?.hourlyConfirmation||null;
   const prices=await currentPrices(),liveStates:any[]=[],created:any[]=[],
-        funnel:any={assets:snaps.length,ready:0,near_or_zone:0,context_allowed:0,structure_allowed:0,momentum_allowed:0,eligible_current:0,confirmation_bars_checked:0,confirmation_blocks:{},rejection_hits:0,rr_pass:0,entries:0};
+        funnel:any={assets:snaps.length,ready:0,data_errors:0,near_or_zone:0,context_allowed:0,structure_allowed:0,momentum_allowed:0,eligible_current:0,confirmation_bars_checked:0,confirmation_blocks:{},rejection_hits:0,rr_pass:0,entries:0};
   const {data:currentOpenRows,error:currentOpenErr}=await sb.from("mtf_signals").select("*")
     .in("strategy_version",[VERSION,"MACD-OB-v1.0"]).eq("market","crypto").eq("source","FORWARD").eq("status","OPEN").order("signal_time");
   if(currentOpenErr)throw currentOpenErr;
@@ -388,7 +388,13 @@ async function live(createEntries=true){
     let lastH1=n(prev?.last_h1_close)||0,lastM15=n(prev?.last_m15_close)||0;
     let confirmationBars:Bar[]=[];
     try{const rows=await klines(pair,"15m",16);
-      confirmationBars=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now()).sort((x:Bar,y:Bar)=>x.t-y.t);}catch{}
+      confirmationBars=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now()).sort((x:Bar,y:Bar)=>x.t-y.t);
+      if(!confirmationBars.length)throw new Error("missing_closed_confirmation_bars");
+    }catch(error){
+      funnel.data_errors++;
+      liveStates.push({...prev,symbol:sym,state:"DATA_ERROR",reason:String((error as Error).message||error),updated_at:iso()});
+      continue;
+    }
     // Establish an initial baseline: do not replay stale historical touches.
     if(!lastM15&&confirmationBars.length)
       lastM15=n(confirmationBars[confirmationBars.length-1].closeTime)||confirmationBars[confirmationBars.length-1].t+15*60000;
@@ -431,8 +437,7 @@ async function live(createEntries=true){
       }
       lastM15=Math.max(lastM15,barClose);
     }
-    try{const rows=await klines(pair,"1h",2),closed=rows.filter((x:Bar)=>(x.closeTime||0)<Date.now());
-      const bar=closed[closed.length-1];if(bar)lastH1=Math.max(lastH1,n(bar.closeTime)||bar.t+HOUR);}catch{}
+    lastH1=Math.max(lastH1,n(snap0.lastClosed1h?.closeTime)||0);
     const operational=legacy.length?legacy:opens;
     const eligible={LONG:directionEligibility("LONG",snap0),SHORT:directionEligibility("SHORT",snap0)};
     liveStates.push({
@@ -443,7 +448,12 @@ async function live(createEntries=true){
       confirmation_snapshot:snap0,baseline:!createEntries,updated_at:iso()
     });
   }
-  const meta={strategy_version:VERSION,engine:ENGINE,generated_at:iso(),baseline:!createEntries,funnel,hourlyConfirmation,snapshot:liveStates};
+  const day=iso().slice(0,10),priorDay=prevRow?.meta?.daily_funnel,
+    dailyFunnel:any=priorDay?.day===day?{...priorDay,confirmation_blocks:{...priorDay.confirmation_blocks}}:{day,started_at:iso(),cycles:0,confirmation_bars_checked:0,rejection_hits:0,rr_pass:0,entries:0,data_errors:0,confirmation_blocks:{}};
+  dailyFunnel.cycles++;
+  for(const key of ["confirmation_bars_checked","rejection_hits","rr_pass","entries","data_errors"])dailyFunnel[key]=(dailyFunnel[key]||0)+(funnel[key]||0);
+  for(const [key,value]of Object.entries(funnel.confirmation_blocks))dailyFunnel.confirmation_blocks[key]=(dailyFunnel.confirmation_blocks[key]||0)+Number(value);
+  const meta={strategy_version:VERSION,engine:ENGINE,generated_at:iso(),baseline:!createEntries,funnel,daily_funnel:dailyFunnel,hourlyConfirmation,snapshot:liveStates};
   const {error}=await sb.from("mtf_state").upsert({
     market:"crypto_live",last_processed_at:iso(),last_run_at:iso(),meta,updated_at:iso()
   },{onConflict:"market"});if(error)throw error;

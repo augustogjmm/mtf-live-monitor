@@ -29,7 +29,7 @@ const ENGINE="ADR_DW_15M_RECOVERY_V1";
 const MIN_RR=1.8;
 const WICK_MIN=0.20;
 const CHASE_ATR=0.25;
-const CHUNK=4;
+const CHUNK=14;
 const ADRS:{symbol:string;underlying:string}[]=[
  {symbol:"GGAL",underlying:"GGAL"},{symbol:"YPFD",underlying:"YPF"},{symbol:"PAMP",underlying:"PAM"},
  {symbol:"BMA",underlying:"BMA"},{symbol:"SUPV",underlying:"SUPV"},{symbol:"BBAR",underlying:"BBAR"},

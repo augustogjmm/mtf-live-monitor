@@ -11,6 +11,11 @@ export function monitorRow(row){
       take(row.proximity.nearest,['rank','point','zone_bottom','zone_top','direction','distanceAtr','distance_atr']):null}};
 }
 async function rows(store,table){const result=await store.from(table).select('*');if(result.error)throw Error(result.error.message);return result.data;}
+function stateOverview(state){
+  if(!state)return null;
+  const {snapshot,...meta}=state.meta||{};
+  return {...state,meta,snapshot_count:Array.isArray(snapshot)?snapshot.length:0};
+}
 export async function publicRpc(store,name,args={},options={}){
   const now=new Date().toISOString();
   if(name==='mtf_monitor_state'){
@@ -60,7 +65,7 @@ export async function publicRpc(store,name,args={},options={}){
     const signals=(await rows(store,'mtf_signals')).filter(x=>x.strategy_version==='ADR-OB-v1.0'&&x.source==='FORWARD'&&x.market==='merval');
     const opens=signals.filter(x=>x.status==='OPEN'),job=(await rows(store,'mtf_jobs')).find(x=>x.name==='adr_live');
     const violations=signals.filter(x=>x.direction!=='LONG'||!(Number(x.context?.planned_rr)>=1.8)||x.context?.context?.trend!=='ALCISTA'||x.context?.macro_context?.w1?.trend!=='ALCISTA'||x.context?.stop_policy!=='REFERENCE_ONLY_NO_AUTO_EXIT'||x.context?.exit_policy!=='TP1_FINAL'||['TP2','TP3'].includes(x.status));
-    return {runtime:{...state,snapshot_count:state?.meta?.snapshot?.length||0},strategy:registry||{},performance_validated:false,
+    return {runtime:stateOverview(state),strategy:registry||{},performance_validated:false,
       signals:{total:signals.length,open:opens.length,violations:violations.length},checks:{registry_frozen:registry?.frozen===true,
         runtime_version_ok:state?.meta?.strategy_version==='ADR-OB-v1.0',runtime_engine_ok:state?.meta?.engine==='ADR_DW_15M_RECOVERY_V1',
         snapshot_complete:state?.meta?.snapshot?.length===14,cron_active:job?.active===true,no_signal_rule_violations:violations.length===0,
@@ -74,7 +79,7 @@ export async function publicRpc(store,name,args={},options={}){
     const assets=new Set(positions.map(x=>x.market+':'+x.symbol)),jobs=await rows(store,'mtf_jobs');
     const config=(await rows(store,'mtf_alert_config'))[0]||{};
     const cedear=states.regulated_live?.meta?.snapshot||[],fresh=cedear.filter(x=>x.ready&&x.t>0&&Date.now()-x.t<3600000).length;
-    return {generated_at:now,backend_provider:'cloudflare-sqlite',states,jobs:jobs.map(x=>({jobid:({crypto_structure:1,cedear_prepare:2,watcher:3,regulated_live:7,crypto_live:8,adr_live:11,retention:12})[x.name],...x})),
+    return {generated_at:now,backend_provider:'cloudflare-sqlite',states:Object.fromEntries(Object.entries(states).map(([key,state])=>[key,stateOverview(state)])),jobs:jobs.map(x=>({jobid:({crypto_structure:1,cedear_prepare:2,watcher:3,regulated_live:7,crypto_live:8,adr_live:11,retention:12})[x.name],...x})),
       database:{states:Object.keys(states).length,signals:signals.length,last_write:Object.values(states).map(x=>x.updated_at).sort().at(-1)||null,
         cedear_universe:cedear.length,cedear_live_fresh:fresh,cedear_live_stale:cedear.length-fresh},
       alerts:{enabled:!!config.enabled,telegram_linked:!!config.telegram_chat_id&&options.telegramConfigured===true,last_watcher_at:config.last_watcher_at,

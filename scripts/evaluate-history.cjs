@@ -38,8 +38,8 @@ async function binance(symbol,interval,since){
   return cached(symbol+'-'+interval,async()=>{
     const out=[];let cursor=since;
     while(cursor<fetchedAt){
-      const rows=await get('https://data-api.binance.vision/api/v3/klines?symbol='+symbol+
-        '&interval='+interval+'&limit=1000&startTime='+cursor);
+      const marketPath='/api/v3/klines?symbol='+symbol+'&interval='+interval+'&limit=1000&startTime='+cursor;
+      const rows=await get('https://mtf-monitor.vercel.app/api/crypto-data?path='+encodeURIComponent(marketPath));
       if(!Array.isArray(rows)||!rows.length)break;
       for(const x of rows)if(Number(x[6])<fetchedAt)out.push({t:+x[0],closeTime:+x[6],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]});
       const next=Number(rows.at(-1)[0])+1;

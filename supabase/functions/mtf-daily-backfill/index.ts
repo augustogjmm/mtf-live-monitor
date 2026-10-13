@@ -794,6 +794,11 @@ function regulatedLiveDiagnostic(daily:DailyBar[],livePrice:number,liveBar?:{t?:
   const proximity=proximityFor(ladder,livePrice,base.context.atr14,true);
   return{ready:true,referencePrice:livePrice,ladder,context:base.context,macroContext:base.macroContext,stops:base.stops,proximity,touches:{long:touches},qualifiedDirection:touches.length?"LONG":null,trigger};
 }
+function boundedHotCandidates(snapshot:any[],itemMap:Map<string,any>,cursor:number,enabled:boolean){
+  const keys=enabled?snapshot.filter(x=>x.entry_allowed===true&&["NEAR","IN_ZONE"].includes(x.state)).map(x=>String(x.market)+":"+String(x.symbol)).filter(key=>itemMap.has(key)):[];
+  const start=keys.length?Math.max(0,Math.floor(n(cursor)||0))%keys.length:0,take=Math.min(8,keys.length);
+  return {items:Array.from({length:take},(_,i)=>itemMap.get(keys[(start+i)%keys.length])),count:keys.length,next:keys.length?(start+take)%keys.length:0};
+}
 async function processRegulatedLive(createEntries=true){
   const open=await bymaLiveOpen();
   if(createEntries&&!open)return{strategy_version:STRATEGY_VERSION,skipped:"byma_not_open"};
@@ -879,6 +884,13 @@ async function processRegulatedLive(createEntries=true){
         retryItem=retryKey?itemMap.get(retryKey):null;
   if(retryItem&&!batch.some((x:any)=>x.market===retryItem.market&&x.sym===retryItem.sym))batch.push({...retryItem,retry_background:true});
   const nextRetryCursor=retryKeys.length?(retryCursor+1)%retryKeys.length:0;
+  // Revisit entry candidates near their zones before the five-minute
+  // confirmation deadline, without restarting the full-universe cursor.
+  const hot=boundedHotCandidates(prevSnapshot,itemMap,prevRow?.meta?.hot_cursor,createEntries);
+  for(const item of hot.items){
+    if(item&&!batch.some((x:any)=>x.market===item.market&&x.sym===item.sym))batch.push({...item,hot_candidate:true});
+  }
+  const nextHotCursor=hot.next;
 
   const confirmedQuarterBars=(live:any)=>{
     const m=new Map<number,any>();
@@ -1008,7 +1020,7 @@ async function processRegulatedLive(createEntries=true){
     meta:{
       strategy_version:STRATEGY_VERSION,engine:"ANALYZER_CANONICAL_V3_6",
       generated_at:iso(now),baseline:!createEntries,snapshot:liveSnapshot,
-      cursor:nextCursor,retry_cursor:nextRetryCursor,chunk_size:CHUNK,universe_size:total,
+      cursor:nextCursor,retry_cursor:nextRetryCursor,hot_cursor:nextHotCursor,hot_candidates:hot.count,chunk_size:CHUNK,universe_size:total,
       scanned_this_run:batch.length,full_cycle_completed:wrapped,
       liquidity_snapshot_date:liquidityFallbackDate||runDate,liquidity_fallback:!!liquidityFallbackDate,
       retry_queue:retryKeys.length,retried_symbol:retryItem?.sym||null,
