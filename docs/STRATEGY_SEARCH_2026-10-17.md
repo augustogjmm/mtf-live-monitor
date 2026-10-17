@@ -21,6 +21,8 @@ Retornos de cartera en USD después de comisiones y deslizamiento simulados, sin
 | CEDEAR: prueba final 2/1/2026–16/10/2026 | +1,92% | **+15,18%** |
 | CEDEAR: validación + final, compuesto | +6,06% | **+34,27%** |
 
+La columna compuesta multiplica las dos ventanas independientes. Cada ventana parte otra vez de pesos iniciales iguales por activo y liquida sus posiciones al final con costos. Por eso presupone recomposición de la cartera en la frontera entre ventanas; no es el rendimiento de una posición continua sin rebalancear ni un resultado en vivo.
+
 Al duplicar comisiones y deslizamiento, el candidato activo crypto perdió 35,47% en la prueba final y el activo CEDEAR perdió 2,92%. Comprar y mantener CEDEAR conservó +13,35% en esa sensibilidad.
 
 ![Capital de la prueba reservada](research/holdout-2026-10-17.png)
