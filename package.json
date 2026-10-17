@@ -17,9 +17,8 @@
     "build:cloudflare": "node scripts/build-cloudflare.cjs",
     "deploy:cloudflare": "node --use-env-proxy scripts/deploy-cloudflare.cjs",
     "research:fetch": "node --use-env-proxy scripts/fetch-strategy-history.cjs",
-    "research:select": "node scripts/search-profitable-strategies.cjs",
-    "research:final": "node scripts/search-profitable-strategies.cjs",
-    "research:audit": "node scripts/audit-strategy-tournament.cjs"
+    "research:audit": "node scripts/audit-strategy-tournament.cjs",
+    "research:evaluate": "node scripts/search-profitable-strategies.cjs"
   },
   "devDependencies": {
     "playwright": "1.56.1"
