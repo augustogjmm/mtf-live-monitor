@@ -1,6 +1,8 @@
 'use strict';
 // Frozen development selection followed by one separately invoked final test.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {isDeepStrictEqual}=require('node:util');
+const sameSelection=(a,b)=>isDeepStrictEqual({...a,generatedAt:null},JSON.parse(JSON.stringify({...b,generatedAt:null})));
 const {binanceRows,yahooRows,bymaRows,fxProxy,enrich,attachUnderlying,simulate,DAY}=require('./lib/daily-research.cjs');
 const [directory,stage='development']=process.argv.slice(2);if(!directory||!['development','final'].includes(stage))throw Error('Usage: node scripts/search-profitable-strategies.cjs <research-directory> [development|final]');
 const root=path.resolve(directory),read=file=>JSON.parse(fs.readFileSync(path.join(root,file))),protocol=read('protocol.json'),manifest=read('data-manifest.json');
@@ -32,7 +34,7 @@ function execute(market,timeframe,spec,period,stress=false){
  return {market,timeframe,spec,...r};
 }
 function summary(result){return {market:result.market,timeframe:result.timeframe,spec:result.spec,metrics:result.metrics};}
-if(stage==='development'){
+function developmentSelection(){
  const results={generatedAt:new Date().toISOString(),identity,quality,markets:{}};
  for(const market of ['crypto','cedear']){
   const train=[];for(const timeframe of Object.keys(markets[market]))for(const spec of candidates)train.push(summary(execute(market,timeframe,spec,'train')));
@@ -46,11 +48,16 @@ if(stage==='development'){
   results.markets[market]={trainRanking:train,selected,preferred,highestTrainingReturn:train[0],benchmarkSelection:topBenchmark,validation:validation?summary(validation):null,validationStress:stress?summary(stress):null,validationBenchmark:summary(benchmark),passedValidation:passed,selectionUsesFinalTest:false};
   console.log(market+': selected '+(selected?.spec.id||'NONE')+' '+(selected?.timeframe||'')+'; validation pass='+passed);
  }
+ return results;
+}
+if(stage==='development'){
+ const results=developmentSelection();
  const file=path.join(root,'selection.json');
- if(fs.existsSync(file)){const prior=read('selection.json');if(JSON.stringify(prior.identity)!==JSON.stringify(identity))throw Error('Frozen selection exists with a different identity; preserve it and create a new research directory');}
+ if(fs.existsSync(file)){const prior=read('selection.json');if(JSON.stringify(prior.identity)!==JSON.stringify(identity))throw Error('Frozen selection exists with a different identity; preserve it and create a new research directory');if(!sameSelection(prior,results))throw Error('Frozen selection contents do not match deterministic development');}
  else fs.writeFileSync(file,JSON.stringify(results,null,2),{flag:'wx'});
 }else{
  const selected=read('selection.json');if(JSON.stringify(selected.identity)!==JSON.stringify(identity))throw Error('Protocol, data or engine changed after selection');
+ if(!sameSelection(selected,developmentSelection()))throw Error('Frozen selection contents do not match deterministic development');
  const report={generatedAt:new Date().toISOString(),identity,kind:'FROZEN_OUT_OF_SAMPLE_COMPARISON',approvedForLive:false,markets:{}};
  for(const market of ['crypto','cedear']){
   const s=selected.markets[market],choice=s.selected,b=s.benchmarkSelection;

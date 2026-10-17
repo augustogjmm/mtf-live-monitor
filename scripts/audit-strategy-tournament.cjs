@@ -1,15 +1,20 @@
 'use strict';
 // Retrospective audit of the original fixed candidate set, NOT a fresh holdout.
 // It must never overwrite the frozen selection or final report.
-const fs=require('node:fs'),path=require('node:path');
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {binanceRows,yahooRows,bymaRows,fxProxy,enrich,attachUnderlying,simulate,DAY}=require('./lib/daily-research.cjs');
 const directory=process.argv[2];if(!directory)throw Error('Usage: node scripts/audit-strategy-tournament.cjs <research-directory>');
 const root=path.resolve(directory),read=file=>JSON.parse(fs.readFileSync(path.join(root,file))),p=read('protocol.json'),raw=file=>read('raw/'+file),cutoff=Date.parse('2026-10-17T00:00:00Z');
+const manifest=read('data-manifest.json'),hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+if(manifest.failures.length)throw Error('Data collection has failures');
+for(const file of manifest.files)if(hash(fs.readFileSync(path.join(root,'raw',file.name)))!==file.sha256)throw Error('Raw data changed: '+file.name);
+const identity={protocol:hash(fs.readFileSync(path.join(root,'protocol.json'))),data:hash(fs.readFileSync(path.join(root,'data-manifest.json'))),engine:hash(fs.readFileSync(path.join(__dirname,'lib/daily-research.cjs'))),audit:hash(fs.readFileSync(__filename))};
+const frozen=read('selection.json');for(const key of ['protocol','data','engine'])if(frozen.identity[key]!==identity[key])throw Error('Frozen inputs changed: '+key);
 const fx=fxProxy(yahooRows(raw('GGAL.BA-yahoo.json'),cutoff).rows,yahooRows(raw('GGAL-yahoo.json'),cutoff).rows),series={crypto:{},cedear:{daily:{}}};
 for(const tf of ['1d','4h'])series.crypto[tf]=Object.fromEntries(p.crypto.map(s=>[s,enrich(binanceRows(raw(s+'-'+tf+'-binance.json'),cutoff))]));
 for(const s of p.cedear)series.cedear.daily[s]=attachUnderlying(bymaRows(raw(s+'-byma.json'),cutoff),enrich(yahooRows(raw(s.replace(/\.BA$/,'')+'-yahoo.json'),cutoff).rows));
 const specs=Object.entries(p.families).flatMap(([family,variants])=>variants.map(v=>({family,...v,id:family+'-'+Object.values(v).join('-')})));
-const results={generatedAt:new Date().toISOString(),kind:'RETROSPECTIVE_FIXED_CANDIDATE_AUDIT',finalPeriodIsNoLongerUntouched:true,approvedForLive:false,markets:{}};
+const results={generatedAt:new Date().toISOString(),kind:'RETROSPECTIVE_FIXED_CANDIDATE_AUDIT',identity,finalPeriodIsNoLongerUntouched:true,approvedForLive:false,markets:{}};
 for(const market of ['crypto','cedear']){
  const rows=[];
  for(const [tf,data]of Object.entries(series[market]))for(const spec of specs){

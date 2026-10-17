@@ -25,3 +25,33 @@ const attached=attachUnderlying(bars.slice(210),original);
 assert.ok(attached.every(b=>b.decisionBar.t<b.t),'local openings use a US close from a preceding session');
 assert.throws(()=>simulate({A:prepared.map(b=>({...b,decisionBar:{...b}}))},buy,options),/Future information/);
 console.log('PASS: research causality, breakout timing, fees, slippage, gap stops, ARS cash FX and underlying/local alignment');
+
+// Exercise the actual CLI guards with small deterministic histories.
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto'),{spawnSync}=require('node:child_process');
+const fixtureRoot=fs.mkdtempSync(path.join(os.tmpdir(),'mtf-research-integrity-'));
+try{
+ fs.mkdirSync(path.join(fixtureRoot,'raw'));
+ const dates=Array.from({length:900},(_,i)=>Date.UTC(2023,0,1)+i*DAY);
+ const chart=(price,currency)=>({body:{chart:{result:[{meta:{currency},timestamp:dates.map(t=>t/1000),indicators:{quote:[{open:dates.map(()=>price),high:dates.map(()=>price*1.01),low:dates.map(()=>price*.99),close:dates.map(()=>price)}],adjclose:[{adjclose:dates.map(()=>price)}]}}]}}});
+ const fixtures={
+  'BTCUSDT-1d-binance.json':{rows:dates.map(t=>[t,100,101,99,100,10,t+DAY-1])},
+  'BTCUSDT-4h-binance.json':{rows:dates.map(t=>[t,100,101,99,100,10,t+DAY-1])},
+  'GGAL.BA-yahoo.json':chart(1000,'ARS'),'GGAL-yahoo.json':chart(10,'USD'),'AAPL-yahoo.json':chart(100,'USD'),
+  'AAPL.BA-byma.json':{body:{s:'ok',t:dates.map(t=>t/1000),o:dates.map(()=>10000),h:dates.map(()=>10100),l:dates.map(()=>9900),c:dates.map(()=>10000)}}
+ };
+ const manifest={failures:[],files:[]};for(const [name,value]of Object.entries(fixtures)){const bytes=Buffer.from(JSON.stringify(value));fs.writeFileSync(path.join(fixtureRoot,'raw',name),bytes);manifest.files.push({name,sha256:crypto.createHash('sha256').update(bytes).digest('hex')});}
+ fs.writeFileSync(path.join(fixtureRoot,'data-manifest.json'),JSON.stringify(manifest));
+ const periods={train:['2024-01-01','2024-03-31'],validation:['2024-04-01','2024-06-30'],holdout:['2024-07-01','2024-09-30']};
+ fs.writeFileSync(path.join(fixtureRoot,'protocol.json'),JSON.stringify({crypto:['BTCUSDT'],cedear:['AAPL.BA'],families:{buyHold:[{}]},cryptoPeriods:periods,cedearPeriods:periods,execution:{cryptoFeeBpsPerFill:10,cryptoSlippageBpsPerFill:5,cedearFeeBpsPerFill:60,cedearSlippageBpsPerFill:20,stressMultiplier:2,initialStopAtr:3}}));
+ const run=(name,args=[])=>spawnSync(process.execPath,[path.resolve(__dirname,'../scripts',name),fixtureRoot,...args],{encoding:'utf8'});
+ const development=run('search-profitable-strategies.cjs',['development']);assert.equal(development.status,0,development.stderr);
+ const originalSelection=fs.readFileSync(path.join(fixtureRoot,'selection.json'),'utf8'),edited=JSON.parse(originalSelection);
+ edited.markets.crypto.validationBenchmark.metrics.netReturn+=.5;
+ fs.writeFileSync(path.join(fixtureRoot,'selection.json'),JSON.stringify(edited));
+ const rejected=run('search-profitable-strategies.cjs',['final']);assert.notEqual(rejected.status,0);assert.match(rejected.stderr,/Frozen selection contents/);assert.equal(fs.existsSync(path.join(fixtureRoot,'final-report.json')),false,'altered validation cannot reach the final test');
+ fs.writeFileSync(path.join(fixtureRoot,'selection.json'),originalSelection);
+ const final=run('search-profitable-strategies.cjs',['final']);assert.equal(final.status,0,final.stderr);
+ fs.appendFileSync(path.join(fixtureRoot,'raw','BTCUSDT-1d-binance.json'),'\n');
+ const audit=run('audit-strategy-tournament.cjs');assert.notEqual(audit.status,0);assert.match(audit.stderr,/Raw data changed/);assert.equal(fs.existsSync(path.join(fixtureRoot,'tournament-audit.json')),false,'modified raw data cannot create an apparently fixed audit');
+ console.log('PASS: CLI rejects edited frozen selections and modified audit inputs');
+}finally{fs.rmSync(fixtureRoot,{recursive:true,force:true});}

@@ -7,7 +7,7 @@
     "protocol": "f7cdb1df509381c54ddcd048d72dbcaa5360cecd1db6d60ed72bd5a19ee6ce14",
     "data": "a1a38bc3fd9a388a6f697f3b86c00fca13b09de3e5d7800cc08c589a88537400",
     "engine": "c7009fc98c6daff20f836384bbb986d2b9a09456079da6100596b7eaa7780d73",
-    "runner": "8783fd127166e5eefc27e8fc00c5a8df6fae46b23e8714643188bbfc290ceb16"
+    "runner": "dbf8ee748a67598144fb8b4583dbf0dc800031d5616ef82b2cc46302e879d16e"
   },
   "protocol": {
     "createdAt": "2026-10-17T23:29:17.841Z",
@@ -2150,5 +2150,12 @@
       ]
     }
   },
-  "combinedReturnDefinition": "Product of independent validation and final windows; equal initial asset sleeves reset at the boundary, with terminal liquidation costs. Not a continuous unrebalanced live portfolio."
+  "combinedReturnDefinition": "Product of independent validation and final windows; equal initial asset sleeves reset at the boundary, with terminal liquidation costs. Not a continuous unrebalanced live portfolio.",
+  "auditIdentity": {
+    "protocol": "f7cdb1df509381c54ddcd048d72dbcaa5360cecd1db6d60ed72bd5a19ee6ce14",
+    "data": "a1a38bc3fd9a388a6f697f3b86c00fca13b09de3e5d7800cc08c589a88537400",
+    "engine": "c7009fc98c6daff20f836384bbb986d2b9a09456079da6100596b7eaa7780d73",
+    "audit": "427e91fb09f7eda3957a8ca01d2a89fbfd53a70b48853e317b69572fddf1110c"
+  },
+  "integrityVerification": "Final selection contents recomputed from development data; every raw audit file verified against the manifest. Integrity-only corrections reproduced all original economic metrics exactly."
 }
