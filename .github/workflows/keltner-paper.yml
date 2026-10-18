@@ -27,12 +27,15 @@ jobs:
       - name: Collect observed quotes without historical fills
         run: node scripts/collect-keltner-paper.cjs
       - name: Persist complete paper snapshot
+        env:
+          PAPER_AUTHOR: ${{ github.repository_owner }}
+          PAPER_AUTHOR_ID: ${{ github.repository_owner_id }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add paper/keltner-h4.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Update Keltner forward paper observations'
+          git commit --author="$PAPER_AUTHOR <$PAPER_AUTHOR_ID+$PAPER_AUTHOR@users.noreply.github.com>" -m 'Update Keltner forward paper observations (automated)'
           # Rebase only this data commit if an application change landed meanwhile.
           git pull --rebase origin main
           git push origin HEAD:main
