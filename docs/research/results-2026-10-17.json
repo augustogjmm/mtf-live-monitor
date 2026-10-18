@@ -1,0 +1,2161 @@
+{
+  "studyDate": "2026-10-17",
+  "scope": "Six crypto spot pairs and ten CEDEARs; 30 predefined long-only model/timeframe combinations; equal initial capital sleeves, no leverage.",
+  "outcome": "No validated active replacement for both markets; buy-and-hold had the largest combined validation+final price return among tested models.",
+  "approvedForLive": false,
+  "identity": {
+    "protocol": "f7cdb1df509381c54ddcd048d72dbcaa5360cecd1db6d60ed72bd5a19ee6ce14",
+    "data": "a1a38bc3fd9a388a6f697f3b86c00fca13b09de3e5d7800cc08c589a88537400",
+    "engine": "c7009fc98c6daff20f836384bbb986d2b9a09456079da6100596b7eaa7780d73",
+    "runner": "dbf8ee748a67598144fb8b4583dbf0dc800031d5616ef82b2cc46302e879d16e"
+  },
+  "protocol": {
+    "createdAt": "2026-10-17T23:29:17.841Z",
+    "objective": "Maximize net total return among predefined unlevered long-only candidates; report drawdown, exposure and benchmark excess separately.",
+    "crypto": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "XRPUSDT",
+      "ADAUSDT",
+      "LTCUSDT"
+    ],
+    "cedear": [
+      "AAPL.BA",
+      "MSFT.BA",
+      "AMZN.BA",
+      "GOOGL.BA",
+      "META.BA",
+      "NVDA.BA",
+      "KO.BA",
+      "XOM.BA",
+      "JNJ.BA",
+      "WMT.BA"
+    ],
+    "cryptoPeriods": {
+      "train": [
+        "2019-01-01",
+        "2022-12-31"
+      ],
+      "validation": [
+        "2023-01-01",
+        "2024-12-31"
+      ],
+      "holdout": [
+        "2025-01-01",
+        "2026-10-16"
+      ]
+    },
+    "cedearPeriods": {
+      "train": [
+        "2024-10-17",
+        "2025-06-30"
+      ],
+      "validation": [
+        "2025-07-01",
+        "2025-12-31"
+      ],
+      "holdout": [
+        "2026-01-01",
+        "2026-10-16"
+      ]
+    },
+    "families": {
+      "buyHold": [
+        {}
+      ],
+      "emaTrend": [
+        {
+          "fast": 20,
+          "slow": 100
+        },
+        {
+          "fast": 50,
+          "slow": 200
+        }
+      ],
+      "donchian": [
+        {
+          "entry": 20,
+          "exit": 10
+        },
+        {
+          "entry": 55,
+          "exit": 20
+        }
+      ],
+      "momentum": [
+        {
+          "bars": 90
+        },
+        {
+          "bars": 180
+        }
+      ],
+      "rsiPullback": [
+        {
+          "rsi": 2,
+          "entry": 10,
+          "exit": 70,
+          "trend": 200,
+          "maxHold": 10
+        },
+        {
+          "rsi": 2,
+          "entry": 20,
+          "exit": 80,
+          "trend": 200,
+          "maxHold": 10
+        }
+      ],
+      "bollinger": [
+        {
+          "days": 20,
+          "deviations": 2,
+          "trend": 200,
+          "maxHold": 20
+        }
+      ]
+    },
+    "execution": {
+      "signal": "closed daily candle",
+      "entry": "next available daily open",
+      "exit": "next open for indicator exit; gap-aware intraday initial stop; stop takes precedence",
+      "maxLeverage": 1,
+      "allocation": "equal fixed initial capital sleeves, one position per asset, no cross-sleeve borrowing",
+      "annualCashInterest": 0,
+      "cryptoFeeBpsPerFill": 10,
+      "cryptoSlippageBpsPerFill": 5,
+      "cedearFeeBpsPerFill": 60,
+      "cedearSlippageBpsPerFill": 20,
+      "stressMultiplier": 2,
+      "initialStopAtr": 3,
+      "cryptoCash": "USD/USDT proxy, no lending income",
+      "cedearCash": "ARS, NAV deflated by a GGAL CCL daily-close proxy"
+    },
+    "selection": "Choose highest train net portfolio return with >=30 closed trades; use validation as a pass/fail gate; never retune using final holdout.",
+    "validationGate": "Positive validation return and positive stress-cost return; compare winner with equal-asset buy-and-hold. Final holdout must be reported even if negative.",
+    "limitations": [
+      "Fixed surviving-asset universe selected before outcomes; no claim of historical full-universe optimality.",
+      "Adjusted daily OHLC approximates corporate-action and dividend total returns.",
+      "CCL is a cross-quote proxy, not executable FX quotes. CEDEAR cash remains ARS.",
+      "Fees are conservative research assumptions, not a statement of actual broker commissions.",
+      "No shorts, leverage, funding, borrowing, tax or automatic execution."
+    ],
+    "amendments": [
+      {
+        "at": "2026-10-17T23:33:23.949Z",
+        "reason": "Before evaluating strategy returns: add four-hour crypto comparison to avoid limiting the search to daily models; record unusable META local history and corporate-action quality checks.",
+        "cryptoTimeframes": [
+          "1d",
+          "4h"
+        ],
+        "metaHistoryRows": 1
+      },
+      {
+        "at": "2026-10-17T23:34:54.485Z",
+        "reason": "Before strategy outcomes: Yahoo local adjusted histories contain uncorrected certificate-ratio discontinuities. Use official BYMA execution bars, which expose only two years, and US-underlying indicators with causal next-local-open execution.",
+        "cedearPeriods": {
+          "train": [
+            "2024-10-17",
+            "2025-06-30"
+          ],
+          "validation": [
+            "2025-07-01",
+            "2025-12-31"
+          ],
+          "holdout": [
+            "2026-01-01",
+            "2026-10-16"
+          ]
+        },
+        "cedearSignalSource": "US-underlying daily adjusted OHLC, warmed using longer history",
+        "cedearExecutionSource": "Official BYMA daily OHLC; price-only results excluding unverified local dividend cashflows",
+        "activationRequires": "No unexplained local ratio/split discontinuities in execution period; explicitly validate dividend sensitivity before claiming best total return."
+      },
+      {
+        "at": "2026-10-17T23:39:41.769Z",
+        "reason": "Before final test: clarify momentum lookback is bars (180 H4 bars = 30 days), not calendar days. Correct primary selection to include the benchmark, as the objective is net profit rather than activity. No trading parameters changed; preserve first development report.",
+        "primarySelection": "Highest train net return among buy-and-hold and active candidates with >=30 natural exits. Negative-training active models are comparison controls, not deployment recommendations.",
+        "activeEconomicGate": "Positive base and stressed validation/final returns with sufficient exits; combined validation+final net return must exceed buy-and-hold to support an active-profitability advantage."
+      },
+      {
+        "at": "2026-10-17T23:40:54.451Z",
+        "reason": "Before final test, fix the initial local-certificate stop conversion to use the known entry fill and the preceding US ATR as a percentage. This removes a first-session missing-local-quote artifact. Add raw-data hash verification and per-asset contributions; unchanged candidate parameters.",
+        "record": "Previous development reports remain archived; final test has not been opened."
+      }
+    ],
+    "benchmarkPolicy": "Buy-and-hold remains in rankings and can be the highest-return result; active strategies require sufficient closed trades before activation."
+  },
+  "markets": {
+    "crypto": {
+      "periods": {
+        "train": [
+          "2019-01-01",
+          "2022-12-31"
+        ],
+        "validation": [
+          "2023-01-01",
+          "2024-12-31"
+        ],
+        "holdout": [
+          "2025-01-01",
+          "2026-10-16"
+        ]
+      },
+      "frozenTrainingSelection": {
+        "market": "crypto",
+        "timeframe": "4h",
+        "spec": {
+          "family": "momentum",
+          "bars": 180,
+          "id": "momentum-180"
+        },
+        "metrics": {
+          "netReturn": 19.448567106590577,
+          "cagr": 1.1265016315845124,
+          "maxDrawdown": 0.4885117696882929,
+          "sharpe": 1.5971837066711,
+          "closedTrades": 774,
+          "naturalClosedTrades": 774,
+          "winRate": 0.2997416020671835,
+          "exposure": 0.5292774797397642,
+          "from": 1546300800000,
+          "to": 1672516800000,
+          "finalEquity": 20.448567106590577
+        }
+      },
+      "preferredTrainingSelection": {
+        "market": "crypto",
+        "timeframe": "4h",
+        "spec": {
+          "family": "momentum",
+          "bars": 180,
+          "id": "momentum-180"
+        },
+        "metrics": {
+          "netReturn": 19.448567106590577,
+          "cagr": 1.1265016315845124,
+          "maxDrawdown": 0.4885117696882929,
+          "sharpe": 1.5971837066711,
+          "closedTrades": 774,
+          "naturalClosedTrades": 774,
+          "winRate": 0.2997416020671835,
+          "exposure": 0.5292774797397642,
+          "from": 1546300800000,
+          "to": 1672516800000,
+          "finalEquity": 20.448567106590577
+        }
+      },
+      "validation": {
+        "market": "crypto",
+        "timeframe": "4h",
+        "spec": {
+          "family": "momentum",
+          "bars": 180,
+          "id": "momentum-180"
+        },
+        "metrics": {
+          "netReturn": 0.8585147340005899,
+          "cagr": 0.36298460410284483,
+          "maxDrawdown": 0.41967490791449424,
+          "sharpe": 0.9791017299196618,
+          "closedTrades": 536,
+          "naturalClosedTrades": 535,
+          "winRate": 0.24067164179104478,
+          "exposure": 0.5613695090439285,
+          "from": 1672531200000,
+          "to": 1735675200000,
+          "finalEquity": 1.8585147340005899
+        }
+      },
+      "validationBenchmark": {
+        "market": "crypto",
+        "timeframe": "1d",
+        "spec": {
+          "family": "buyHold",
+          "id": "buyHold-"
+        },
+        "metrics": {
+          "netReturn": 2.715105685412581,
+          "cagr": 0.9265960158758655,
+          "maxDrawdown": 0.36601898030337776,
+          "sharpe": 1.5210833734705949,
+          "closedTrades": 6,
+          "naturalClosedTrades": 0,
+          "winRate": 1,
+          "exposure": 1,
+          "from": 1672531200000,
+          "to": 1735603200000,
+          "finalEquity": 3.715105685412581
+        }
+      },
+      "final": {
+        "candidate": {
+          "netReturn": -0.1960977648389376,
+          "cagr": -0.11476757762347845,
+          "maxDrawdown": 0.4021765239754561,
+          "sharpe": -0.24099581394211517,
+          "closedTrades": 470,
+          "naturalClosedTrades": 465,
+          "winRate": 0.2297872340425532,
+          "exposure": 0.4694614339109728,
+          "from": 1735689600000,
+          "to": 1792180800000,
+          "finalEquity": 0.8039022351610624
+        },
+        "benchmark": {
+          "netReturn": -0.31859983379779555,
+          "cagr": -0.19284407151252048,
+          "maxDrawdown": 0.6350677960109922,
+          "sharpe": -0.08769869611177904,
+          "closedTrades": 6,
+          "naturalClosedTrades": 0,
+          "winRate": 0.16666666666666666,
+          "exposure": 1,
+          "from": 1735689600000,
+          "to": 1792108800000,
+          "finalEquity": 0.6814001662022044
+        },
+        "stress": {
+          "netReturn": -0.35468886265625477,
+          "cagr": -0.21700553135908818,
+          "maxDrawdown": 0.467606100131853,
+          "sharpe": -0.6355099924237477,
+          "closedTrades": 470,
+          "naturalClosedTrades": 465,
+          "winRate": 0.1702127659574468,
+          "exposure": 0.4694614339109728,
+          "from": 1735689600000,
+          "to": 1792180800000,
+          "finalEquity": 0.6453111373437452
+        },
+        "statisticalGatePassed": false,
+        "relativeEconomicGatePassed": false
+      },
+      "combinedCandidateReturn": 0.49406414874284144,
+      "combinedBenchmarkReturn": 1.531473631498887,
+      "retrospectiveRankings": [
+        {
+          "spec": {
+            "family": "buyHold",
+            "id": "buyHold-"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 9.506627538465688,
+              "cagr": 0.8003868582249778,
+              "maxDrawdown": 0.7410602321860824,
+              "sharpe": 1.1273257866476658,
+              "closedTrades": 6,
+              "naturalClosedTrades": 0,
+              "winRate": 0.8333333333333334,
+              "exposure": 1,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 10.506627538465688,
+              "stressNetReturn": 9.475154833435132
+            },
+            "validation": {
+              "netReturn": 2.715105685412581,
+              "cagr": 0.9265960158758655,
+              "maxDrawdown": 0.36601898030337776,
+              "sharpe": 1.5210833734705949,
+              "closedTrades": 6,
+              "naturalClosedTrades": 0,
+              "winRate": 1,
+              "exposure": 1,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 3.715105685412581,
+              "stressNetReturn": 2.703977050180555
+            },
+            "holdout": {
+              "netReturn": -0.31859983379779555,
+              "cagr": -0.19284407151252048,
+              "maxDrawdown": 0.6350677960109922,
+              "sharpe": -0.08769869611177904,
+              "closedTrades": 6,
+              "naturalClosedTrades": 0,
+              "winRate": 0.16666666666666666,
+              "exposure": 1,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.6814001662022044,
+              "stressNetReturn": -0.32064097462630026
+            }
+          },
+          "combinedOutOfSampleReturn": 1.531473631498887,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "buyHold",
+            "id": "buyHold-"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": 9.506627538465688,
+              "cagr": 0.8003868582249778,
+              "maxDrawdown": 0.7589219236175719,
+              "sharpe": 1.1281647359471974,
+              "closedTrades": 6,
+              "naturalClosedTrades": 0,
+              "winRate": 0.8333333333333334,
+              "exposure": 1,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 10.506627538465688,
+              "stressNetReturn": 9.475154833435132
+            },
+            "validation": {
+              "netReturn": 2.715105685412581,
+              "cagr": 0.9265960158758655,
+              "maxDrawdown": 0.4026001161125715,
+              "sharpe": 1.480998205872731,
+              "closedTrades": 6,
+              "naturalClosedTrades": 0,
+              "winRate": 1,
+              "exposure": 1,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 3.715105685412581,
+              "stressNetReturn": 2.703977050180555
+            },
+            "holdout": {
+              "netReturn": -0.31859983379779555,
+              "cagr": -0.19284407151252048,
+              "maxDrawdown": 0.6413989012188428,
+              "sharpe": -0.10359895068316427,
+              "closedTrades": 6,
+              "naturalClosedTrades": 0,
+              "winRate": 0.16666666666666666,
+              "exposure": 1,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.6814001662022044,
+              "stressNetReturn": -0.32064097462630026
+            }
+          },
+          "combinedOutOfSampleReturn": 1.531473631498887,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "donchian",
+            "entry": 55,
+            "exit": 20,
+            "id": "donchian-55-20"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": 2.806403514178617,
+              "cagr": 0.39678224656911043,
+              "maxDrawdown": 0.37490637832477125,
+              "sharpe": 1.0295276391290729,
+              "closedTrades": 351,
+              "naturalClosedTrades": 351,
+              "winRate": 0.34472934472934474,
+              "exposure": 0.3191226267929819,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 3.806403514178617,
+              "stressNetReturn": 2.1971139608748067
+            },
+            "validation": {
+              "netReturn": 1.0359634139368468,
+              "cagr": 0.42652499721433057,
+              "maxDrawdown": 0.19318280603310412,
+              "sharpe": 1.3475728262606403,
+              "closedTrades": 186,
+              "naturalClosedTrades": 185,
+              "winRate": 0.3387096774193548,
+              "exposure": 0.3055935552515578,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 2.0359634139368468,
+              "stressNetReturn": 0.8672166594683501
+            },
+            "holdout": {
+              "netReturn": -0.21330206459956635,
+              "cagr": -0.12539852054644474,
+              "maxDrawdown": 0.3818172499804603,
+              "sharpe": -0.46309020678045043,
+              "closedTrades": 171,
+              "naturalClosedTrades": 171,
+              "winRate": 0.28654970760233917,
+              "exposure": 0.2739551478083588,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.7866979354004336,
+              "stressNetReturn": -0.2911610393207261
+            }
+          },
+          "combinedOutOfSampleReturn": 0.6016882142949358,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "donchian",
+            "entry": 55,
+            "exit": 20,
+            "id": "donchian-55-20"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 9.94776946730236,
+              "cagr": 0.8189946047413843,
+              "maxDrawdown": 0.4797925173794164,
+              "sharpe": 1.4257035307387798,
+              "closedTrades": 54,
+              "naturalClosedTrades": 54,
+              "winRate": 0.4444444444444444,
+              "exposure": 0.331850330823637,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 10.94776946730236,
+              "stressNetReturn": 9.683857646973129
+            },
+            "validation": {
+              "netReturn": 0.596952091546489,
+              "cagr": 0.26350341041950465,
+              "maxDrawdown": 0.25129797141149235,
+              "sharpe": 0.9123503417818787,
+              "closedTrades": 40,
+              "naturalClosedTrades": 36,
+              "winRate": 0.35,
+              "exposure": 0.3755129958960328,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 1.596952091546489,
+              "stressNetReturn": 0.5695050490766107
+            },
+            "holdout": {
+              "netReturn": -0.0018166066330900232,
+              "cagr": -0.0010149570242464767,
+              "maxDrawdown": 0.17946811350564928,
+              "sharpe": 0.09856246910421604,
+              "closedTrades": 27,
+              "naturalClosedTrades": 23,
+              "winRate": 0.37037037037037035,
+              "exposure": 0.21738022426095818,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.99818339336691,
+              "stressNetReturn": -0.014150497067018097
+            }
+          },
+          "combinedOutOfSampleReturn": 0.5940510577842586,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "momentum",
+            "bars": 90,
+            "id": "momentum-90"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 6.586199791973884,
+              "cagr": 0.6596100995043797,
+              "maxDrawdown": 0.6450779575872942,
+              "sharpe": 1.1338712143465095,
+              "closedTrades": 167,
+              "naturalClosedTrades": 166,
+              "winRate": 0.281437125748503,
+              "exposure": 0.517453798767965,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 7.586199791973884,
+              "stressNetReturn": 6.14034276797141
+            },
+            "validation": {
+              "netReturn": 0.9928800581104813,
+              "cagr": 0.4113611511405022,
+              "maxDrawdown": 0.31134556181250805,
+              "sharpe": 1.0732854869575292,
+              "closedTrades": 136,
+              "naturalClosedTrades": 130,
+              "winRate": 0.3602941176470588,
+              "exposure": 0.6067031463748295,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 1.9928800581104813,
+              "stressNetReturn": 0.8683025878721129
+            },
+            "holdout": {
+              "netReturn": -0.20202636145713537,
+              "cagr": -0.11841954960657386,
+              "maxDrawdown": 0.40599740982555454,
+              "sharpe": -0.17783857306404002,
+              "closedTrades": 70,
+              "naturalClosedTrades": 64,
+              "winRate": 0.3142857142857143,
+              "exposure": 0.40647298674821575,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.7979736385428646,
+              "stressNetReturn": -0.227432524733586
+            }
+          },
+          "combinedOutOfSampleReturn": 0.5902657511499363,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "momentum",
+            "bars": 90,
+            "id": "momentum-90"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": 8.474059226863536,
+              "cagr": 0.754421835184222,
+              "maxDrawdown": 0.5891685658943242,
+              "sharpe": 1.2888401590443914,
+              "closedTrades": 1122,
+              "naturalClosedTrades": 1119,
+              "winRate": 0.3074866310160428,
+              "exposure": 0.5226191835026466,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 9.474059226863536,
+              "stressNetReturn": 4.504186263451474
+            },
+            "validation": {
+              "netReturn": 1.2712958366820941,
+              "cagr": 0.5066591304612695,
+              "maxDrawdown": 0.35591534538996294,
+              "sharpe": 1.24342844991141,
+              "closedTrades": 673,
+              "naturalClosedTrades": 673,
+              "winRate": 0.2585438335809807,
+              "exposure": 0.5277777777777767,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 2.271295836682094,
+              "stressNetReturn": 0.6133125314128534
+            },
+            "holdout": {
+              "netReturn": -0.3128302409188465,
+              "cagr": -0.18903425905498283,
+              "maxDrawdown": 0.5187006598959291,
+              "sharpe": -0.509624222016338,
+              "closedTrades": 581,
+              "naturalClosedTrades": 581,
+              "winRate": 0.2512908777969019,
+              "exposure": 0.4716275908936436,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.6871697590811535,
+              "stressNetReturn": -0.5173409460278034
+            }
+          },
+          "combinedOutOfSampleReturn": 0.5607658128948616,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "momentum",
+            "bars": 180,
+            "id": "momentum-180"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": 19.448567106590577,
+              "cagr": 1.1265016315845124,
+              "maxDrawdown": 0.4885117696882929,
+              "sharpe": 1.5971837066711,
+              "closedTrades": 774,
+              "naturalClosedTrades": 774,
+              "winRate": 0.2997416020671835,
+              "exposure": 0.5292774797397642,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 20.448567106590577,
+              "stressNetReturn": 13.118907561098768
+            },
+            "validation": {
+              "netReturn": 0.8585147340005899,
+              "cagr": 0.36298460410284483,
+              "maxDrawdown": 0.41967490791449424,
+              "sharpe": 0.9791017299196618,
+              "closedTrades": 536,
+              "naturalClosedTrades": 535,
+              "winRate": 0.24067164179104478,
+              "exposure": 0.5613695090439285,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 1.8585147340005899,
+              "stressNetReturn": 0.46346339761900723
+            },
+            "holdout": {
+              "netReturn": -0.1960977648389376,
+              "cagr": -0.11476757762347845,
+              "maxDrawdown": 0.4021765239754561,
+              "sharpe": -0.24099581394211517,
+              "closedTrades": 470,
+              "naturalClosedTrades": 465,
+              "winRate": 0.2297872340425532,
+              "exposure": 0.4694614339109728,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.8039022351610624,
+              "stressNetReturn": -0.35468886265625477
+            }
+          },
+          "combinedOutOfSampleReturn": 0.49406414874284144,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "donchian",
+            "entry": 20,
+            "exit": 10,
+            "id": "donchian-20-10"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 11.019832189684069,
+              "cagr": 0.8619782392428637,
+              "maxDrawdown": 0.4003990406778868,
+              "sharpe": 1.5177051486150188,
+              "closedTrades": 109,
+              "naturalClosedTrades": 109,
+              "winRate": 0.46788990825688076,
+              "exposure": 0.40885238421172654,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 12.019832189684069,
+              "stressNetReturn": 10.366449443595132
+            },
+            "validation": {
+              "netReturn": 0.8131508608790929,
+              "cagr": 0.3462588973855032,
+              "maxDrawdown": 0.38740750362952503,
+              "sharpe": 1.0589160728102291,
+              "closedTrades": 70,
+              "naturalClosedTrades": 67,
+              "winRate": 0.4,
+              "exposure": 0.4361605107159137,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 1.813150860879093,
+              "stressNetReturn": 0.7537163382737992
+            },
+            "holdout": {
+              "netReturn": -0.24986290364613284,
+              "cagr": -0.14833702469093923,
+              "maxDrawdown": 0.3747201670565573,
+              "sharpe": -0.542439327680475,
+              "closedTrades": 61,
+              "naturalClosedTrades": 61,
+              "winRate": 0.2786885245901639,
+              "exposure": 0.3233944954128442,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.7501370963538672,
+              "stressNetReturn": -0.2709128372380889
+            }
+          },
+          "combinedOutOfSampleReturn": 0.36011172203135744,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "donchian",
+            "entry": 20,
+            "exit": 10,
+            "id": "donchian-20-10"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": 4.362244609237824,
+              "cagr": 0.5217266809712522,
+              "maxDrawdown": 0.5121291649180215,
+              "sharpe": 1.1753762630186693,
+              "closedTrades": 715,
+              "naturalClosedTrades": 713,
+              "winRate": 0.34965034965034963,
+              "exposure": 0.3858958261994428,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 5.362244609237824,
+              "stressNetReturn": 2.787587166740391
+            },
+            "validation": {
+              "netReturn": 0.7649289511571669,
+              "cagr": 0.3282481923501168,
+              "maxDrawdown": 0.25779966448579883,
+              "sharpe": 1.0744227083780196,
+              "closedTrades": 373,
+              "naturalClosedTrades": 371,
+              "winRate": 0.3297587131367292,
+              "exposure": 0.3991488068095485,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 1.7649289511571669,
+              "stressNetReturn": 0.46766106505249416
+            },
+            "holdout": {
+              "netReturn": -0.23938151062406465,
+              "cagr": -0.1417114145722007,
+              "maxDrawdown": 0.4217081028252613,
+              "sharpe": -0.4299530786892126,
+              "closedTrades": 348,
+              "naturalClosedTrades": 348,
+              "winRate": 0.3218390804597701,
+              "exposure": 0.3374532789670419,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.7606184893759353,
+              "stressNetReturn": -0.3575928570335587
+            }
+          },
+          "combinedOutOfSampleReturn": 0.3424375926850183,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "emaTrend",
+            "fast": 20,
+            "slow": 100,
+            "id": "emaTrend-20-100"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 8.048661250245738,
+              "cagr": 0.7343872910428078,
+              "maxDrawdown": 0.3823839075631503,
+              "sharpe": 1.4247307661771034,
+              "closedTrades": 264,
+              "naturalClosedTrades": 264,
+              "winRate": 0.3181818181818182,
+              "exposure": 0.3150809947524532,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 9.048661250245738,
+              "stressNetReturn": 6.878726840561398
+            },
+            "validation": {
+              "netReturn": 0.5132486141990689,
+              "cagr": 0.2299674365078126,
+              "maxDrawdown": 0.3471226280097369,
+              "sharpe": 0.811374930185417,
+              "closedTrades": 188,
+              "naturalClosedTrades": 187,
+              "winRate": 0.22340425531914893,
+              "exposure": 0.38144094847241194,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 1.5132486141990689,
+              "stressNetReturn": 0.40083375960085577
+            },
+            "holdout": {
+              "netReturn": -0.14219922959273767,
+              "cagr": -0.08209604959369121,
+              "maxDrawdown": 0.2765970128847429,
+              "sharpe": -0.2686974029744816,
+              "closedTrades": 115,
+              "naturalClosedTrades": 115,
+              "winRate": 0.26956521739130435,
+              "exposure": 0.238277268093782,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.8578007704072623,
+              "stressNetReturn": -0.189433191166391
+            }
+          },
+          "combinedOutOfSampleReturn": 0.29806582707768325,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "momentum",
+            "bars": 180,
+            "id": "momentum-180"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 4.184399090884976,
+              "cagr": 0.5089491558818693,
+              "maxDrawdown": 0.6429312911610549,
+              "sharpe": 0.9606670690252401,
+              "closedTrades": 144,
+              "naturalClosedTrades": 140,
+              "winRate": 0.3125,
+              "exposure": 0.5128907141227451,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 5.184399090884976,
+              "stressNetReturn": 3.9008199835556523
+            },
+            "validation": {
+              "netReturn": 0.7811498145439015,
+              "cagr": 0.3343337964959645,
+              "maxDrawdown": 0.37241491878106037,
+              "sharpe": 0.9115354604935065,
+              "closedTrades": 98,
+              "naturalClosedTrades": 92,
+              "winRate": 0.37755102040816324,
+              "exposure": 0.6541267669858629,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 1.7811498145439015,
+              "stressNetReturn": 0.6996605017533937
+            },
+            "holdout": {
+              "netReturn": -0.35302670756348,
+              "cagr": -0.21587982052976695,
+              "maxDrawdown": 0.48481151858362237,
+              "sharpe": -0.41470954462543447,
+              "closedTrades": 79,
+              "naturalClosedTrades": 75,
+              "winRate": 0.34177215189873417,
+              "exposure": 0.46585117227319195,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.64697329243652,
+              "stressNetReturn": -0.37565377343004536
+            }
+          },
+          "combinedOutOfSampleReturn": 0.15235635983816498,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "rsiPullback",
+            "rsi": 2,
+            "entry": 10,
+            "exit": 70,
+            "trend": 200,
+            "maxHold": 10,
+            "id": "rsiPullback-2-10-70-200-10"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 0.3613706866958819,
+              "cagr": 0.08017494325800545,
+              "maxDrawdown": 0.3174177585925012,
+              "sharpe": 0.4463009900515892,
+              "closedTrades": 151,
+              "naturalClosedTrades": 151,
+              "winRate": 0.7019867549668874,
+              "exposure": 0.08202144649783263,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 1.361370686695882,
+              "stressNetReturn": 0.2558236547856112
+            },
+            "validation": {
+              "netReturn": -0.0019940111282045203,
+              "cagr": -0.0009968211238200464,
+              "maxDrawdown": 0.13999935519290252,
+              "sharpe": 0.05903448092736713,
+              "closedTrades": 105,
+              "naturalClosedTrades": 104,
+              "winRate": 0.638095238095238,
+              "exposure": 0.11399908800729601,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 0.9980059888717955,
+              "stressNetReturn": -0.05208216352162398
+            },
+            "holdout": {
+              "netReturn": 0.1142771077082092,
+              "cagr": 0.06229481105798507,
+              "maxDrawdown": 0.09652177317827537,
+              "sharpe": 0.5192042817221619,
+              "closedTrades": 68,
+              "naturalClosedTrades": 64,
+              "winRate": 0.6617647058823529,
+              "exposure": 0.08256880733944943,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 1.1142771077082092,
+              "stressNetReturn": 0.0776331232653662
+            }
+          },
+          "combinedOutOfSampleReturn": 0.11205522675553548,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "bollinger",
+            "days": 20,
+            "deviations": 2,
+            "trend": 200,
+            "maxHold": 20,
+            "id": "bollinger-20-2-200-20"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": -0.10409072425821209,
+              "cagr": -0.027104917482229207,
+              "maxDrawdown": 0.28356763412380404,
+              "sharpe": -0.03704631672106054,
+              "closedTrades": 363,
+              "naturalClosedTrades": 363,
+              "winRate": 0.6143250688705234,
+              "exposure": 0.06789559791500191,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 0.8959092757417879,
+              "stressNetReturn": -0.2458270832662185
+            },
+            "validation": {
+              "netReturn": 0.04795237117329032,
+              "cagr": 0.023679050498628618,
+              "maxDrawdown": 0.19703100901439397,
+              "sharpe": 0.2439772331753145,
+              "closedTrades": 203,
+              "naturalClosedTrades": 203,
+              "winRate": 0.625615763546798,
+              "exposure": 0.06824745402036798,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 1.0479523711732903,
+              "stressNetReturn": -0.046866844346985514
+            },
+            "holdout": {
+              "netReturn": 0.049361025096390954,
+              "cagr": 0.02727397383900576,
+              "maxDrawdown": 0.06208500345411316,
+              "sharpe": 0.3683718367032322,
+              "closedTrades": 138,
+              "naturalClosedTrades": 138,
+              "winRate": 0.6666666666666666,
+              "exposure": 0.0547485558953446,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 1.049361025096391,
+              "stressNetReturn": -0.0186034966889298
+            }
+          },
+          "combinedOutOfSampleReturn": 0.0996803744665975,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "emaTrend",
+            "fast": 50,
+            "slow": 200,
+            "id": "emaTrend-50-200"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 7.373141754061988,
+              "cagr": 0.7010697081213435,
+              "maxDrawdown": 0.4555153105647125,
+              "sharpe": 1.3633491287217823,
+              "closedTrades": 139,
+              "naturalClosedTrades": 139,
+              "winRate": 0.2446043165467626,
+              "exposure": 0.3134839151266252,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 8.373141754061988,
+              "stressNetReturn": 6.734384502028192
+            },
+            "validation": {
+              "netReturn": 0.28595954327443907,
+              "cagr": 0.13390402638446486,
+              "maxDrawdown": 0.31748865356573475,
+              "sharpe": 0.5684509244299842,
+              "closedTrades": 133,
+              "naturalClosedTrades": 131,
+              "winRate": 0.20300751879699247,
+              "exposure": 0.40902872777017746,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 1.285959543274439,
+              "stressNetReturn": 0.2087957052126097
+            },
+            "holdout": {
+              "netReturn": -0.23390847432129047,
+              "cagr": -0.1382677627457486,
+              "maxDrawdown": 0.33775047794818625,
+              "sharpe": -0.48213336486892744,
+              "closedTrades": 85,
+              "naturalClosedTrades": 83,
+              "winRate": 0.12941176470588237,
+              "exposure": 0.2499999999999996,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.7660915256787095,
+              "stressNetReturn": -0.2635639329583478
+            }
+          },
+          "combinedOutOfSampleReturn": -0.014837291531788477,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "emaTrend",
+            "fast": 50,
+            "slow": 200,
+            "id": "emaTrend-50-200"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": 8.554281542237376,
+              "cagr": 0.7581240251223145,
+              "maxDrawdown": 0.3597988124320828,
+              "sharpe": 1.5346479843323024,
+              "closedTrades": 1029,
+              "naturalClosedTrades": 1029,
+              "winRate": 0.22643343051506318,
+              "exposure": 0.3462504280333266,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 9.554281542237376,
+              "stressNetReturn": 4.621612372040973
+            },
+            "validation": {
+              "netReturn": 0.2913027631471363,
+              "cagr": 0.1362556843149767,
+              "maxDrawdown": 0.3608008231624902,
+              "sharpe": 0.5723007300270453,
+              "closedTrades": 642,
+              "naturalClosedTrades": 641,
+              "winRate": 0.20249221183800623,
+              "exposure": 0.3591351269189893,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 1.2913027631471363,
+              "stressNetReturn": -0.056431962540500424
+            },
+            "holdout": {
+              "netReturn": -0.24391251123352153,
+              "cagr": -0.1445706205080629,
+              "maxDrawdown": 0.36190543638331973,
+              "sharpe": -0.5410242067383113,
+              "closedTrades": 472,
+              "naturalClosedTrades": 472,
+              "winRate": 0.19491525423728814,
+              "exposure": 0.2666072035338081,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.7560874887664785,
+              "stressNetReturn": -0.4078399380128356
+            }
+          },
+          "combinedOutOfSampleReturn": -0.023662136574866932,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "bollinger",
+            "days": 20,
+            "deviations": 2,
+            "trend": 200,
+            "maxHold": 20,
+            "id": "bollinger-20-2-200-20"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": -0.13328119542390426,
+              "cagr": -0.03512833061621312,
+              "maxDrawdown": 0.3135404379975705,
+              "sharpe": -0.08127818567735211,
+              "closedTrades": 52,
+              "naturalClosedTrades": 52,
+              "winRate": 0.5961538461538461,
+              "exposure": 0.06240018252338572,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 0.8667188045760957,
+              "stressNetReturn": -0.15739075579316797
+            },
+            "validation": {
+              "netReturn": -0.009899861968578838,
+              "cagr": -0.004958857194143129,
+              "maxDrawdown": 0.11747085840355942,
+              "sharpe": 0.019403620333918403,
+              "closedTrades": 33,
+              "naturalClosedTrades": 30,
+              "winRate": 0.5454545454545454,
+              "exposure": 0.07022343821249427,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 0.9901001380314212,
+              "stressNetReturn": -0.02522837841339398
+            },
+            "holdout": {
+              "netReturn": -0.08015733080174847,
+              "cagr": -0.04559101791999187,
+              "maxDrawdown": 0.14234889439137532,
+              "sharpe": -0.379140069924297,
+              "closedTrades": 26,
+              "naturalClosedTrades": 23,
+              "winRate": 0.6153846153846154,
+              "exposure": 0.05377166156982671,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.9198426691982515,
+              "stressNetReturn": -0.09143268911064983
+            }
+          },
+          "combinedOutOfSampleReturn": -0.08926364625962024,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "rsiPullback",
+            "rsi": 2,
+            "entry": 20,
+            "exit": 80,
+            "trend": 200,
+            "maxHold": 10,
+            "id": "rsiPullback-2-20-80-200-10"
+          },
+          "timeframe": "1d",
+          "periods": {
+            "train": {
+              "netReturn": 1.4824423727158598,
+              "cagr": 0.2552198365572793,
+              "maxDrawdown": 0.29980229006530545,
+              "sharpe": 0.8031081904339449,
+              "closedTrades": 255,
+              "naturalClosedTrades": 255,
+              "winRate": 0.6274509803921569,
+              "exposure": 0.18183892311202418,
+              "from": 1546300800000,
+              "to": 1672444800000,
+              "finalEquity": 2.4824423727158598,
+              "stressNetReturn": 1.1559292749741807
+            },
+            "validation": {
+              "netReturn": 0.1237842203389552,
+              "cagr": 0.06004458381813493,
+              "maxDrawdown": 0.17008138195894196,
+              "sharpe": 0.3960375976002995,
+              "closedTrades": 167,
+              "naturalClosedTrades": 163,
+              "winRate": 0.5988023952095808,
+              "exposure": 0.23461012311901494,
+              "from": 1672531200000,
+              "to": 1735603200000,
+              "finalEquity": 1.1237842203389552,
+              "stressNetReturn": 0.011932600766216384
+            },
+            "holdout": {
+              "netReturn": -0.20402889004417624,
+              "cagr": -0.11965579710903007,
+              "maxDrawdown": 0.29071622610384795,
+              "sharpe": -0.5843015954508125,
+              "closedTrades": 115,
+              "naturalClosedTrades": 110,
+              "winRate": 0.5652173913043478,
+              "exposure": 0.18603465851172282,
+              "from": 1735689600000,
+              "to": 1792108800000,
+              "finalEquity": 0.7959711099558238,
+              "stressNetReturn": -0.24711349722756215
+            }
+          },
+          "combinedOutOfSampleReturn": -0.10550022678596183,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "emaTrend",
+            "fast": 20,
+            "slow": 100,
+            "id": "emaTrend-20-100"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": 6.360953113765424,
+              "cagr": 0.6471513739668848,
+              "maxDrawdown": 0.27636367107702897,
+              "sharpe": 1.4364230195187644,
+              "closedTrades": 1753,
+              "naturalClosedTrades": 1753,
+              "winRate": 0.26354820308043353,
+              "exposure": 0.3333713807403989,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 7.360953113765424,
+              "stressNetReturn": 2.0759418750200247
+            },
+            "validation": {
+              "netReturn": 0.36574047626134454,
+              "cagr": 0.16852442548938984,
+              "maxDrawdown": 0.33492298195023695,
+              "sharpe": 0.6729420458719245,
+              "closedTrades": 967,
+              "naturalClosedTrades": 967,
+              "winRate": 0.2233712512926577,
+              "exposure": 0.34416324669402915,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 1.3657404762613445,
+              "stressNetReturn": -0.147638771696603
+            },
+            "holdout": {
+              "netReturn": -0.435770265476898,
+              "cagr": -0.27357366655532334,
+              "maxDrawdown": 0.49693077327654733,
+              "sharpe": -1.2596419340711489,
+              "closedTrades": 795,
+              "naturalClosedTrades": 795,
+              "winRate": 0.21132075471698114,
+              "exposure": 0.2729782534828397,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.564229734523102,
+              "stressNetReturn": -0.6225607170729497
+            }
+          },
+          "combinedOutOfSampleReturn": -0.2294086136516067,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "rsiPullback",
+            "rsi": 2,
+            "entry": 10,
+            "exit": 70,
+            "trend": 200,
+            "maxHold": 10,
+            "id": "rsiPullback-2-10-70-200-10"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": -0.01643624710861269,
+              "cagr": -0.0041346339648633545,
+              "maxDrawdown": 0.3051049797064127,
+              "sharpe": 0.09488507731771166,
+              "closedTrades": 1038,
+              "naturalClosedTrades": 1038,
+              "winRate": 0.6579961464354528,
+              "exposure": 0.09199863029334476,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 0.9835637528913873,
+              "stressNetReturn": -0.41305974881917484
+            },
+            "validation": {
+              "netReturn": -0.1333860710118785,
+              "cagr": -0.06903340900234989,
+              "maxDrawdown": 0.20423276931897738,
+              "sharpe": -0.3893251749546726,
+              "closedTrades": 568,
+              "naturalClosedTrades": 568,
+              "winRate": 0.6144366197183099,
+              "exposure": 0.10495516035871766,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 0.8666139289881215,
+              "stressNetReturn": -0.3446495260780076
+            },
+            "holdout": {
+              "netReturn": -0.2098745592769371,
+              "cagr": -0.1232724592606873,
+              "maxDrawdown": 0.21203846733073373,
+              "sharpe": -1.2638594255390783,
+              "closedTrades": 401,
+              "naturalClosedTrades": 401,
+              "winRate": 0.5486284289276808,
+              "exposure": 0.08707101597009835,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.7901254407230629,
+              "stressNetReturn": -0.3520752342224579
+            }
+          },
+          "combinedOutOfSampleReturn": -0.3152662874215154,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "rsiPullback",
+            "rsi": 2,
+            "entry": 20,
+            "exit": 80,
+            "trend": 200,
+            "maxHold": 10,
+            "id": "rsiPullback-2-20-80-200-10"
+          },
+          "timeframe": "4h",
+          "periods": {
+            "train": {
+              "netReturn": 0.31161239015800835,
+              "cagr": 0.07016656345079997,
+              "maxDrawdown": 0.46889193444135213,
+              "sharpe": 0.3733858202717754,
+              "closedTrades": 1758,
+              "naturalClosedTrades": 1758,
+              "winRate": 0.6444823663253697,
+              "exposure": 0.1941749419777073,
+              "from": 1546300800000,
+              "to": 1672516800000,
+              "finalEquity": 1.3116123901580083,
+              "stressNetReturn": -0.45793295670113143
+            },
+            "validation": {
+              "netReturn": -0.08336830890881886,
+              "cagr": -0.04256265465879405,
+              "maxDrawdown": 0.31545048444326196,
+              "sharpe": -0.08505142781749167,
+              "closedTrades": 955,
+              "naturalClosedTrades": 955,
+              "winRate": 0.5979057591623037,
+              "exposure": 0.21458428332573165,
+              "from": 1672531200000,
+              "to": 1735675200000,
+              "finalEquity": 0.9166316910911811,
+              "stressNetReturn": -0.4379724537284899
+            },
+            "holdout": {
+              "netReturn": -0.31436626325897854,
+              "cagr": -0.1900471506327014,
+              "maxDrawdown": 0.3267547254129022,
+              "sharpe": -1.236017120202757,
+              "closedTrades": 672,
+              "naturalClosedTrades": 672,
+              "winRate": 0.5550595238095238,
+              "exposure": 0.17851681957186566,
+              "from": 1735689600000,
+              "to": 1792180800000,
+              "finalEquity": 0.6856337367410215,
+              "stressNetReturn": -0.506261651256195
+            }
+          },
+          "combinedOutOfSampleReturn": -0.37152638842191177,
+          "allPeriodsPositive": false
+        }
+      ]
+    },
+    "cedear": {
+      "periods": {
+        "train": [
+          "2024-10-17",
+          "2025-06-30"
+        ],
+        "validation": [
+          "2025-07-01",
+          "2025-12-31"
+        ],
+        "holdout": [
+          "2026-01-01",
+          "2026-10-16"
+        ]
+      },
+      "frozenTrainingSelection": {
+        "market": "cedear",
+        "timeframe": "daily",
+        "spec": {
+          "family": "momentum",
+          "bars": 180,
+          "id": "momentum-180"
+        },
+        "metrics": {
+          "netReturn": -0.024603622918697332,
+          "cagr": -0.034784769490581624,
+          "maxDrawdown": 0.19693374363280614,
+          "sharpe": -0.07019533996087343,
+          "closedTrades": 63,
+          "naturalClosedTrades": 56,
+          "winRate": 0.2857142857142857,
+          "exposure": 0.7431137724550895,
+          "from": 1729123200000,
+          "to": 1751241600000,
+          "finalEquity": 0.9753963770813027
+        }
+      },
+      "preferredTrainingSelection": {
+        "market": "cedear",
+        "timeframe": "daily",
+        "spec": {
+          "family": "buyHold",
+          "id": "buyHold-"
+        },
+        "metrics": {
+          "netReturn": 0.07364829924066152,
+          "cagr": 0.10627048086232138,
+          "maxDrawdown": 0.1982567009124725,
+          "sharpe": 0.550676873519123,
+          "closedTrades": 10,
+          "naturalClosedTrades": 0,
+          "winRate": 0.7,
+          "exposure": 1,
+          "from": 1729123200000,
+          "to": 1751241600000,
+          "finalEquity": 1.0736482992406615
+        }
+      },
+      "validation": {
+        "market": "cedear",
+        "timeframe": "daily",
+        "spec": {
+          "family": "momentum",
+          "bars": 180,
+          "id": "momentum-180"
+        },
+        "metrics": {
+          "netReturn": 0.04057656050380132,
+          "cagr": 0.08262308325703116,
+          "maxDrawdown": 0.07498092658382371,
+          "sharpe": 0.47808381447704473,
+          "closedTrades": 28,
+          "naturalClosedTrades": 18,
+          "winRate": 0.5357142857142857,
+          "exposure": 0.8758064516129037,
+          "from": 1751328000000,
+          "to": 1767052800000,
+          "finalEquity": 1.0405765605038013
+        }
+      },
+      "validationBenchmark": {
+        "market": "cedear",
+        "timeframe": "daily",
+        "spec": {
+          "family": "buyHold",
+          "id": "buyHold-"
+        },
+        "metrics": {
+          "netReturn": 0.16574310645083346,
+          "cagr": 0.3581031277142688,
+          "maxDrawdown": 0.06561373877256582,
+          "sharpe": 1.5216449553450544,
+          "closedTrades": 10,
+          "naturalClosedTrades": 0,
+          "winRate": 1,
+          "exposure": 1,
+          "from": 1751328000000,
+          "to": 1767052800000,
+          "finalEquity": 1.1657431064508335
+        }
+      },
+      "final": {
+        "candidate": {
+          "netReturn": 0.019222545487401543,
+          "cagr": 0.024441149174788013,
+          "maxDrawdown": 0.07620484736831257,
+          "sharpe": 0.22546874003541326,
+          "closedTrades": 37,
+          "naturalClosedTrades": 27,
+          "winRate": 0.2972972972972973,
+          "exposure": 0.8087179487179492,
+          "from": 1767312000000,
+          "to": 1792108800000,
+          "finalEquity": 1.0192225454874015
+        },
+        "benchmark": {
+          "netReturn": 0.15183162092500102,
+          "cagr": 0.19634190807432828,
+          "maxDrawdown": 0.09153090268270403,
+          "sharpe": 1.0052395069348803,
+          "closedTrades": 10,
+          "naturalClosedTrades": 0,
+          "winRate": 1,
+          "exposure": 1,
+          "from": 1767312000000,
+          "to": 1792108800000,
+          "finalEquity": 1.151831620925001
+        },
+        "stress": {
+          "netReturn": -0.02923300084354996,
+          "cagr": -0.036927742677479,
+          "maxDrawdown": 0.0814783480794431,
+          "sharpe": -0.10748553948732319,
+          "closedTrades": 37,
+          "naturalClosedTrades": 27,
+          "winRate": 0.2702702702702703,
+          "exposure": 0.8087179487179492,
+          "from": 1767312000000,
+          "to": 1792108800000,
+          "finalEquity": 0.97076699915645
+        },
+        "statisticalGatePassed": false,
+        "relativeEconomicGatePassed": false
+      },
+      "combinedCandidateReturn": 0.060579090771209376,
+      "combinedBenchmarkReturn": 0.3427397718854095,
+      "retrospectiveRankings": [
+        {
+          "spec": {
+            "family": "buyHold",
+            "id": "buyHold-"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": 0.07364829924066152,
+              "cagr": 0.10627048086232138,
+              "maxDrawdown": 0.1982567009124725,
+              "sharpe": 0.550676873519123,
+              "closedTrades": 10,
+              "naturalClosedTrades": 0,
+              "winRate": 0.7,
+              "exposure": 1,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 1.0736482992406615,
+              "stressNetReturn": 0.05660551880577036
+            },
+            "validation": {
+              "netReturn": 0.16574310645083346,
+              "cagr": 0.3581031277142688,
+              "maxDrawdown": 0.06561373877256582,
+              "sharpe": 1.5216449553450544,
+              "closedTrades": 10,
+              "naturalClosedTrades": 0,
+              "winRate": 1,
+              "exposure": 1,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 1.1657431064508335,
+              "stressNetReturn": 0.14723843986608598
+            },
+            "holdout": {
+              "netReturn": 0.15183162092500102,
+              "cagr": 0.19634190807432828,
+              "maxDrawdown": 0.09153090268270403,
+              "sharpe": 1.0052395069348803,
+              "closedTrades": 10,
+              "naturalClosedTrades": 0,
+              "winRate": 1,
+              "exposure": 1,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 1.151831620925001,
+              "stressNetReturn": 0.1335477812101955
+            }
+          },
+          "combinedOutOfSampleReturn": 0.3427397718854095,
+          "allPeriodsPositive": true
+        },
+        {
+          "spec": {
+            "family": "momentum",
+            "bars": 180,
+            "id": "momentum-180"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": -0.024603622918697332,
+              "cagr": -0.034784769490581624,
+              "maxDrawdown": 0.19693374363280614,
+              "sharpe": -0.07019533996087343,
+              "closedTrades": 63,
+              "naturalClosedTrades": 56,
+              "winRate": 0.2857142857142857,
+              "exposure": 0.7431137724550895,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 0.9753963770813027,
+              "stressNetReturn": -0.10721612705388317
+            },
+            "validation": {
+              "netReturn": 0.04057656050380132,
+              "cagr": 0.08262308325703116,
+              "maxDrawdown": 0.07498092658382371,
+              "sharpe": 0.47808381447704473,
+              "closedTrades": 28,
+              "naturalClosedTrades": 18,
+              "winRate": 0.5357142857142857,
+              "exposure": 0.8758064516129037,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 1.0405765605038013,
+              "stressNetReturn": 0.0015859973667100569
+            },
+            "holdout": {
+              "netReturn": 0.019222545487401543,
+              "cagr": 0.024441149174788013,
+              "maxDrawdown": 0.07620484736831257,
+              "sharpe": 0.22546874003541326,
+              "closedTrades": 37,
+              "naturalClosedTrades": 27,
+              "winRate": 0.2972972972972973,
+              "exposure": 0.8087179487179492,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 1.0192225454874015,
+              "stressNetReturn": -0.02923300084354996
+            }
+          },
+          "combinedOutOfSampleReturn": 0.060579090771209376,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "momentum",
+            "bars": 90,
+            "id": "momentum-90"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": -0.09525356719268097,
+              "cagr": -0.13260736460113154,
+              "maxDrawdown": 0.2204615563918635,
+              "sharpe": -0.5798123765535769,
+              "closedTrades": 55,
+              "naturalClosedTrades": 50,
+              "winRate": 0.2909090909090909,
+              "exposure": 0.579041916167665,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 0.904746432807319,
+              "stressNetReturn": -0.16056570084395538
+            },
+            "validation": {
+              "netReturn": 0.02747936559766906,
+              "cagr": 0.05559656263528767,
+              "maxDrawdown": 0.06244334130326057,
+              "sharpe": 0.35814094345520125,
+              "closedTrades": 37,
+              "naturalClosedTrades": 29,
+              "winRate": 0.3783783783783784,
+              "exposure": 0.8233870967741931,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 1.027479365597669,
+              "stressNetReturn": -0.02102317510803453
+            },
+            "holdout": {
+              "netReturn": -0.00014199543324755481,
+              "cagr": -0.00018007932042485297,
+              "maxDrawdown": 0.10623303573810017,
+              "sharpe": 0.0894582473356907,
+              "closedTrades": 45,
+              "naturalClosedTrades": 37,
+              "winRate": 0.3333333333333333,
+              "exposure": 0.6933333333333324,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 0.9998580045667524,
+              "stressNetReturn": -0.06569651145999755
+            }
+          },
+          "combinedOutOfSampleReturn": 0.027333468219998158,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "emaTrend",
+            "fast": 50,
+            "slow": 200,
+            "id": "emaTrend-50-200"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": -0.06510496279115396,
+              "cagr": -0.091242544991049,
+              "maxDrawdown": 0.22608864413351903,
+              "sharpe": -0.3797913354867485,
+              "closedTrades": 58,
+              "naturalClosedTrades": 52,
+              "winRate": 0.29310344827586204,
+              "exposure": 0.46946107784431174,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 0.934895037208846,
+              "stressNetReturn": -0.14485444453299356
+            },
+            "validation": {
+              "netReturn": -0.04721527885732835,
+              "cagr": -0.09202131116312484,
+              "maxDrawdown": 0.09524673434059816,
+              "sharpe": -0.3229789198622843,
+              "closedTrades": 52,
+              "naturalClosedTrades": 44,
+              "winRate": 0.4423076923076923,
+              "exposure": 0.7346774193548383,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 0.9527847211426717,
+              "stressNetReturn": -0.10624278556757405
+            },
+            "holdout": {
+              "netReturn": -0.106379298975121,
+              "cagr": -0.1329361298042263,
+              "maxDrawdown": 0.14258337048629244,
+              "sharpe": -0.7381816230318008,
+              "closedTrades": 74,
+              "naturalClosedTrades": 67,
+              "winRate": 0.22972972972972974,
+              "exposure": 0.5589743589743593,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 0.893620701024879,
+              "stressNetReturn": -0.19534356182045687
+            }
+          },
+          "combinedOutOfSampleReturn": -0.1485718495666919,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "donchian",
+            "entry": 55,
+            "exit": 20,
+            "id": "donchian-55-20"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": 0.010586331882907807,
+              "cagr": 0.015078836401952067,
+              "maxDrawdown": 0.18991518582338063,
+              "sharpe": 0.18068594077476977,
+              "closedTrades": 21,
+              "naturalClosedTrades": 17,
+              "winRate": 0.47619047619047616,
+              "exposure": 0.29580838323353315,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 1.0105863318829078,
+              "stressNetReturn": -0.027034974170001003
+            },
+            "validation": {
+              "netReturn": -0.1155233133093424,
+              "cagr": -0.2173073083130107,
+              "maxDrawdown": 0.14432469331831244,
+              "sharpe": -0.8074112631374555,
+              "closedTrades": 22,
+              "naturalClosedTrades": 17,
+              "winRate": 0.4090909090909091,
+              "exposure": 0.4225806451612898,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 0.8844766866906576,
+              "stressNetReturn": -0.14322648380808956
+            },
+            "holdout": {
+              "netReturn": -0.07359055635518308,
+              "cagr": -0.09239148274356812,
+              "maxDrawdown": 0.1285509665442709,
+              "sharpe": -0.48617069642251437,
+              "closedTrades": 26,
+              "naturalClosedTrades": 19,
+              "winRate": 0.38461538461538464,
+              "exposure": 0.3830769230769235,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 0.9264094436448169,
+              "stressNetReturn": -0.12458457955639579
+            }
+          },
+          "combinedOutOfSampleReturn": -0.18061244476609684,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "donchian",
+            "entry": 20,
+            "exit": 10,
+            "id": "donchian-20-10"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": 0.02270195460402391,
+              "cagr": 0.032417747810247866,
+              "maxDrawdown": 0.18242818849509757,
+              "sharpe": 0.26549981082219676,
+              "closedTrades": 31,
+              "naturalClosedTrades": 26,
+              "winRate": 0.45161290322580644,
+              "exposure": 0.32574850299401203,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 1.022701954604024,
+              "stressNetReturn": -0.02181083801929462
+            },
+            "validation": {
+              "netReturn": -0.1829876989843945,
+              "cagr": -0.3319377843050042,
+              "maxDrawdown": 0.19244184024855793,
+              "sharpe": -1.4834581380425225,
+              "closedTrades": 36,
+              "naturalClosedTrades": 31,
+              "winRate": 0.3055555555555556,
+              "exposure": 0.43145161290322526,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 0.8170123010156055,
+              "stressNetReturn": -0.2248354893945671
+            },
+            "holdout": {
+              "netReturn": -0.06753504808695654,
+              "cagr": -0.08486098161474209,
+              "maxDrawdown": 0.12799703587646394,
+              "sharpe": -0.40898103238505124,
+              "closedTrades": 41,
+              "naturalClosedTrades": 34,
+              "winRate": 0.3902439024390244,
+              "exposure": 0.42615384615384644,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 0.9324649519130435,
+              "stressNetReturn": -0.1245343466561919
+            }
+          },
+          "combinedOutOfSampleReturn": -0.23816466402111847,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "bollinger",
+            "days": 20,
+            "deviations": 2,
+            "trend": 200,
+            "maxHold": 20,
+            "id": "bollinger-20-2-200-20"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": -0.07102429671459198,
+              "cagr": -0.0994090243706911,
+              "maxDrawdown": 0.25223914330037633,
+              "sharpe": -0.3711716064121215,
+              "closedTrades": 20,
+              "naturalClosedTrades": 19,
+              "winRate": 0.4,
+              "exposure": 0.08862275449101793,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 0.928975703285408,
+              "stressNetReturn": -0.09846527169684949
+            },
+            "validation": {
+              "netReturn": -0.2004694943918962,
+              "cagr": -0.3601645560408756,
+              "maxDrawdown": 0.24216902399710538,
+              "sharpe": -1.1572535315087837,
+              "closedTrades": 10,
+              "naturalClosedTrades": 10,
+              "winRate": 0.7,
+              "exposure": 0.048387096774193526,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 0.7995305056081038,
+              "stressNetReturn": -0.21301218710149972
+            },
+            "holdout": {
+              "netReturn": -0.06168852944052361,
+              "cagr": -0.07757791777772194,
+              "maxDrawdown": 0.10737379808114689,
+              "sharpe": -0.3957108575591921,
+              "closedTrades": 25,
+              "naturalClosedTrades": 23,
+              "winRate": 0.52,
+              "exposure": 0.09846153846153859,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 0.9383114705594764,
+              "stressNetReturn": -0.10096900158619737
+            }
+          },
+          "combinedOutOfSampleReturn": -0.24979135552569842,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "rsiPullback",
+            "rsi": 2,
+            "entry": 10,
+            "exit": 70,
+            "trend": 200,
+            "maxHold": 10,
+            "id": "rsiPullback-2-10-70-200-10"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": -0.08772998532577003,
+              "cagr": -0.12233833732546306,
+              "maxDrawdown": 0.27964852902082005,
+              "sharpe": -0.4797121495292779,
+              "closedTrades": 49,
+              "naturalClosedTrades": 49,
+              "winRate": 0.3877551020408163,
+              "exposure": 0.1269461077844312,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 0.91227001467423,
+              "stressNetReturn": -0.1538103115494205
+            },
+            "validation": {
+              "netReturn": -0.194220213220608,
+              "cagr": -0.3501440543732013,
+              "maxDrawdown": 0.21796922354721882,
+              "sharpe": -1.143611835930675,
+              "closedTrades": 52,
+              "naturalClosedTrades": 52,
+              "winRate": 0.5192307692307693,
+              "exposure": 0.1669354838709678,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 0.805779786779392,
+              "stressNetReturn": -0.25717749056713235
+            },
+            "holdout": {
+              "netReturn": -0.10898325344263315,
+              "cagr": -0.13613914585498232,
+              "maxDrawdown": 0.13492517679800353,
+              "sharpe": -0.7636417463523074,
+              "closedTrades": 75,
+              "naturalClosedTrades": 74,
+              "winRate": 0.49333333333333335,
+              "exposure": 0.15487179487179498,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 0.8910167465573668,
+              "stressNetReturn": -0.20936601049236558
+            }
+          },
+          "combinedOutOfSampleReturn": -0.2820367159421374,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "rsiPullback",
+            "rsi": 2,
+            "entry": 20,
+            "exit": 80,
+            "trend": 200,
+            "maxHold": 10,
+            "id": "rsiPullback-2-20-80-200-10"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": -0.10135783841343271,
+              "cagr": -0.14091278132024365,
+              "maxDrawdown": 0.2799991034695355,
+              "sharpe": -0.5935955061801689,
+              "closedTrades": 80,
+              "naturalClosedTrades": 79,
+              "winRate": 0.4875,
+              "exposure": 0.24491017964071876,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 0.8986421615865673,
+              "stressNetReturn": -0.20615006765011112
+            },
+            "validation": {
+              "netReturn": -0.16538117877484682,
+              "cagr": -0.30289512794324913,
+              "maxDrawdown": 0.19001285213790564,
+              "sharpe": -1.0265637404607997,
+              "closedTrades": 86,
+              "naturalClosedTrades": 85,
+              "winRate": 0.5930232558139535,
+              "exposure": 0.3129032258064517,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 0.8346188212251532,
+              "stressNetReturn": -0.2711986678965408
+            },
+            "holdout": {
+              "netReturn": -0.1885556804729579,
+              "cagr": -0.23278114469041356,
+              "maxDrawdown": 0.19519921443112476,
+              "sharpe": -1.4797596517309817,
+              "closedTrades": 108,
+              "naturalClosedTrades": 104,
+              "winRate": 0.4444444444444444,
+              "exposure": 0.3235897435897434,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 0.8114443195270421,
+              "stressNetReturn": -0.31285449959305844
+            }
+          },
+          "combinedOutOfSampleReturn": -0.3227532985464936,
+          "allPeriodsPositive": false
+        },
+        {
+          "spec": {
+            "family": "emaTrend",
+            "fast": 20,
+            "slow": 100,
+            "id": "emaTrend-20-100"
+          },
+          "timeframe": "daily",
+          "periods": {
+            "train": {
+              "netReturn": -0.09443970814650071,
+              "cagr": -0.13149824750161787,
+              "maxDrawdown": 0.2304929633329652,
+              "sharpe": -0.5930176944714652,
+              "closedTrades": 85,
+              "naturalClosedTrades": 77,
+              "winRate": 0.27058823529411763,
+              "exposure": 0.3952095808383236,
+              "from": 1729123200000,
+              "to": 1751241600000,
+              "finalEquity": 0.9055602918534993,
+              "stressNetReturn": -0.20455758077438946
+            },
+            "validation": {
+              "netReturn": -0.1639153658554674,
+              "cagr": -0.30044940497313544,
+              "maxDrawdown": 0.17208164934450676,
+              "sharpe": -1.475246363684644,
+              "closedTrades": 91,
+              "naturalClosedTrades": 85,
+              "winRate": 0.32967032967032966,
+              "exposure": 0.6080645161290323,
+              "from": 1751328000000,
+              "to": 1767052800000,
+              "finalEquity": 0.8360846341445326,
+              "stressNetReturn": -0.2608602182372882
+            },
+            "holdout": {
+              "netReturn": -0.19515445101363738,
+              "cagr": -0.24068513586889395,
+              "maxDrawdown": 0.22271684264974811,
+              "sharpe": -1.4733414595939642,
+              "closedTrades": 111,
+              "naturalClosedTrades": 105,
+              "winRate": 0.25225225225225223,
+              "exposure": 0.46820512820512805,
+              "from": 1767312000000,
+              "to": 1792108800000,
+              "finalEquity": 0.8048455489863626,
+              "stressNetReturn": -0.317913549314639
+            }
+          },
+          "combinedOutOfSampleReturn": -0.3270810036328815,
+          "allPeriodsPositive": false
+        }
+      ]
+    }
+  },
+  "combinedReturnDefinition": "Product of independent validation and final windows; equal initial asset sleeves reset at the boundary, with terminal liquidation costs. Not a continuous unrebalanced live portfolio.",
+  "auditIdentity": {
+    "protocol": "f7cdb1df509381c54ddcd048d72dbcaa5360cecd1db6d60ed72bd5a19ee6ce14",
+    "data": "a1a38bc3fd9a388a6f697f3b86c00fca13b09de3e5d7800cc08c589a88537400",
+    "engine": "c7009fc98c6daff20f836384bbb986d2b9a09456079da6100596b7eaa7780d73",
+    "audit": "427e91fb09f7eda3957a8ca01d2a89fbfd53a70b48853e317b69572fddf1110c"
+  },
+  "integrityVerification": "Final selection contents recomputed from development data; every raw audit file verified against the manifest. Integrity-only corrections reproduced all original economic metrics exactly."
+}

@@ -107,8 +107,16 @@ function payload(url){
     assert.match(await page.locator('#ccGlobalTs').innerText(),/DATOS NO DISPONIBLES/);
     assert.match(await page.locator('#ccDetailBody').innerText(),/DATOS NO DISPONIBLES/);
     assert.equal(await page.locator('#ccAssetPrice').innerText(),'—');
+    const study=await page.goto(origin+'/docs/research/');
+    assert.equal(study.status(),200);
+    assert.match(await page.locator('h1').innerText(),/Qué rindió más/);
+    assert.equal(await page.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0),true,'the evidence figure must load');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth)<=390,'Research page must fit a mobile viewport');
+    const csv=await page.request.get(origin+'/docs/research/rankings-2026-10-17.csv');
+    assert.equal(csv.status(),200);
+    assert.equal((await csv.text()).trim().split('\n').length,31,'all 30 fixed model comparisons must be downloadable');
     assert.deepEqual(errors,[]);
-    console.log('PASS: browser startup, crypto, CEDEAR, ADR, stats, manual confirmation, mobile and API outage');
+    console.log('PASS: monitor, markets, manual confirmation, mobile, API outage and downloadable research evidence');
   }finally{
     if(browser)await browser.close();
     child.kill('SIGTERM');

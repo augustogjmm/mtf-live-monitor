@@ -13,9 +13,12 @@ const server = http.createServer(async (req, res) => {
     try { await handler(req, res); } catch { res.status(500).json({error:'Local handler failure'}); }
     return;
   }
-  const files = {'/':'index.html','/index.html':'index.html','/command-center.js':'command-center.js'};
+  const files = {'/':'index.html','/index.html':'index.html','/command-center.js':'command-center.js',
+    '/docs/research/':'docs/research/index.html'};
+  for(const name of ['index.html','holdout-2026-10-17.png','rankings-2026-10-17.csv','results-2026-10-17.json','protocol-2026-10-17.json'])files['/docs/research/'+name]='docs/research/'+name;
   const file = files[url.pathname];
   if (!file) { res.writeHead(404); res.end('Not found'); return; }
-  res.setHeader('content-type', file.endsWith('.js') ? 'application/javascript' : 'text/html; charset=utf-8');
+  const types={'.js':'application/javascript','.html':'text/html; charset=utf-8','.json':'application/json','.csv':'text/csv; charset=utf-8','.png':'image/png'};
+  res.setHeader('content-type',types[path.extname(file)]);
   fs.createReadStream(path.join(root,file)).pipe(res);
 }).listen(Number(process.env.PORT || 3000), '127.0.0.1', () => console.log('MTF local server ready '+server.address().port));

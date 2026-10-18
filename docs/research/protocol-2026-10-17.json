@@ -1,0 +1,178 @@
+{
+  "createdAt": "2026-10-17T23:29:17.841Z",
+  "objective": "Maximize net total return among predefined unlevered long-only candidates; report drawdown, exposure and benchmark excess separately.",
+  "crypto": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "ADAUSDT",
+    "LTCUSDT"
+  ],
+  "cedear": [
+    "AAPL.BA",
+    "MSFT.BA",
+    "AMZN.BA",
+    "GOOGL.BA",
+    "META.BA",
+    "NVDA.BA",
+    "KO.BA",
+    "XOM.BA",
+    "JNJ.BA",
+    "WMT.BA"
+  ],
+  "cryptoPeriods": {
+    "train": [
+      "2019-01-01",
+      "2022-12-31"
+    ],
+    "validation": [
+      "2023-01-01",
+      "2024-12-31"
+    ],
+    "holdout": [
+      "2025-01-01",
+      "2026-10-16"
+    ]
+  },
+  "cedearPeriods": {
+    "train": [
+      "2024-10-17",
+      "2025-06-30"
+    ],
+    "validation": [
+      "2025-07-01",
+      "2025-12-31"
+    ],
+    "holdout": [
+      "2026-01-01",
+      "2026-10-16"
+    ]
+  },
+  "families": {
+    "buyHold": [
+      {}
+    ],
+    "emaTrend": [
+      {
+        "fast": 20,
+        "slow": 100
+      },
+      {
+        "fast": 50,
+        "slow": 200
+      }
+    ],
+    "donchian": [
+      {
+        "entry": 20,
+        "exit": 10
+      },
+      {
+        "entry": 55,
+        "exit": 20
+      }
+    ],
+    "momentum": [
+      {
+        "bars": 90
+      },
+      {
+        "bars": 180
+      }
+    ],
+    "rsiPullback": [
+      {
+        "rsi": 2,
+        "entry": 10,
+        "exit": 70,
+        "trend": 200,
+        "maxHold": 10
+      },
+      {
+        "rsi": 2,
+        "entry": 20,
+        "exit": 80,
+        "trend": 200,
+        "maxHold": 10
+      }
+    ],
+    "bollinger": [
+      {
+        "days": 20,
+        "deviations": 2,
+        "trend": 200,
+        "maxHold": 20
+      }
+    ]
+  },
+  "execution": {
+    "signal": "closed daily candle",
+    "entry": "next available daily open",
+    "exit": "next open for indicator exit; gap-aware intraday initial stop; stop takes precedence",
+    "maxLeverage": 1,
+    "allocation": "equal fixed initial capital sleeves, one position per asset, no cross-sleeve borrowing",
+    "annualCashInterest": 0,
+    "cryptoFeeBpsPerFill": 10,
+    "cryptoSlippageBpsPerFill": 5,
+    "cedearFeeBpsPerFill": 60,
+    "cedearSlippageBpsPerFill": 20,
+    "stressMultiplier": 2,
+    "initialStopAtr": 3,
+    "cryptoCash": "USD/USDT proxy, no lending income",
+    "cedearCash": "ARS, NAV deflated by a GGAL CCL daily-close proxy"
+  },
+  "selection": "Choose highest train net portfolio return with >=30 closed trades; use validation as a pass/fail gate; never retune using final holdout.",
+  "validationGate": "Positive validation return and positive stress-cost return; compare winner with equal-asset buy-and-hold. Final holdout must be reported even if negative.",
+  "limitations": [
+    "Fixed surviving-asset universe selected before outcomes; no claim of historical full-universe optimality.",
+    "Adjusted daily OHLC approximates corporate-action and dividend total returns.",
+    "CCL is a cross-quote proxy, not executable FX quotes. CEDEAR cash remains ARS.",
+    "Fees are conservative research assumptions, not a statement of actual broker commissions.",
+    "No shorts, leverage, funding, borrowing, tax or automatic execution."
+  ],
+  "amendments": [
+    {
+      "at": "2026-10-17T23:33:23.949Z",
+      "reason": "Before evaluating strategy returns: add four-hour crypto comparison to avoid limiting the search to daily models; record unusable META local history and corporate-action quality checks.",
+      "cryptoTimeframes": [
+        "1d",
+        "4h"
+      ],
+      "metaHistoryRows": 1
+    },
+    {
+      "at": "2026-10-17T23:34:54.485Z",
+      "reason": "Before strategy outcomes: Yahoo local adjusted histories contain uncorrected certificate-ratio discontinuities. Use official BYMA execution bars, which expose only two years, and US-underlying indicators with causal next-local-open execution.",
+      "cedearPeriods": {
+        "train": [
+          "2024-10-17",
+          "2025-06-30"
+        ],
+        "validation": [
+          "2025-07-01",
+          "2025-12-31"
+        ],
+        "holdout": [
+          "2026-01-01",
+          "2026-10-16"
+        ]
+      },
+      "cedearSignalSource": "US-underlying daily adjusted OHLC, warmed using longer history",
+      "cedearExecutionSource": "Official BYMA daily OHLC; price-only results excluding unverified local dividend cashflows",
+      "activationRequires": "No unexplained local ratio/split discontinuities in execution period; explicitly validate dividend sensitivity before claiming best total return."
+    },
+    {
+      "at": "2026-10-17T23:39:41.769Z",
+      "reason": "Before final test: clarify momentum lookback is bars (180 H4 bars = 30 days), not calendar days. Correct primary selection to include the benchmark, as the objective is net profit rather than activity. No trading parameters changed; preserve first development report.",
+      "primarySelection": "Highest train net return among buy-and-hold and active candidates with >=30 natural exits. Negative-training active models are comparison controls, not deployment recommendations.",
+      "activeEconomicGate": "Positive base and stressed validation/final returns with sufficient exits; combined validation+final net return must exceed buy-and-hold to support an active-profitability advantage."
+    },
+    {
+      "at": "2026-10-17T23:40:54.451Z",
+      "reason": "Before final test, fix the initial local-certificate stop conversion to use the known entry fill and the preceding US ATR as a percentage. This removes a first-session missing-local-quote artifact. Add raw-data hash verification and per-asset contributions; unchanged candidate parameters.",
+      "record": "Previous development reports remain archived; final test has not been opened."
+    }
+  ],
+  "benchmarkPolicy": "Buy-and-hold remains in rankings and can be the highest-return result; active strategies require sufficient closed trades before activation."
+}

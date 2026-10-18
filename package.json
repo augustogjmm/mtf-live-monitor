@@ -2,7 +2,7 @@
   "name": "mtf-live-monitor",
   "version": "6.3.3",
   "private": true,
-  "description": "Monitor de señales manuales para cripto, CEDEAR y ADR",
+  "description": "Monitor de se\u00f1ales manuales para cripto, CEDEAR y ADR",
   "engines": {
     "node": ">=24.5"
   },
@@ -10,12 +10,15 @@
     "dev": "node --use-env-proxy scripts/dev-server.cjs",
     "test:browser": "node tests/browser-smoke.cjs",
     "validate:live": "node --use-env-proxy scripts/validate-live.cjs",
-    "test": "node tests/console-data-integrity.cjs && node tests/forward-safety.cjs && node tests/api-reliability.cjs && node tests/strategy-engines.cjs && node tests/execution-replay.cjs && node tests/deployment-validation.cjs && node tests/engine-auth.cjs && node tests/cloudflare-backend.mjs && node tests/crypto-data-relay.cjs",
+    "test": "node tests/console-data-integrity.cjs && node tests/forward-safety.cjs && node tests/api-reliability.cjs && node tests/strategy-engines.cjs && node tests/execution-replay.cjs && node tests/deployment-validation.cjs && node tests/engine-auth.cjs && node tests/cloudflare-backend.mjs && node tests/crypto-data-relay.cjs && node tests/daily-research.cjs",
     "evaluate:execution": "node scripts/evaluate-execution.cjs",
     "validate:deployment": "node --use-env-proxy scripts/validate-deployment.cjs",
     "deploy:edge": "node --use-env-proxy scripts/deploy-edge.cjs",
     "build:cloudflare": "node scripts/build-cloudflare.cjs",
-    "deploy:cloudflare": "node --use-env-proxy scripts/deploy-cloudflare.cjs"
+    "deploy:cloudflare": "node --use-env-proxy scripts/deploy-cloudflare.cjs",
+    "research:fetch": "node --use-env-proxy scripts/fetch-strategy-history.cjs",
+    "research:audit": "node scripts/audit-strategy-tournament.cjs",
+    "research:evaluate": "node scripts/search-profitable-strategies.cjs"
   },
   "devDependencies": {
     "playwright": "1.56.1"

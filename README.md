@@ -6,6 +6,12 @@ Monitor de señales para operar **manualmente** en cripto, CEDEAR y ADR.
 La interfaz y las reglas implementadas no constituyen una validación de
 rentabilidad. El monitor no envía órdenes a un broker.
 
+La [comparación del 17 de octubre de 2026](docs/STRATEGY_SEARCH_2026-10-17.md)
+estudia 30 variantes con costos, datos oficiales BYMA y prueba temporal reservada.
+Comprar y mantener fue la alternativa más rentable en el período conjunto comparado;
+los resultados recientes no validan un reemplazo activo confiable para ambos mercados.
+Se conservan los datos y resultados para reproducir la evaluación.
+
 ## Desarrollo
 
 Usar Node 24.19.0 (>=24.5), como la CI. La API usa fetch nativo.
