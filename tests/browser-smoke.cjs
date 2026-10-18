@@ -129,6 +129,7 @@ function payload(url){
     let paperMode='fresh';
     const paperFixture=JSON.parse(JSON.stringify(require('../paper/keltner-h4.json')));
     paperFixture.updatedAt=Date.now();
+    delete paperFixture.completedAt; // Fresh-state fixture must also work after the real cohort completes.
     await paperPage.route('**/*',async route=>{
       const u=new URL(route.request().url());
       if(u.pathname==='/paper-fixture')return route.fulfill({contentType:'text/html',body:'<section id="vm"></section><script src="/paper-monitor.js"></script>'});
