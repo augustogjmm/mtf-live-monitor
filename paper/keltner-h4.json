@@ -35,7 +35,7 @@
   "approvedForLive": false,
   "automaticOrders": false,
   "startedAt": 1792348510415,
-  "updatedAt": 1792348510415,
+  "updatedAt": 1792349051001,
   "sleeves": {
     "BTCUSDT": {
       "cash": 1666.6666666666667,
@@ -49,10 +49,10 @@
         "count": 1000
       },
       "lastDecisionBar": 1792324800000,
-      "lastQuote": 81130.85,
-      "quoteAt": 1792348510415,
+      "lastQuote": 81092.05,
+      "quoteAt": 1792349051001,
       "benchmarkQty": 0.02051216744569494,
-      "status": "BASELINE_NO_ENTRY"
+      "status": "WAITING"
     },
     "ETHUSDT": {
       "cash": 1666.6666666666667,
@@ -66,10 +66,10 @@
         "count": 1000
       },
       "lastDecisionBar": 1792324800000,
-      "lastQuote": 2363.38,
-      "quoteAt": 1792348510415,
+      "lastQuote": 2363.28,
+      "quoteAt": 1792349051001,
       "benchmarkQty": 0.7041481184623545,
-      "status": "BASELINE_NO_ENTRY"
+      "status": "WAITING"
     },
     "BNBUSDT": {
       "cash": 1666.6666666666667,
@@ -83,10 +83,10 @@
         "count": 1000
       },
       "lastDecisionBar": 1792324800000,
-      "lastQuote": 711.31,
-      "quoteAt": 1792348510415,
+      "lastQuote": 711.68,
+      "quoteAt": 1792349051001,
       "benchmarkQty": 2.3395841197390164,
-      "status": "BASELINE_NO_ENTRY"
+      "status": "WAITING"
     },
     "XRPUSDT": {
       "cash": 1666.6666666666667,
@@ -100,10 +100,10 @@
         "count": 1000
       },
       "lastDecisionBar": 1792324800000,
-      "lastQuote": 1.2723,
-      "quoteAt": 1792348510415,
+      "lastQuote": 1.2733,
+      "quoteAt": 1792349051001,
       "benchmarkQty": 1308.000927620498,
-      "status": "BASELINE_NO_ENTRY"
+      "status": "WAITING"
     },
     "ADAUSDT": {
       "cash": 1666.6666666666667,
@@ -117,10 +117,10 @@
         "count": 1000
       },
       "lastDecisionBar": 1792324800000,
-      "lastQuote": 0.2152,
-      "quoteAt": 1792348510415,
+      "lastQuote": 0.2154,
+      "quoteAt": 1792349051001,
       "benchmarkQty": 7733.130019570444,
-      "status": "BASELINE_NO_ENTRY"
+      "status": "WAITING"
     },
     "LTCUSDT": {
       "cash": 1666.6666666666667,
@@ -134,10 +134,10 @@
         "count": 1000
       },
       "lastDecisionBar": 1792324800000,
-      "lastQuote": 57.91,
-      "quoteAt": 1792348510415,
+      "lastQuote": 58,
+      "quoteAt": 1792349051001,
       "benchmarkQty": 28.73717113126506,
-      "status": "BASELINE_NO_ENTRY"
+      "status": "WAITING"
     }
   },
   "events": [],
@@ -146,10 +146,10 @@
   "fees": 0,
   "peak": 10000,
   "maxObservedDrawdown": 0,
-  "samples": 1,
+  "samples": 2,
   "missedH4Decisions": 0,
   "equity": 10000,
-  "benchmarkEquity": 9970.044947556195,
+  "benchmarkEquity": 9975.47712132795,
   "status": "COLLECTING",
   "engineHash": "0a9c224420ff068aa13410993cc96ed1ec67b37a69112b935a1efe369c27fe24",
   "source": "Public Binance data via bounded MTF relay; indicative last prices, not executable bid/ask or real fills"
