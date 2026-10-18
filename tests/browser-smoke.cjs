@@ -123,6 +123,29 @@ function payload(url){
     const broadCSV=await page.request.get(origin+'/docs/research/broad-rankings-2026-10-18.csv');
     assert.equal(broadCSV.status(),200);
     assert.equal((await broadCSV.text()).trim().split('\n').length,1228);
+    const paperPage=await browser.newPage({viewport:{width:390,height:844}});
+    paperPage.on('pageerror',error=>errors.push(error.message));
+    await paperPage.clock.install();
+    let paperMode='fresh';
+    const paperFixture=JSON.parse(JSON.stringify(require('../paper/keltner-h4.json')));
+    paperFixture.updatedAt=Date.now();
+    await paperPage.route('**/*',async route=>{
+      const u=new URL(route.request().url());
+      if(u.pathname==='/paper-fixture')return route.fulfill({contentType:'text/html',body:'<section id="vm"></section><script src="/paper-monitor.js"></script>'});
+      if(u.pathname==='/paper/keltner-h4.json')return route.fulfill(paperMode==='failed'?{status:503,json:{error:'outage'}}:{json:{...paperFixture,updatedAt:paperMode==='stale'?Date.now()-3*3600000:paperFixture.updatedAt}});
+      return route.continue();
+    });
+    await paperPage.goto(origin+'/paper-fixture');
+    await paperPage.waitForFunction(()=>document.getElementById('paperStatus').textContent.includes('RECOLECTANDO'));
+    assert.match(await paperPage.locator('#paperEvidence').innerText(),/SIN VALIDAR/);
+    await paperPage.locator('#paperKeltner summary').click();
+    assert.ok(await paperPage.evaluate(()=>document.documentElement.scrollWidth)<=390,'Paper protocol/hash must fit mobile');
+    paperMode='stale';await paperPage.clock.runFor(60001);
+    await paperPage.waitForFunction(()=>document.getElementById('paperStatus').textContent.includes('DEMORADO'));
+    paperMode='failed';await paperPage.clock.runFor(60001);
+    await paperPage.waitForFunction(()=>document.getElementById('paperStatus').textContent.includes('NO SE PUDO VERIFICAR'));
+    assert.equal(await paperPage.locator('#paperMetrics').innerText(),'','failed paper reads must clear stale metrics');
+    await paperPage.close();
     assert.deepEqual(errors,[]);
     console.log('PASS: monitor, markets, manual confirmation, mobile, API outage and downloadable research evidence');
   }finally{
