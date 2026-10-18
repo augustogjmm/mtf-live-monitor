@@ -1,5 +1,9 @@
 name: Keltner H4 forward paper
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/keltner-paper.yml'
   schedule:
     - cron: '7 * * * *'
   workflow_dispatch:
