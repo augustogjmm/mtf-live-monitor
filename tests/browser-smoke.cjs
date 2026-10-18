@@ -115,6 +115,14 @@ function payload(url){
     const csv=await page.request.get(origin+'/docs/research/rankings-2026-10-17.csv');
     assert.equal(csv.status(),200);
     assert.equal((await csv.text()).trim().split('\n').length,31,'all 30 fixed model comparisons must be downloadable');
+    const expanded=await page.goto(origin+'/docs/research/expanded.html');
+    assert.equal(expanded.status(),200);
+    assert.match(await page.locator('h1').innerText(),/1.227 configuraciones/);
+    assert.equal(await page.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0),true);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth)<=390,'Expanded research must fit mobile');
+    const broadCSV=await page.request.get(origin+'/docs/research/broad-rankings-2026-10-18.csv');
+    assert.equal(broadCSV.status(),200);
+    assert.equal((await broadCSV.text()).trim().split('\n').length,1228);
     assert.deepEqual(errors,[]);
     console.log('PASS: monitor, markets, manual confirmation, mobile, API outage and downloadable research evidence');
   }finally{

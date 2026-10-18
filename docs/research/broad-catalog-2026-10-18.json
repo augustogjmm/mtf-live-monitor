@@ -1,0 +1,3505 @@
+{
+  "specs": [
+    {
+      "family": "buyHold",
+      "stop": 0,
+      "allocation": 1,
+      "id": "buyHold-0"
+    },
+    {
+      "family": "ema",
+      "fast": 10,
+      "slow": 50,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "ema-1"
+    },
+    {
+      "family": "ema",
+      "fast": 10,
+      "slow": 50,
+      "stop": 2,
+      "allocation": 1,
+      "id": "ema-2"
+    },
+    {
+      "family": "ema",
+      "fast": 10,
+      "slow": 50,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "ema-3"
+    },
+    {
+      "family": "ema",
+      "fast": 10,
+      "slow": 50,
+      "stop": 3,
+      "allocation": 1,
+      "id": "ema-4"
+    },
+    {
+      "family": "ema",
+      "fast": 10,
+      "slow": 50,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "ema-5"
+    },
+    {
+      "family": "ema",
+      "fast": 10,
+      "slow": 50,
+      "stop": 5,
+      "allocation": 1,
+      "id": "ema-6"
+    },
+    {
+      "family": "ema",
+      "fast": 20,
+      "slow": 100,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "ema-7"
+    },
+    {
+      "family": "ema",
+      "fast": 20,
+      "slow": 100,
+      "stop": 2,
+      "allocation": 1,
+      "id": "ema-8"
+    },
+    {
+      "family": "ema",
+      "fast": 20,
+      "slow": 100,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "ema-9"
+    },
+    {
+      "family": "ema",
+      "fast": 20,
+      "slow": 100,
+      "stop": 3,
+      "allocation": 1,
+      "id": "ema-10"
+    },
+    {
+      "family": "ema",
+      "fast": 20,
+      "slow": 100,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "ema-11"
+    },
+    {
+      "family": "ema",
+      "fast": 20,
+      "slow": 100,
+      "stop": 5,
+      "allocation": 1,
+      "id": "ema-12"
+    },
+    {
+      "family": "ema",
+      "fast": 50,
+      "slow": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "ema-13"
+    },
+    {
+      "family": "ema",
+      "fast": 50,
+      "slow": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "ema-14"
+    },
+    {
+      "family": "ema",
+      "fast": 50,
+      "slow": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "ema-15"
+    },
+    {
+      "family": "ema",
+      "fast": 50,
+      "slow": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "ema-16"
+    },
+    {
+      "family": "ema",
+      "fast": 50,
+      "slow": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "ema-17"
+    },
+    {
+      "family": "ema",
+      "fast": 50,
+      "slow": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "ema-18"
+    },
+    {
+      "family": "donchian",
+      "n": 20,
+      "out": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "donchian-19"
+    },
+    {
+      "family": "donchian",
+      "n": 20,
+      "out": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "donchian-20"
+    },
+    {
+      "family": "donchian",
+      "n": 20,
+      "out": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "donchian-21"
+    },
+    {
+      "family": "donchian",
+      "n": 20,
+      "out": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "donchian-22"
+    },
+    {
+      "family": "donchian",
+      "n": 20,
+      "out": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "donchian-23"
+    },
+    {
+      "family": "donchian",
+      "n": 20,
+      "out": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "donchian-24"
+    },
+    {
+      "family": "donchian",
+      "n": 55,
+      "out": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "donchian-25"
+    },
+    {
+      "family": "donchian",
+      "n": 55,
+      "out": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "donchian-26"
+    },
+    {
+      "family": "donchian",
+      "n": 55,
+      "out": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "donchian-27"
+    },
+    {
+      "family": "donchian",
+      "n": 55,
+      "out": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "donchian-28"
+    },
+    {
+      "family": "donchian",
+      "n": 55,
+      "out": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "donchian-29"
+    },
+    {
+      "family": "donchian",
+      "n": 55,
+      "out": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "donchian-30"
+    },
+    {
+      "family": "momentum",
+      "n": 90,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "momentum-31"
+    },
+    {
+      "family": "momentum",
+      "n": 90,
+      "stop": 2,
+      "allocation": 1,
+      "id": "momentum-32"
+    },
+    {
+      "family": "momentum",
+      "n": 90,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "momentum-33"
+    },
+    {
+      "family": "momentum",
+      "n": 90,
+      "stop": 3,
+      "allocation": 1,
+      "id": "momentum-34"
+    },
+    {
+      "family": "momentum",
+      "n": 90,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "momentum-35"
+    },
+    {
+      "family": "momentum",
+      "n": 90,
+      "stop": 5,
+      "allocation": 1,
+      "id": "momentum-36"
+    },
+    {
+      "family": "momentum",
+      "n": 180,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "momentum-37"
+    },
+    {
+      "family": "momentum",
+      "n": 180,
+      "stop": 2,
+      "allocation": 1,
+      "id": "momentum-38"
+    },
+    {
+      "family": "momentum",
+      "n": 180,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "momentum-39"
+    },
+    {
+      "family": "momentum",
+      "n": 180,
+      "stop": 3,
+      "allocation": 1,
+      "id": "momentum-40"
+    },
+    {
+      "family": "momentum",
+      "n": 180,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "momentum-41"
+    },
+    {
+      "family": "momentum",
+      "n": 180,
+      "stop": 5,
+      "allocation": 1,
+      "id": "momentum-42"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-43"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-44"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-45"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-46"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-47"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-48"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-49"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-50"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-51"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-52"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-53"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-54"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-55"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-56"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-57"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-58"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-59"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-60"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-61"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-62"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-63"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-64"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-65"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-66"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-67"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-68"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-69"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-70"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-71"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-72"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-73"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-74"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-75"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-76"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-77"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 0,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-78"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi14-79"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi14-80"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi14-81"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi14-82"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi14-83"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi14-84"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi14-85"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi14-86"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi14-87"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi14-88"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi14-89"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi14-90"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi14-91"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi14-92"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi14-93"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi14-94"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi14-95"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi14-96"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsiTrend-97"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsiTrend-98"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsiTrend-99"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsiTrend-100"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsiTrend-101"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsiTrend-102"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsiTrend-103"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsiTrend-104"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsiTrend-105"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsiTrend-106"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsiTrend-107"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsiTrend-108"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerRevert-109"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerRevert-110"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerRevert-111"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerRevert-112"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerRevert-113"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerRevert-114"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerBreak-115"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerBreak-116"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerBreak-117"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerBreak-118"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerBreak-119"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerBreak-120"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "keltner-121"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "keltner-122"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "keltner-123"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "keltner-124"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "keltner-125"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "keltner-126"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerRevert-127"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerRevert-128"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerRevert-129"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerRevert-130"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerRevert-131"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerRevert-132"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerBreak-133"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerBreak-134"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerBreak-135"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerBreak-136"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerBreak-137"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerBreak-138"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "keltner-139"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "keltner-140"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "keltner-141"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "keltner-142"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "keltner-143"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "keltner-144"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerRevert-145"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerRevert-146"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerRevert-147"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerRevert-148"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerRevert-149"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 0,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerRevert-150"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerBreak-151"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerBreak-152"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerBreak-153"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerBreak-154"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerBreak-155"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerBreak-156"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "keltner-157"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "keltner-158"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "keltner-159"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "keltner-160"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "keltner-161"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "keltner-162"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "macd-163"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "macd-164"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "macd-165"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "macd-166"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "macd-167"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "macd-168"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "macd-169"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "macd-170"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "macd-171"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "macd-172"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "macd-173"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "macd-174"
+    },
+    {
+      "family": "squeeze",
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "squeeze-175"
+    },
+    {
+      "family": "squeeze",
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "squeeze-176"
+    },
+    {
+      "family": "squeeze",
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "squeeze-177"
+    },
+    {
+      "family": "squeeze",
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "squeeze-178"
+    },
+    {
+      "family": "squeeze",
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "squeeze-179"
+    },
+    {
+      "family": "squeeze",
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "squeeze-180"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "adx-181"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "adx-182"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "adx-183"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "adx-184"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "adx-185"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "adx-186"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "adx-187"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "adx-188"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "adx-189"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "adx-190"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "adx-191"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "adx-192"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "adx-193"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "adx-194"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "adx-195"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "adx-196"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "adx-197"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "adx-198"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "structure-199"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "structure-200"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "structure-201"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "structure-202"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "structure-203"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "structure-204"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "structure-205"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "structure-206"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "structure-207"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "structure-208"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "structure-209"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "structure-210"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "structure-211"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "structure-212"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "structure-213"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "structure-214"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "structure-215"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "structure-216"
+    },
+    {
+      "family": "pullback",
+      "trend": 0,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "pullback-217"
+    },
+    {
+      "family": "pullback",
+      "trend": 0,
+      "stop": 2,
+      "allocation": 1,
+      "id": "pullback-218"
+    },
+    {
+      "family": "pullback",
+      "trend": 0,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "pullback-219"
+    },
+    {
+      "family": "pullback",
+      "trend": 0,
+      "stop": 3,
+      "allocation": 1,
+      "id": "pullback-220"
+    },
+    {
+      "family": "pullback",
+      "trend": 0,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "pullback-221"
+    },
+    {
+      "family": "pullback",
+      "trend": 0,
+      "stop": 5,
+      "allocation": 1,
+      "id": "pullback-222"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-223"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-224"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-225"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-226"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-227"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-228"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-229"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-230"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-231"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-232"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-233"
+    },
+    {
+      "family": "rsi2",
+      "level": 5,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-234"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-235"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-236"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-237"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-238"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-239"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-240"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-241"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-242"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-243"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-244"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-245"
+    },
+    {
+      "family": "rsi2",
+      "level": 10,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-246"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-247"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-248"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-249"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-250"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-251"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 70,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-252"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi2-253"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi2-254"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi2-255"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi2-256"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi2-257"
+    },
+    {
+      "family": "rsi2",
+      "level": 20,
+      "out": 90,
+      "trend": 200,
+      "hold": 10,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi2-258"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi14-259"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi14-260"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi14-261"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi14-262"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi14-263"
+    },
+    {
+      "family": "rsi14",
+      "level": 25,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi14-264"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi14-265"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi14-266"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi14-267"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi14-268"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi14-269"
+    },
+    {
+      "family": "rsi14",
+      "level": 30,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi14-270"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsi14-271"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsi14-272"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsi14-273"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsi14-274"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsi14-275"
+    },
+    {
+      "family": "rsi14",
+      "level": 35,
+      "out": 60,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsi14-276"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsiTrend-277"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsiTrend-278"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsiTrend-279"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsiTrend-280"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsiTrend-281"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 55,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsiTrend-282"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "rsiTrend-283"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "rsiTrend-284"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "rsiTrend-285"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "rsiTrend-286"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "rsiTrend-287"
+    },
+    {
+      "family": "rsiTrend",
+      "level": 60,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "rsiTrend-288"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerRevert-289"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerRevert-290"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerRevert-291"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerRevert-292"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerRevert-293"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 1.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerRevert-294"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerBreak-295"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerBreak-296"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerBreak-297"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerBreak-298"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerBreak-299"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerBreak-300"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "keltner-301"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "keltner-302"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "keltner-303"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "keltner-304"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "keltner-305"
+    },
+    {
+      "family": "keltner",
+      "k": 1.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "keltner-306"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerRevert-307"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerRevert-308"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerRevert-309"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerRevert-310"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerRevert-311"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerRevert-312"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerBreak-313"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerBreak-314"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerBreak-315"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerBreak-316"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerBreak-317"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerBreak-318"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "keltner-319"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "keltner-320"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "keltner-321"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "keltner-322"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "keltner-323"
+    },
+    {
+      "family": "keltner",
+      "k": 2,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "keltner-324"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerRevert-325"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerRevert-326"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerRevert-327"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerRevert-328"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerRevert-329"
+    },
+    {
+      "family": "bollingerRevert",
+      "k": 2.5,
+      "trend": 200,
+      "hold": 20,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerRevert-330"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "bollingerBreak-331"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "bollingerBreak-332"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "bollingerBreak-333"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "bollingerBreak-334"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "bollingerBreak-335"
+    },
+    {
+      "family": "bollingerBreak",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "bollingerBreak-336"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "keltner-337"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "keltner-338"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "keltner-339"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "keltner-340"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "keltner-341"
+    },
+    {
+      "family": "keltner",
+      "k": 2.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "keltner-342"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "macd-343"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "macd-344"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "macd-345"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "macd-346"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "macd-347"
+    },
+    {
+      "family": "macd",
+      "zero": false,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "macd-348"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "macd-349"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "macd-350"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "macd-351"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "macd-352"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "macd-353"
+    },
+    {
+      "family": "macd",
+      "zero": true,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "macd-354"
+    },
+    {
+      "family": "squeeze",
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "squeeze-355"
+    },
+    {
+      "family": "squeeze",
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "squeeze-356"
+    },
+    {
+      "family": "squeeze",
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "squeeze-357"
+    },
+    {
+      "family": "squeeze",
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "squeeze-358"
+    },
+    {
+      "family": "squeeze",
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "squeeze-359"
+    },
+    {
+      "family": "squeeze",
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "squeeze-360"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "adx-361"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "adx-362"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "adx-363"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "adx-364"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "adx-365"
+    },
+    {
+      "family": "adx",
+      "level": 20,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "adx-366"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "adx-367"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "adx-368"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "adx-369"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "adx-370"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "adx-371"
+    },
+    {
+      "family": "adx",
+      "level": 25,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "adx-372"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "adx-373"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "adx-374"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "adx-375"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "adx-376"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "adx-377"
+    },
+    {
+      "family": "adx",
+      "level": 30,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "adx-378"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "structure-379"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "structure-380"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "structure-381"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "structure-382"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "structure-383"
+    },
+    {
+      "family": "structure",
+      "body": 0,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "structure-384"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "structure-385"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "structure-386"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "structure-387"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "structure-388"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "structure-389"
+    },
+    {
+      "family": "structure",
+      "body": 0.5,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "structure-390"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "structure-391"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "structure-392"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "structure-393"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "structure-394"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "structure-395"
+    },
+    {
+      "family": "structure",
+      "body": 1,
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "structure-396"
+    },
+    {
+      "family": "pullback",
+      "trend": 200,
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "pullback-397"
+    },
+    {
+      "family": "pullback",
+      "trend": 200,
+      "stop": 2,
+      "allocation": 1,
+      "id": "pullback-398"
+    },
+    {
+      "family": "pullback",
+      "trend": 200,
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "pullback-399"
+    },
+    {
+      "family": "pullback",
+      "trend": 200,
+      "stop": 3,
+      "allocation": 1,
+      "id": "pullback-400"
+    },
+    {
+      "family": "pullback",
+      "trend": 200,
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "pullback-401"
+    },
+    {
+      "family": "pullback",
+      "trend": 200,
+      "stop": 5,
+      "allocation": 1,
+      "id": "pullback-402"
+    },
+    {
+      "family": "ichimoku",
+      "stop": 2,
+      "allocation": 0.5,
+      "id": "ichimoku-403"
+    },
+    {
+      "family": "ichimoku",
+      "stop": 2,
+      "allocation": 1,
+      "id": "ichimoku-404"
+    },
+    {
+      "family": "ichimoku",
+      "stop": 3,
+      "allocation": 0.5,
+      "id": "ichimoku-405"
+    },
+    {
+      "family": "ichimoku",
+      "stop": 3,
+      "allocation": 1,
+      "id": "ichimoku-406"
+    },
+    {
+      "family": "ichimoku",
+      "stop": 5,
+      "allocation": 0.5,
+      "id": "ichimoku-407"
+    },
+    {
+      "family": "ichimoku",
+      "stop": 5,
+      "allocation": 1,
+      "id": "ichimoku-408"
+    }
+  ],
+  "folds": {
+    "crypto-1d": [
+      "2023-01-01",
+      "2024-01-01",
+      "2025-01-01",
+      "2026-01-01",
+      "2026-10-17"
+    ],
+    "crypto-4h": [
+      "2023-01-01",
+      "2024-01-01",
+      "2025-01-01",
+      "2026-01-01",
+      "2026-10-17"
+    ],
+    "cedear": [
+      "2025-07-01",
+      "2026-01-01",
+      "2026-07-01",
+      "2026-10-17"
+    ]
+  },
+  "riskConstraint": {
+    "maximumTrainingDrawdown": 0.25,
+    "minimumTrainingTrades": 20
+  },
+  "criterion": "Highest training CAGR among active models satisfying constraints; if none qualify hold cash. No validation-based tuning."
+}

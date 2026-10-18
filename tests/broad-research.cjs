@@ -1,0 +1,24 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {features,rules,catalog,backtest}=require('../scripts/lib/broad-research.cjs');
+const D=86400000,rows=Array.from({length:260},(_,i)=>({t:i*D,o:100+i/10,h:102+i/10,l:98+i/10,c:101+i/10}));
+assert.deepEqual(features(rows).slice(0,220),features(rows.slice(0,220)),'features must be causal');
+const specs=catalog();assert.equal(new Set(specs.map(x=>x.id)).size,specs.length);assert.ok(new Set(specs.map(x=>x.family)).size>=15);
+const b={warmed:true,c:110,ema200:100,rsi2:4};assert.equal(rules(b,{family:'rsi2',trend:200,level:10,out:70},0).enter,true);
+const fixture=[{t:0,o:100,h:101,l:99,c:100,warmed:true,atr:5},{t:D,o:100,h:101,l:99,c:100,warmed:true,atr:5},{t:2*D,o:70,h:75,l:60,c:70,warmed:true,atr:5}];
+const result=backtest({A:fixture},{family:'buyHold',stop:3,allocation:1},{from:D,to:2*D,fee:0,slip:0});assert.ok(Math.abs(result.return+.3)<1e-10,'gap stop fills at actual open, not stop');
+const half=backtest({A:fixture},{family:'buyHold',stop:0,allocation:.5},{from:D,to:2*D,fee:0,slip:0});assert.ok(Math.abs(half.return+.15)<1e-10,'unused allocation remains cash');
+const delayed=backtest({A:fixture},{family:'buyHold',stop:0,allocation:1},{from:D,to:2*D,fee:0,slip:0,delay:1});assert.equal(delayed.return,0,'delayed entry must not use original opening price');
+assert.throws(()=>backtest({A:[fixture[0],{...fixture[1],decisionBar:fixture[1]},fixture[2]]},{family:'buyHold',stop:0,allocation:1},{from:D,to:2*D,fee:0,slip:0}),/Lookahead/);
+const flat=fixture.map(b=>({...b,o:100,h:101,l:99,c:100}));
+const cost=backtest({A:flat},{family:'buyHold',stop:0,allocation:1},{from:D,to:2*D,fee:.01,slip:.01});assert.ok(cost.return<-.03,'round-trip costs must reduce portfolio NAV');
+const ars=backtest({A:flat},{family:'buyHold',stop:0,allocation:0},{from:D,to:2*D,fee:0,slip:0,fx:[{t:0,value:100},{t:D,value:100},{t:2*D,value:200}]});assert.equal(ars.return,-.5,'idle ARS cash must lose USD value when CCL doubles');
+
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'..'),hash=p=>crypto.createHash('sha256').update(fs.readFileSync(path.join(root,p))).digest('hex');
+const published=require('../docs/research/broad-results-2026-10-18.json'),finalists=require('../docs/research/broad-finalists-2026-10-18.json');
+for(const [file,sha]of Object.entries(published.identity))assert.equal(hash((file==='broad-strategy-search.cjs'?'scripts/':'scripts/lib/')+file),sha,'Published results must match source');
+assert.equal(hash('docs/research/broad-results-2026-10-18.json'),finalists.reportSha256);
+assert.equal(published.totalConfigurations,1227);
+assert.equal(published.approvedForLive,false);
+console.log('Broad research: causal features, catalog, gap fills, cash/FX, costs, delays, future-data rejection and published provenance passed');

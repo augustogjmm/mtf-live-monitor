@@ -1,0 +1,1617 @@
+{
+  "reportSha256": "c479fe33eb3fdfc28ea2cad5daf3f6ba8f9a3b6739d9199224666967df5ff3be",
+  "engineSha256": "6bc077616bd1cc7a74372cd90c9a6dcf6c849f84e2c97c472a429f4a1fa4b585",
+  "kind": "POST_HOC_FINALIST_STRESS_NOT_NEW_VALIDATION",
+  "markets": {
+    "crypto-1d": [
+      {
+        "spec": {
+          "family": "macd",
+          "zero": true,
+          "trend": 200,
+          "stop": 2,
+          "allocation": 1,
+          "id": "macd-350"
+        },
+        "stress": {
+          "base": {
+            "return": 1.0766187175593913,
+            "cagr": 0.2125309190507798,
+            "maxDrawdown": 0.2734417093706931,
+            "trades": 182,
+            "foldReturns": [
+              0.1792275214959811,
+              1.1556519682549844,
+              -0.1515974529866868,
+              -0.037105847941217296
+            ]
+          },
+          "cost2": {
+            "return": 0.9104179229344675,
+            "cagr": 0.18614759012310111,
+            "maxDrawdown": 0.2860983181731027,
+            "trades": 183,
+            "foldReturns": [
+              0.14727857628958185,
+              1.114842615021109,
+              -0.17485421815620084,
+              -0.04577506040334933
+            ]
+          },
+          "cost3": {
+            "return": 0.7636832303487655,
+            "cagr": 0.1614102254422478,
+            "maxDrawdown": 0.30129416083305094,
+            "trades": 183,
+            "foldReturns": [
+              0.11996639441098567,
+              1.0750190256534031,
+              -0.19746085076859765,
+              -0.054356843968997426
+            ]
+          },
+          "delay1": {
+            "return": 0.9754650837861378,
+            "cagr": 0.1966673818849125,
+            "maxDrawdown": 0.26571077391997744,
+            "trades": 211,
+            "foldReturns": [
+              0.22576356022053368,
+              1.0266132069390808,
+              -0.1326926304211954,
+              -0.08310681152776844
+            ]
+          },
+          "delay2": {
+            "return": 0.7479681976929129,
+            "cagr": 0.15867211831967665,
+            "maxDrawdown": 0.29937433449197914,
+            "trades": 217,
+            "foldReturns": [
+              0.210409497789799,
+              0.6785837833681974,
+              -0.10464772064825134,
+              -0.03913087795700432
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.10801443140584588,
+          "medianReturn": 0.9828126205809178,
+          "p95Drawdown": 0.45661066873707523,
+          "lossFraction": 0.089,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "bollingerBreak",
+          "k": 2,
+          "trend": 200,
+          "stop": 3,
+          "allocation": 1,
+          "id": "bollingerBreak-316"
+        },
+        "stress": {
+          "base": {
+            "return": 1.0309538589428953,
+            "cagr": 0.20544158681633284,
+            "maxDrawdown": 0.2472870355213026,
+            "trades": 116,
+            "foldReturns": [
+              0.13152284851642015,
+              1.0209905016879874,
+              -0.07221977417400538,
+              -0.042745659031271144
+            ]
+          },
+          "cost2": {
+            "return": 0.9234620846637438,
+            "cagr": 0.18827807397468765,
+            "maxDrawdown": 0.25435301470676064,
+            "trades": 116,
+            "foldReturns": [
+              0.11239772978699625,
+              0.9927137810152771,
+              -0.08760904323402596,
+              -0.048962504582127364
+            ]
+          },
+          "cost3": {
+            "return": 0.8218532233859046,
+            "cagr": 0.17139179090012413,
+            "maxDrawdown": 0.26867183464655653,
+            "trades": 116,
+            "foldReturns": [
+              0.09365281520736612,
+              0.9649141953448717,
+              -0.1027399895975194,
+              -0.055130114308497014
+            ]
+          },
+          "delay1": {
+            "return": 0.8434414776263768,
+            "cagr": 0.17503648457008625,
+            "maxDrawdown": 0.32264685846393815,
+            "trades": 117,
+            "foldReturns": [
+              0.20381280840308014,
+              0.9525083511678247,
+              -0.1294499540831524,
+              -0.09908513615812564
+            ]
+          },
+          "delay2": {
+            "return": 0.5858156128765328,
+            "cagr": 0.12930258209181988,
+            "maxDrawdown": 0.27190139782284284,
+            "trades": 120,
+            "foldReturns": [
+              0.12647905991930797,
+              0.7055110510353444,
+              -0.10016494968656275,
+              -0.08269845986419289
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.10046171534787762,
+          "medianReturn": 0.9261730095432756,
+          "p95Drawdown": 0.44629595930320554,
+          "lossFraction": 0.082,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "macd",
+          "zero": true,
+          "trend": 200,
+          "stop": 3,
+          "allocation": 1,
+          "id": "macd-352"
+        },
+        "stress": {
+          "base": {
+            "return": 1.0254040474625135,
+            "cagr": 0.20457202159446264,
+            "maxDrawdown": 0.27907501254101696,
+            "trades": 175,
+            "foldReturns": [
+              0.1966215809808931,
+              1.160526875929822,
+              -0.167860611207599,
+              -0.05854603287370719
+            ]
+          },
+          "cost2": {
+            "return": 0.8714198730223168,
+            "cagr": 0.17971354624885016,
+            "maxDrawdown": 0.3036458878448943,
+            "trades": 175,
+            "foldReturns": [
+              0.169708530178593,
+              1.1198085055443094,
+              -0.19098683695189378,
+              -0.06708653428859768
+            ]
+          },
+          "cost3": {
+            "return": 0.7294708829423382,
+            "cagr": 0.15542591907450443,
+            "maxDrawdown": 0.3286282599919561,
+            "trades": 175,
+            "foldReturns": [
+              0.14347372219479548,
+              1.0800644886155721,
+              -0.21345683773425217,
+              -0.07554089018278476
+            ]
+          },
+          "delay1": {
+            "return": 0.9894159719287781,
+            "cagr": 0.19889028452648416,
+            "maxDrawdown": 0.30344135370353575,
+            "trades": 184,
+            "foldReturns": [
+              0.26461301926535685,
+              1.05327682923022,
+              -0.15423828830918596,
+              -0.09411634208522313
+            ]
+          },
+          "delay2": {
+            "return": 0.9119246494012818,
+            "cagr": 0.18639422765036162,
+            "maxDrawdown": 0.2838123738712043,
+            "trades": 185,
+            "foldReturns": [
+              0.23975222083520653,
+              0.7656770817630665,
+              -0.08733565597873238,
+              -0.04299652753659455
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.1546849791012166,
+          "medianReturn": 0.9238071006297071,
+          "p95Drawdown": 0.4753639923265621,
+          "lossFraction": 0.103,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "bollingerBreak",
+          "k": 2,
+          "trend": 200,
+          "stop": 5,
+          "allocation": 1,
+          "id": "bollingerBreak-318"
+        },
+        "stress": {
+          "base": {
+            "return": 0.9791314525004213,
+            "cagr": 0.19725268949354224,
+            "maxDrawdown": 0.25982254397285165,
+            "trades": 116,
+            "foldReturns": [
+              0.13152284851642015,
+              1.0269564130067512,
+              -0.09584996971267068,
+              -0.045608854003025945
+            ]
+          },
+          "cost2": {
+            "return": 0.8733414683310101,
+            "cagr": 0.18003287910735466,
+            "maxDrawdown": 0.27500725036606344,
+            "trades": 116,
+            "foldReturns": [
+              0.11239772978699625,
+              0.998394197478119,
+              -0.11103058791357268,
+              -0.05204248244490728
+            ]
+          },
+          "cost3": {
+            "return": 0.7734025851325805,
+            "cagr": 0.1630946973682348,
+            "maxDrawdown": 0.28986931673951033,
+            "trades": 116,
+            "foldReturns": [
+              0.09365281520736612,
+              0.9703207807490002,
+              -0.12595308496051427,
+              -0.058422266202047934
+            ]
+          },
+          "delay1": {
+            "return": 0.8446990208337537,
+            "cagr": 0.17524782195359467,
+            "maxDrawdown": 0.3322190307309716,
+            "trades": 116,
+            "foldReturns": [
+              0.2101616821945691,
+              0.9791427270253366,
+              -0.14006402782750027,
+              -0.10434884863780869
+            ]
+          },
+          "delay2": {
+            "return": 0.701273206097643,
+            "cagr": 0.1504278033277242,
+            "maxDrawdown": 0.27402607118043387,
+            "trades": 117,
+            "foldReturns": [
+              0.14209977032224086,
+              0.8090849486774272,
+              -0.10677472942712674,
+              -0.07817165860014597
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.13741719949822329,
+          "medianReturn": 0.8801253454551483,
+          "p95Drawdown": 0.4595188080854189,
+          "lossFraction": 0.101,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "macd",
+          "zero": true,
+          "trend": 200,
+          "stop": 5,
+          "allocation": 1,
+          "id": "macd-354"
+        },
+        "stress": {
+          "base": {
+            "return": 0.9236819514056029,
+            "cagr": 0.18831389319851555,
+            "maxDrawdown": 0.31386742772654785,
+            "trades": 175,
+            "foldReturns": [
+              0.1966215809808931,
+              1.1573486744357364,
+              -0.20045733042159675,
+              -0.06800313571794148
+            ]
+          },
+          "cost2": {
+            "return": 0.7766622898118023,
+            "cagr": 0.16365811804272856,
+            "maxDrawdown": 0.3374714097800251,
+            "trades": 175,
+            "foldReturns": [
+              0.169708530178593,
+              1.1164553122007104,
+              -0.22275837503831086,
+              -0.07665910014214317
+            ]
+          },
+          "cost3": {
+            "return": 0.6411932226096466,
+            "cagr": 0.13957149730690954,
+            "maxDrawdown": 0.3614393389104701,
+            "trades": 175,
+            "foldReturns": [
+              0.14347372219479548,
+              1.0765501342646955,
+              -0.24442600064732467,
+              -0.08522539273668261
+            ]
+          },
+          "delay1": {
+            "return": 0.9106893664719642,
+            "cagr": 0.18619203355514657,
+            "maxDrawdown": 0.35171105455639884,
+            "trades": 179,
+            "foldReturns": [
+              0.27832772464102407,
+              1.0652324187497992,
+              -0.19495173936187837,
+              -0.10100551229768051
+            ]
+          },
+          "delay2": {
+            "return": 0.8312947050776351,
+            "cagr": 0.17298966488133183,
+            "maxDrawdown": 0.32587201375127695,
+            "trades": 180,
+            "foldReturns": [
+              0.23975222083520653,
+              0.7901808166168758,
+              -0.13183084162566172,
+              -0.04956571920097541
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.22384484214054912,
+          "medianReturn": 0.8364453994478265,
+          "p95Drawdown": 0.5164921797984171,
+          "lossFraction": 0.125,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "rsiTrend",
+          "level": 55,
+          "trend": 0,
+          "stop": 3,
+          "allocation": 1,
+          "id": "rsiTrend-100"
+        },
+        "stress": {
+          "base": {
+            "return": 1.0891342690523,
+            "cagr": 0.21445385667136185,
+            "maxDrawdown": 0.3656547731541434,
+            "trades": 246,
+            "foldReturns": [
+              0.37912866432535464,
+              0.7117649854988322,
+              -0.07184163323380632,
+              -0.046555658820151
+            ]
+          },
+          "cost2": {
+            "return": 0.8203621262239473,
+            "cagr": 0.17113888085266726,
+            "maxDrawdown": 0.39637027018259474,
+            "trades": 247,
+            "foldReturns": [
+              0.31043038455739236,
+              0.6579874157575312,
+              -0.09815643935418539,
+              -0.07096644929030793
+            ]
+          },
+          "cost3": {
+            "return": 0.61917550615385,
+            "cagr": 0.13551966974796148,
+            "maxDrawdown": 0.42564583716707527,
+            "trades": 247,
+            "foldReturns": [
+              0.2709634863184254,
+              0.6059875971168158,
+              -0.12370993424702315,
+              -0.09474532470380692
+            ]
+          },
+          "delay1": {
+            "return": 0.8804282756331383,
+            "cagr": 0.1812084919171666,
+            "maxDrawdown": 0.3938045960554577,
+            "trades": 248,
+            "foldReturns": [
+              0.45836043689341177,
+              0.5282095803049383,
+              -0.04987671849179731,
+              -0.11196717146928226
+            ]
+          },
+          "delay2": {
+            "return": 0.885935012016374,
+            "cagr": 0.18211974048944057,
+            "maxDrawdown": 0.3788590945195748,
+            "trades": 254,
+            "foldReturns": [
+              0.49498478869214524,
+              0.6204570373662746,
+              -0.09447091783895767,
+              -0.14029386605275906
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.32935389115799363,
+          "medianReturn": 1.0186432694919136,
+          "p95Drawdown": 0.6075917545494045,
+          "lossFraction": 0.15,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "rsiTrend",
+          "level": 55,
+          "trend": 0,
+          "stop": 3,
+          "allocation": 0.5,
+          "id": "rsiTrend-99"
+        },
+        "stress": {
+          "base": {
+            "return": 0.5883986003490256,
+            "cagr": 0.12978737932660822,
+            "maxDrawdown": 0.22710097393814277,
+            "trades": 246,
+            "foldReturns": [
+              0.19517070387448965,
+              0.4084587929966981,
+              -0.03634919828547134,
+              -0.020812808205226796
+            ]
+          },
+          "cost2": {
+            "return": 0.48295174294149334,
+            "cagr": 0.10950520908242423,
+            "maxDrawdown": 0.24632454679845328,
+            "trades": 247,
+            "foldReturns": [
+              0.16662126420511458,
+              0.38498100399993973,
+              -0.050384359161345094,
+              -0.033491996429024784
+            ]
+          },
+          "cost3": {
+            "return": 0.39650353872415245,
+            "cagr": 0.09206944596699618,
+            "maxDrawdown": 0.26503855232128803,
+            "trades": 247,
+            "foldReturns": [
+              0.14852652462516547,
+              0.3619444312274944,
+              -0.06419112375174763,
+              -0.04598662680333554
+            ]
+          },
+          "delay1": {
+            "return": 0.49393437180710853,
+            "cagr": 0.1116662772272854,
+            "maxDrawdown": 0.24298415051467603,
+            "trades": 248,
+            "foldReturns": [
+              0.22843090043952619,
+              0.3199765121338607,
+              -0.02368631693125567,
+              -0.056319007267560006
+            ]
+          },
+          "delay2": {
+            "return": 0.48093580874888175,
+            "cagr": 0.10910725167791413,
+            "maxDrawdown": 0.2323428217274528,
+            "trades": 254,
+            "foldReturns": [
+              0.24277688205952042,
+              0.35171961812489694,
+              -0.0485491394012838,
+              -0.07344738052626232
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.17199224819701797,
+          "medianReturn": 0.5588072059157405,
+          "p95Drawdown": 0.3943429777451072,
+          "lossFraction": 0.126,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "macd",
+          "zero": true,
+          "trend": 200,
+          "stop": 2,
+          "allocation": 0.5,
+          "id": "macd-349"
+        },
+        "stress": {
+          "base": {
+            "return": 0.5459577335302916,
+            "cagr": 0.1217469433507532,
+            "maxDrawdown": 0.16225244245297887,
+            "trades": 182,
+            "foldReturns": [
+              0.0900859233039899,
+              0.5639105894163348,
+              -0.07604156047597532,
+              -0.01854017336051117
+            ]
+          },
+          "cost2": {
+            "return": 0.47957174728925867,
+            "cagr": 0.10883775152404418,
+            "maxDrawdown": 0.16972085984300567,
+            "trades": 183,
+            "foldReturns": [
+              0.07461391872255763,
+              0.5465117346586932,
+              -0.08878334804852506,
+              -0.022968195712144146
+            ]
+          },
+          "cost3": {
+            "return": 0.41853941667525607,
+            "cagr": 0.0965877117464935,
+            "maxDrawdown": 0.17711041163272223,
+            "trades": 183,
+            "foldReturns": [
+              0.06115821292268353,
+              0.5293660676119174,
+              -0.10132832383882129,
+              -0.02736752942515186
+            ]
+          },
+          "delay1": {
+            "return": 0.48985564024311823,
+            "cagr": 0.11086506887924408,
+            "maxDrawdown": 0.15680384233727895,
+            "trades": 211,
+            "foldReturns": [
+              0.11211851268468376,
+              0.5098564992397439,
+              -0.0733314118777385,
+              -0.04251273858818816
+            ]
+          },
+          "delay2": {
+            "return": 0.39591613826398797,
+            "cagr": 0.09194828849290837,
+            "maxDrawdown": 0.1640303470984219,
+            "trades": 217,
+            "foldReturns": [
+              0.10485693483268843,
+              0.3696847078811256,
+              -0.059269445022972045,
+              -0.019455235759882727
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.045338022844019,
+          "medianReturn": 0.5004675515421251,
+          "p95Drawdown": 0.2695171845923192,
+          "lossFraction": 0.07,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      }
+    ],
+    "crypto-4h": [
+      {
+        "spec": {
+          "family": "bollingerBreak",
+          "k": 2,
+          "trend": 200,
+          "stop": 5,
+          "allocation": 1,
+          "id": "bollingerBreak-318"
+        },
+        "stress": {
+          "base": {
+            "return": 0.9337560511231944,
+            "cagr": 0.1899518748984852,
+            "maxDrawdown": 0.24082002615205034,
+            "trades": 686,
+            "foldReturns": [
+              0.14423972633754545,
+              0.5085599617920646,
+              0.11317750777653157,
+              0.006369959000777525
+            ]
+          },
+          "cost2": {
+            "return": 0.37993355680633667,
+            "cagr": 0.08863721350210518,
+            "maxDrawdown": 0.31249230094409763,
+            "trades": 686,
+            "foldReturns": [
+              0.04001935623062969,
+              0.3655018654300852,
+              0.03315769590699569,
+              -0.05950207704495536
+            ]
+          },
+          "cost3": {
+            "return": -0.014879552534644347,
+            "cagr": -0.003945693807535511,
+            "maxDrawdown": 0.3973813634977814,
+            "trades": 686,
+            "foldReturns": [
+              -0.054654543826108126,
+              0.23618673391905354,
+              -0.04102021754189478,
+              -0.12096683182376144
+            ]
+          },
+          "delay1": {
+            "return": 0.5147617585123687,
+            "cagr": 0.1157325953749122,
+            "maxDrawdown": 0.3164401313651871,
+            "trades": 689,
+            "foldReturns": [
+              0.11643224742556613,
+              0.3575179073910739,
+              0.013872036022243517,
+              -0.014212633369338312
+            ]
+          },
+          "delay2": {
+            "return": 0.24800908754258622,
+            "cagr": 0.060167268163974885,
+            "maxDrawdown": 0.3328541918241089,
+            "trades": 692,
+            "foldReturns": [
+              0.07151520118744115,
+              0.21535712319641664,
+              -0.03733077410954788,
+              -0.004506538989699549
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.15953429294532917,
+          "medianReturn": 0.8679258209879748,
+          "p95Drawdown": 0.4604635596910661,
+          "lossFraction": 0.09,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "keltner",
+          "k": 2,
+          "trend": 200,
+          "stop": 2,
+          "allocation": 1,
+          "id": "keltner-320"
+        },
+        "stress": {
+          "base": {
+            "return": 0.8662956754697506,
+            "cagr": 0.17886081948122023,
+            "maxDrawdown": 0.23184948999025912,
+            "trades": 476,
+            "foldReturns": [
+              0.128154471910648,
+              0.5325428917060901,
+              0.07700984801118937,
+              0.002258084233609514
+            ]
+          },
+          "cost2": {
+            "return": 0.4976656472488792,
+            "cagr": 0.11239782340117355,
+            "maxDrawdown": 0.2602861871993243,
+            "trades": 476,
+            "foldReturns": [
+              0.06110683418879792,
+              0.44763067974148973,
+              0.02007387753381118,
+              -0.04420148396059986
+            ]
+          },
+          "cost3": {
+            "return": 0.19981073410014805,
+            "cagr": 0.049212574709016854,
+            "maxDrawdown": 0.3201670954014768,
+            "trades": 477,
+            "foldReturns": [
+              -0.0007328345780275303,
+              0.36084567193445927,
+              -0.03376141077812078,
+              -0.08685894084223866
+            ]
+          },
+          "delay1": {
+            "return": 0.5036151942296438,
+            "cagr": 0.11356150848731428,
+            "maxDrawdown": 0.2680119371231784,
+            "trades": 510,
+            "foldReturns": [
+              0.102268198303747,
+              0.354262511722804,
+              0.004084021949733119,
+              0.0031745716031321702
+            ]
+          },
+          "delay2": {
+            "return": 0.3237481679789562,
+            "cagr": 0.07676844325184473,
+            "maxDrawdown": 0.33217688159109726,
+            "trades": 522,
+            "foldReturns": [
+              0.03655940610968589,
+              0.35865183660516853,
+              -0.044163514211311816,
+              -0.0166244847482091
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.09898925219635257,
+          "medianReturn": 0.8152454647595799,
+          "p95Drawdown": 0.38762929242866395,
+          "lossFraction": 0.083,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "keltner",
+          "k": 2.5,
+          "trend": 200,
+          "stop": 2,
+          "allocation": 1,
+          "id": "keltner-338"
+        },
+        "stress": {
+          "base": {
+            "return": 0.8016674620427127,
+            "cagr": 0.16795499590291052,
+            "maxDrawdown": 0.2181988277637955,
+            "trades": 351,
+            "foldReturns": [
+              0.16382272992253188,
+              0.4886770145487822,
+              0.0004463820743711988,
+              0.03942581710248638
+            ]
+          },
+          "cost2": {
+            "return": 0.5331488348885185,
+            "cagr": 0.11928839611851494,
+            "maxDrawdown": 0.26960614090319124,
+            "trades": 351,
+            "foldReturns": [
+              0.1135280144686226,
+              0.42718071028490234,
+              -0.04176039198996073,
+              0.006769579463036246
+            ]
+          },
+          "cost3": {
+            "return": 0.2940318607026624,
+            "cagr": 0.0703404771772087,
+            "maxDrawdown": 0.317607544482408,
+            "trades": 352,
+            "foldReturns": [
+              0.05667493247902744,
+              0.36825212770180804,
+              -0.08216468797816256,
+              -0.024847204615410456
+            ]
+          },
+          "delay1": {
+            "return": 0.6089895671667198,
+            "cagr": 0.1336314586331846,
+            "maxDrawdown": 0.25373350145292173,
+            "trades": 372,
+            "foldReturns": [
+              0.14110452000023432,
+              0.39532477112884656,
+              -0.05352349991743088,
+              0.06768382344735135
+            ]
+          },
+          "delay2": {
+            "return": 0.46126775481965154,
+            "cagr": 0.10520357601208752,
+            "maxDrawdown": 0.28817584030299226,
+            "trades": 384,
+            "foldReturns": [
+              0.12542805368145848,
+              0.3842138362473857,
+              -0.04171924321988518,
+              -0.021150076675291007
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.04170814194079253,
+          "medianReturn": 0.7623522845422313,
+          "p95Drawdown": 0.3418509900892486,
+          "lossFraction": 0.062,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "bollingerBreak",
+          "k": 2,
+          "trend": 200,
+          "stop": 3,
+          "allocation": 1,
+          "id": "bollingerBreak-316"
+        },
+        "stress": {
+          "base": {
+            "return": 0.7761134019000617,
+            "cagr": 0.16356329933390157,
+            "maxDrawdown": 0.23936164371672097,
+            "trades": 691,
+            "foldReturns": [
+              0.09701518842544599,
+              0.4396067699167998,
+              0.12670243523949165,
+              -0.0018290243827626673
+            ]
+          },
+          "cost2": {
+            "return": 0.2629389749502362,
+            "cagr": 0.06349731191833263,
+            "maxDrawdown": 0.3001342049891186,
+            "trades": 691,
+            "foldReturns": [
+              -0.007331646901893807,
+              0.30276359592965973,
+              0.04656289486477694,
+              -0.06685906350395954
+            ]
+          },
+          "cost3": {
+            "return": -0.09887123692731214,
+            "cagr": -0.027081502460287066,
+            "maxDrawdown": 0.38574851559118495,
+            "trades": 691,
+            "foldReturns": [
+              -0.09895681187950844,
+              0.17909117873912161,
+              -0.02779420984677572,
+              -0.12755983571042828
+            ]
+          },
+          "delay1": {
+            "return": 0.48002394974554474,
+            "cagr": 0.10892711426542778,
+            "maxDrawdown": 0.28073157804823434,
+            "trades": 699,
+            "foldReturns": [
+              0.1249729380685729,
+              0.2578962164591392,
+              0.06233626623556754,
+              -0.015490640430365299
+            ]
+          },
+          "delay2": {
+            "return": 0.2627968408661059,
+            "cagr": 0.06346574656090831,
+            "maxDrawdown": 0.3178590264705282,
+            "trades": 702,
+            "foldReturns": [
+              0.1009827151020617,
+              0.13893186397493285,
+              0.0026910554367101103,
+              0.004356979027843266
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.20395998121617698,
+          "medianReturn": 0.7139525299810698,
+          "p95Drawdown": 0.4692746395052091,
+          "lossFraction": 0.122,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "keltner",
+          "k": 2,
+          "trend": 0,
+          "stop": 2,
+          "allocation": 1,
+          "id": "keltner-140"
+        },
+        "stress": {
+          "base": {
+            "return": 0.733359663170696,
+            "cagr": 0.15611049799328502,
+            "maxDrawdown": 0.2800193513003971,
+            "trades": 539,
+            "foldReturns": [
+              0.16074937617950757,
+              0.5344132319320407,
+              0.006633153966429717,
+              -0.03319995482715399
+            ]
+          },
+          "cost2": {
+            "return": 0.351815394738378,
+            "cagr": 0.08274285272858672,
+            "maxDrawdown": 0.3418193097870771,
+            "trades": 539,
+            "foldReturns": [
+              0.08758097392536301,
+              0.44389100027154127,
+              -0.05838917951622191,
+              -0.0857816449627008
+            ]
+          },
+          "cost3": {
+            "return": 0.053903583796946375,
+            "cagr": 0.0139417647141018,
+            "maxDrawdown": 0.4133828610423004,
+            "trades": 539,
+            "foldReturns": [
+              0.020216603754444895,
+              0.358828146212665,
+              -0.12221088948541792,
+              -0.13392845277522936
+            ]
+          },
+          "delay1": {
+            "return": 0.3902481745617603,
+            "cagr": 0.09077727882833742,
+            "maxDrawdown": 0.3273070241874029,
+            "trades": 573,
+            "foldReturns": [
+              0.12901702046273966,
+              0.3315582607115506,
+              -0.05640390858702493,
+              -0.0199560820072463
+            ]
+          },
+          "delay2": {
+            "return": 0.24627842197032046,
+            "cagr": 0.05977935717275629,
+            "maxDrawdown": 0.3938452362848268,
+            "trades": 581,
+            "foldReturns": [
+              0.07708624696475419,
+              0.3587806317759046,
+              -0.0868553122387965,
+              -0.06744243281495443
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.21471241065910185,
+          "medianReturn": 0.6757926073146605,
+          "p95Drawdown": 0.44261668647718777,
+          "lossFraction": 0.116,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "bollingerBreak",
+          "k": 2,
+          "trend": 200,
+          "stop": 5,
+          "allocation": 0.5,
+          "id": "bollingerBreak-317"
+        },
+        "stress": {
+          "base": {
+            "return": 0.43627670269879193,
+            "cagr": 0.10018719567828316,
+            "maxDrawdown": 0.12791505865557895,
+            "trades": 686,
+            "foldReturns": [
+              0.06404949345680233,
+              0.2555504905748869,
+              0.06377681353959264,
+              0.010628600709436276
+            ]
+          },
+          "cost2": {
+            "return": 0.2115240419551394,
+            "cagr": 0.05190420786576433,
+            "maxDrawdown": 0.16172274164268696,
+            "trades": 686,
+            "foldReturns": [
+              0.01408721632280363,
+              0.1936737205749517,
+              0.024594712559135035,
+              -0.023170007256451353
+            ]
+          },
+          "cost3": {
+            "return": 0.02230294125508303,
+            "cagr": 0.005834017859614571,
+            "maxDrawdown": 0.2151156142993681,
+            "trades": 686,
+            "foldReturns": [
+              -0.03344623983701778,
+              0.13497187870674487,
+              -0.013065711714488448,
+              -0.055764646698115206
+            ]
+          },
+          "delay1": {
+            "return": 0.2840047841877853,
+            "cagr": 0.06814699332475449,
+            "maxDrawdown": 0.1602016645573392,
+            "trades": 689,
+            "foldReturns": [
+              0.04890538109845344,
+              0.1967588348728253,
+              0.02218195838770365,
+              0.00068058749547939
+            ]
+          },
+          "delay2": {
+            "return": 0.16559634575586513,
+            "cagr": 0.04123792873309329,
+            "maxDrawdown": 0.18211393942158316,
+            "trades": 692,
+            "foldReturns": [
+              0.03373666978707446,
+              0.12975731395022105,
+              -0.0067056855455081,
+              0.004789628759404696
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.0602170410345656,
+          "medianReturn": 0.41517455100341394,
+          "p95Drawdown": 0.26292758796618065,
+          "lossFraction": 0.08,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      }
+    ],
+    "cedear": [
+      {
+        "spec": {
+          "family": "momentum",
+          "n": 180,
+          "stop": 5,
+          "allocation": 1,
+          "id": "momentum-42"
+        },
+        "stress": {
+          "base": {
+            "return": 0.06664327843209028,
+            "cagr": 0.05108149820697139,
+            "maxDrawdown": 0.08981274082032009,
+            "trades": 61,
+            "foldReturns": [
+              0.059923518280196486,
+              -0.011594350353127614,
+              0.018144578762743224
+            ]
+          },
+          "cost2": {
+            "return": -0.02366044246679222,
+            "cagr": -0.018320284896021444,
+            "maxDrawdown": 0.11428983317140595,
+            "trades": 61,
+            "foldReturns": [
+              0.025700510991870207,
+              -0.040432296338156704,
+              -0.008015945243315725
+            ]
+          },
+          "cost3": {
+            "return": -0.10644812292213202,
+            "cagr": -0.08324191332730302,
+            "maxDrawdown": 0.16859516238459282,
+            "trades": 61,
+            "foldReturns": [
+              -0.006944141935332548,
+              -0.06914124225176854,
+              -0.03336547031229553
+            ]
+          },
+          "delay1": {
+            "return": 0.07212929375691957,
+            "cagr": 0.05525354655194348,
+            "maxDrawdown": 0.09246211765661805,
+            "trades": 62,
+            "foldReturns": [
+              0.05878412344038919,
+              -0.014559065794196968,
+              0.02756462199390808
+            ]
+          },
+          "delay2": {
+            "return": 0.059917527930854364,
+            "cagr": 0.04595996923052392,
+            "maxDrawdown": 0.0970949471665069,
+            "trades": 63,
+            "foldReturns": [
+              0.04768866306171726,
+              -0.010276792511427546,
+              0.022176931982345938
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.15225508681862132,
+          "medianReturn": 0.07167484912089384,
+          "p95Drawdown": 0.24441643164578186,
+          "lossFraction": 0.32,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "momentum",
+          "n": 90,
+          "stop": 5,
+          "allocation": 1,
+          "id": "momentum-36"
+        },
+        "stress": {
+          "base": {
+            "return": 0.035320113675344045,
+            "cagr": 0.027165979122531603,
+            "maxDrawdown": 0.11443755942302047,
+            "trades": 79,
+            "foldReturns": [
+              0.03881642669853891,
+              -0.04390244397549414,
+              0.04239815693494431
+            ]
+          },
+          "cost2": {
+            "return": -0.07691156990040926,
+            "cagr": -0.05992841391427184,
+            "maxDrawdown": 0.16292496766588593,
+            "trades": 79,
+            "foldReturns": [
+              -0.006471038098753046,
+              -0.08438625390124388,
+              0.014729933806790996
+            ]
+          },
+          "cost3": {
+            "return": -0.1757734022227775,
+            "cagr": -0.1386665560273822,
+            "maxDrawdown": 0.2209849258100427,
+            "trades": 79,
+            "foldReturns": [
+              -0.04806671435828713,
+              -0.12370517310489282,
+              -0.011925106069952895
+            ]
+          },
+          "delay1": {
+            "return": 0.03914005590972969,
+            "cagr": 0.030091273517169004,
+            "maxDrawdown": 0.10642143842144125,
+            "trades": 81,
+            "foldReturns": [
+              0.025144703967833637,
+              -0.0319687520917864,
+              0.04712743184550661
+            ]
+          },
+          "delay2": {
+            "return": 0.03434486687378557,
+            "cagr": 0.026418745843584945,
+            "maxDrawdown": 0.10916869681621855,
+            "trades": 81,
+            "foldReturns": [
+              0.038224586530229754,
+              -0.035435997678913145,
+              0.032863675817200955
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.1810416429877787,
+          "medianReturn": 0.03263330229553163,
+          "p95Drawdown": 0.2589947382664789,
+          "lossFraction": 0.421,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "momentum",
+          "n": 180,
+          "stop": 3,
+          "allocation": 1,
+          "id": "momentum-40"
+        },
+        "stress": {
+          "base": {
+            "return": 0.0314401757182301,
+            "cagr": 0.02419222221103423,
+            "maxDrawdown": 0.101509323600119,
+            "trades": 74,
+            "foldReturns": [
+              0.04057656050380132,
+              -0.022276046137367222,
+              0.01380341381613226
+            ]
+          },
+          "cost2": {
+            "return": -0.07144720375056335,
+            "cagr": -0.055634095142167106,
+            "maxDrawdown": 0.14376646598132659,
+            "trades": 74,
+            "foldReturns": [
+              0.001585997366710279,
+              -0.059238768784016016,
+              -0.014540124348914163
+            ]
+          },
+          "cost3": {
+            "return": -0.17615595307350684,
+            "cagr": -0.138975276836663,
+            "maxDrawdown": 0.21866829549988986,
+            "trades": 76,
+            "foldReturns": [
+              -0.03519635944118271,
+              -0.10875190598687978,
+              -0.04190745653136407
+            ]
+          },
+          "delay1": {
+            "return": 0.04361027363930092,
+            "cagr": 0.03351143733030093,
+            "maxDrawdown": 0.09756669735360124,
+            "trades": 74,
+            "foldReturns": [
+              0.04718162821372229,
+              -0.026751233849103495,
+              0.023982346959626977
+            ]
+          },
+          "delay2": {
+            "return": 0.02232083105480176,
+            "cagr": 0.017192692467074222,
+            "maxDrawdown": 0.11201006326365237,
+            "trades": 77,
+            "foldReturns": [
+              0.03096813097062623,
+              -0.02596371717532786,
+              0.01804467083160688
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.1855680104167372,
+          "medianReturn": 0.035206375791906996,
+          "p95Drawdown": 0.26705001966459874,
+          "lossFraction": 0.4,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "momentum",
+          "n": 90,
+          "stop": 3,
+          "allocation": 1,
+          "id": "momentum-34"
+        },
+        "stress": {
+          "base": {
+            "return": 0.012180028879974714,
+            "cagr": 0.009392419219147685,
+            "maxDrawdown": 0.11503418639883978,
+            "trades": 89,
+            "foldReturns": [
+              0.02747936559766906,
+              -0.05337456116720973,
+              0.04065430226506872
+            ]
+          },
+          "cost2": {
+            "return": -0.10930481599271602,
+            "cagr": -0.08550596307984792,
+            "maxDrawdown": 0.178288833482394,
+            "trades": 90,
+            "foldReturns": [
+              -0.02102317510803453,
+              -0.10078978947927286,
+              0.011801836760211737
+            ]
+          },
+          "cost3": {
+            "return": -0.21885336517449372,
+            "cagr": -0.17364202322603772,
+            "maxDrawdown": 0.2461805129499911,
+            "trades": 91,
+            "foldReturns": [
+              -0.06367475860578975,
+              -0.15218057492090842,
+              -0.015983292964273033
+            ]
+          },
+          "delay1": {
+            "return": 0.018444085699522716,
+            "cagr": 0.014212802600712227,
+            "maxDrawdown": 0.10959487872163987,
+            "trades": 90,
+            "foldReturns": [
+              0.020330815857734885,
+              -0.04483317678748766,
+              0.045001606025777185
+            ]
+          },
+          "delay2": {
+            "return": 0.002676632241240373,
+            "cagr": 0.0020662625770402343,
+            "maxDrawdown": 0.12336305705777639,
+            "trades": 92,
+            "foldReturns": [
+              0.027653967295656834,
+              -0.05322803020735112,
+              0.030548887459254326
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.20061559759652314,
+          "medianReturn": 0.0042037695033840805,
+          "p95Drawdown": 0.27481676293903845,
+          "lossFraction": 0.487,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "momentum",
+          "n": 180,
+          "stop": 2,
+          "allocation": 1,
+          "id": "momentum-38"
+        },
+        "stress": {
+          "base": {
+            "return": 0.002042660673239771,
+            "cagr": 0.0015769733027448662,
+            "maxDrawdown": 0.12163507277759522,
+            "trades": 91,
+            "foldReturns": [
+              0.029070712016405098,
+              -0.04020946757609645,
+              0.014529154169640401
+            ]
+          },
+          "cost2": {
+            "return": -0.14593396545152526,
+            "cagr": -0.11468507634439973,
+            "maxDrawdown": 0.20376819152492642,
+            "trades": 96,
+            "foldReturns": [
+              -0.015976237205236887,
+              -0.11585036997910536,
+              -0.018342260385497577
+            ]
+          },
+          "cost3": {
+            "return": -0.25587757992015514,
+            "cagr": -0.20405334736301006,
+            "maxDrawdown": 0.28419327945016515,
+            "trades": 97,
+            "foldReturns": [
+              -0.05746187234043565,
+              -0.17107227376433687,
+              -0.047579365038999066
+            ]
+          },
+          "delay1": {
+            "return": -0.0004584841697850006,
+            "cagr": -0.0003540593863867736,
+            "maxDrawdown": 0.12808017252242232,
+            "trades": 93,
+            "foldReturns": [
+              0.028617710336760194,
+              -0.050683012234289504,
+              0.02361251510717799
+            ]
+          },
+          "delay2": {
+            "return": -0.004182629405722005,
+            "cagr": -0.003231362461716958,
+            "maxDrawdown": 0.12496463766184551,
+            "trades": 95,
+            "foldReturns": [
+              0.021862540347038717,
+              -0.042618229562280896,
+              0.017892852596432585
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.20583530952544038,
+          "medianReturn": 0.0060677055382030165,
+          "p95Drawdown": 0.2817618838302012,
+          "lossFraction": 0.479,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      },
+      {
+        "spec": {
+          "family": "momentum",
+          "n": 180,
+          "stop": 5,
+          "allocation": 0.5,
+          "id": "momentum-41"
+        },
+        "stress": {
+          "base": {
+            "return": -0.09523655285702004,
+            "cagr": -0.07437213924715891,
+            "maxDrawdown": 0.114765402176916,
+            "trades": 61,
+            "foldReturns": [
+              -0.07215879148487747,
+              -0.017249266907507277,
+              -0.007757070184017945
+            ]
+          },
+          "cost2": {
+            "return": -0.13693459071051828,
+            "cagr": -0.10749011530004993,
+            "maxDrawdown": 0.14233127757796893,
+            "trades": 61,
+            "foldReturns": [
+              -0.08900524920355635,
+              -0.03226817432825979,
+              -0.02102226999357426
+            ]
+          },
+          "cost3": {
+            "return": -0.17674770760524416,
+            "cagr": -0.13945289059668076,
+            "maxDrawdown": 0.178241722290995,
+            "trades": 61,
+            "foldReturns": [
+              -0.10532506613699122,
+              -0.047466501358043534,
+              -0.03397710157014766
+            ]
+          },
+          "delay1": {
+            "return": -0.0927459684711861,
+            "cagr": -0.07240517856055351,
+            "maxDrawdown": 0.11725295283520443,
+            "trades": 62,
+            "foldReturns": [
+              -0.07274930262417378,
+              -0.01845198089355271,
+              -0.00317209468111046
+            ]
+          },
+          "delay2": {
+            "return": -0.09804341457004506,
+            "cagr": -0.07659036171787514,
+            "maxDrawdown": 0.12288426930221075,
+            "trades": 63,
+            "foldReturns": [
+              -0.07801870790964216,
+              -0.016029997548026587,
+              -0.005781897735115726
+            ]
+          }
+        },
+        "blockResampling": {
+          "samples": 1000,
+          "blockSessions": 7,
+          "seed": 812731,
+          "p05Return": -0.28796443370480196,
+          "medianReturn": -0.09294391346093167,
+          "p95Drawdown": 0.3312654293961499,
+          "lossFraction": 0.752,
+          "note": "Resamples observed daily returns; conditional scenario distribution, not a confidence interval or future risk guarantee. No correction for choosing finalists from many trials."
+        }
+      }
+    ]
+  }
+}
