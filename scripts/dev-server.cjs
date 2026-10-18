@@ -13,7 +13,7 @@ const server = http.createServer(async (req, res) => {
     try { await handler(req, res); } catch { res.status(500).json({error:'Local handler failure'}); }
     return;
   }
-  const files = {'/':'index.html','/index.html':'index.html','/command-center.js':'command-center.js',
+  const files = {'/':'index.html','/index.html':'index.html','/command-center.js':'command-center.js','/paper-monitor.js':'paper-monitor.js','/paper/keltner-h4.json':'paper/keltner-h4.json',
     '/docs/research/':'docs/research/index.html'};
   for(const name of ['expanded.html','broad-results-2026-10-18.json','broad-finalists-2026-10-18.json','broad-catalog-2026-10-18.json','broad-rankings-2026-10-18.csv','broad-stress-2026-10-18.png','index.html','holdout-2026-10-17.png','rankings-2026-10-17.csv','results-2026-10-17.json','protocol-2026-10-17.json'])files['/docs/research/'+name]='docs/research/'+name;
   const file = files[url.pathname];
