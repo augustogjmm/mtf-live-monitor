@@ -15,7 +15,7 @@ const server = http.createServer(async (req, res) => {
   }
   const files = {'/':'index.html','/index.html':'index.html','/command-center.js':'command-center.js','/paper-monitor.js':'paper-monitor.js','/paper/keltner-h4.json':'paper/keltner-h4.json',
     '/docs/research/':'docs/research/index.html'};
-  for(const name of ['expanded.html','broad-results-2026-10-18.json','broad-finalists-2026-10-18.json','broad-catalog-2026-10-18.json','broad-rankings-2026-10-18.csv','broad-stress-2026-10-18.png','index.html','holdout-2026-10-17.png','rankings-2026-10-17.csv','results-2026-10-17.json','protocol-2026-10-17.json'])files['/docs/research/'+name]='docs/research/'+name;
+  for(const name of ['portfolio-results-2026-10-19.json','portfolio-protocol-2026-10-19.json','expanded.html','broad-results-2026-10-18.json','broad-finalists-2026-10-18.json','broad-catalog-2026-10-18.json','broad-rankings-2026-10-18.csv','broad-stress-2026-10-18.png','index.html','holdout-2026-10-17.png','rankings-2026-10-17.csv','results-2026-10-17.json','protocol-2026-10-17.json'])files['/docs/research/'+name]='docs/research/'+name;
   const file = files[url.pathname];
   if (!file) { res.writeHead(404); res.end('Not found'); return; }
   const types={'.js':'application/javascript','.html':'text/html; charset=utf-8','.json':'application/json','.csv':'text/csv; charset=utf-8','.png':'image/png'};
