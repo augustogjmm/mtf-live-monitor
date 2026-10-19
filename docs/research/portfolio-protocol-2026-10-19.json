@@ -1,0 +1,128 @@
+{
+  "kind": "EXPLORATORY_PORTFOLIO_IMPROVEMENT",
+  "policies": [
+    {
+      "score": "cagr",
+      "count": 1,
+      "allocation": 0.5,
+      "id": "cagr-1-0.5"
+    },
+    {
+      "score": "cagr",
+      "count": 1,
+      "allocation": 1,
+      "id": "cagr-1-1"
+    },
+    {
+      "score": "cagr",
+      "count": 3,
+      "allocation": 0.5,
+      "id": "cagr-3-0.5"
+    },
+    {
+      "score": "cagr",
+      "count": 3,
+      "allocation": 1,
+      "id": "cagr-3-1"
+    },
+    {
+      "score": "cagr",
+      "count": 5,
+      "allocation": 0.5,
+      "id": "cagr-5-0.5"
+    },
+    {
+      "score": "cagr",
+      "count": 5,
+      "allocation": 1,
+      "id": "cagr-5-1"
+    },
+    {
+      "score": "calmar",
+      "count": 1,
+      "allocation": 0.5,
+      "id": "calmar-1-0.5"
+    },
+    {
+      "score": "calmar",
+      "count": 1,
+      "allocation": 1,
+      "id": "calmar-1-1"
+    },
+    {
+      "score": "calmar",
+      "count": 3,
+      "allocation": 0.5,
+      "id": "calmar-3-0.5"
+    },
+    {
+      "score": "calmar",
+      "count": 3,
+      "allocation": 1,
+      "id": "calmar-3-1"
+    },
+    {
+      "score": "calmar",
+      "count": 5,
+      "allocation": 0.5,
+      "id": "calmar-5-0.5"
+    },
+    {
+      "score": "calmar",
+      "count": 5,
+      "allocation": 1,
+      "id": "calmar-5-1"
+    },
+    {
+      "score": "stress",
+      "count": 1,
+      "allocation": 0.5,
+      "id": "stress-1-0.5"
+    },
+    {
+      "score": "stress",
+      "count": 1,
+      "allocation": 1,
+      "id": "stress-1-1"
+    },
+    {
+      "score": "stress",
+      "count": 3,
+      "allocation": 0.5,
+      "id": "stress-3-0.5"
+    },
+    {
+      "score": "stress",
+      "count": 3,
+      "allocation": 1,
+      "id": "stress-3-1"
+    },
+    {
+      "score": "stress",
+      "count": 5,
+      "allocation": 0.5,
+      "id": "stress-5-0.5"
+    },
+    {
+      "score": "stress",
+      "count": 5,
+      "allocation": 1,
+      "id": "stress-5-1"
+    }
+  ],
+  "sourceManifestSha256": "a1a38bc3fd9a388a6f697f3b86c00fca13b09de3e5d7800cc08c589a88537400",
+  "trainYears": 3,
+  "folds": [
+    "2023",
+    "2024",
+    "2025",
+    "2026-partial"
+  ],
+  "rules": "Filter active training models: base drawdown <=25%, >=20 closed trades, positive base and tripled-cost CAGR. Select distinct families. Within-window capital is not rebalanced. Primary policy selection maximizes training Calmar (annualized profit/drawdown) subject to training drawdown <=25%; the prior CAGR-selected procedure is the control. No eligible policy means cash.",
+  "limitations": [
+    "Previously inspected history: not an independent holdout.",
+    "No leverage, spot long-only, six surviving liquid crypto assets.",
+    "Portfolio sub-strategies can hold opposing cash/risk exposures; fees are charged per simulated sleeve, no free order netting.",
+    "The original CEDEAR comparison is not extended by this crypto-only experiment."
+  ]
+}
