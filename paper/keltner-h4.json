@@ -35,7 +35,7 @@
   "approvedForLive": false,
   "automaticOrders": false,
   "startedAt": 1792348510415,
-  "updatedAt": 1792873923085,
+  "updatedAt": 1792882954451,
   "sleeves": {
     "BTCUSDT": {
       "cash": 1666.6666666666667,
@@ -49,8 +49,8 @@
         "count": 1037
       },
       "lastDecisionBar": 1792857600000,
-      "lastQuote": 80532.02,
-      "quoteAt": 1792873923085,
+      "lastQuote": 80609.92,
+      "quoteAt": 1792882954451,
       "benchmarkQty": 0.02051216744569494,
       "status": "WAITING"
     },
@@ -66,8 +66,8 @@
         "count": 1037
       },
       "lastDecisionBar": 1792857600000,
-      "lastQuote": 2343.85,
-      "quoteAt": 1792873923085,
+      "lastQuote": 2347.32,
+      "quoteAt": 1792882954451,
       "benchmarkQty": 0.7041481184623545,
       "status": "WAITING"
     },
@@ -83,8 +83,8 @@
         "count": 1037
       },
       "lastDecisionBar": 1792857600000,
-      "lastQuote": 731.38,
-      "quoteAt": 1792873923085,
+      "lastQuote": 736.64,
+      "quoteAt": 1792882954451,
       "benchmarkQty": 2.3395841197390164,
       "status": "WAITING"
     },
@@ -100,8 +100,8 @@
         "count": 1037
       },
       "lastDecisionBar": 1792857600000,
-      "lastQuote": 1.2912,
-      "quoteAt": 1792873923085,
+      "lastQuote": 1.2937,
+      "quoteAt": 1792882954451,
       "benchmarkQty": 1308.000927620498,
       "status": "WAITING"
     },
@@ -117,8 +117,8 @@
         "count": 1037
       },
       "lastDecisionBar": 1792857600000,
-      "lastQuote": 0.2065,
-      "quoteAt": 1792873923085,
+      "lastQuote": 0.2064,
+      "quoteAt": 1792882954451,
       "benchmarkQty": 7733.130019570444,
       "status": "WAITING"
     },
@@ -134,8 +134,8 @@
         "count": 1037
       },
       "lastDecisionBar": 1792857600000,
-      "lastQuote": 56.75,
-      "quoteAt": 1792873923085,
+      "lastQuote": 56.8,
+      "quoteAt": 1792882954451,
       "benchmarkQty": 28.73717113126506,
       "status": "WAITING"
     }
@@ -173,10 +173,10 @@
   "fees": 3.264067818893495,
   "peak": 10000,
   "maxObservedDrawdown": 0.00691995789287303,
-  "samples": 35,
+  "samples": 36,
   "missedH4Decisions": 30,
   "equity": 9930.80042107127,
-  "benchmarkEquity": 9915.15538520706,
+  "benchmarkEquity": 9935.406025927916,
   "status": "COLLECTING",
   "engineHash": "0a9c224420ff068aa13410993cc96ed1ec67b37a69112b935a1efe369c27fe24",
   "source": "Public Binance data via bounded MTF relay; indicative last prices, not executable bid/ask or real fills"
