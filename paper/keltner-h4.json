@@ -35,22 +35,22 @@
   "approvedForLive": false,
   "automaticOrders": false,
   "startedAt": 1792348510415,
-  "updatedAt": 1793053908894,
+  "updatedAt": 1793066187734,
   "sleeves": {
     "BTCUSDT": {
       "cash": 1666.6666666666667,
       "position": null,
       "indicator": {
-        "ema20": 80651.57673058668,
-        "ema200": 81821.51935433422,
-        "atr": 785.0672731431865,
-        "close": 80020.01,
-        "lastBar": 1793030400000,
-        "count": 1049
+        "ema20": 80603.86085148319,
+        "ema200": 81804.89289309706,
+        "atr": 763.4838964901014,
+        "close": 80150.56,
+        "lastBar": 1793044800000,
+        "count": 1050
       },
-      "lastDecisionBar": 1793030400000,
-      "lastQuote": 79938.31,
-      "quoteAt": 1793053908894,
+      "lastDecisionBar": 1793044800000,
+      "lastQuote": 80108.33,
+      "quoteAt": 1793066187733,
       "benchmarkQty": 0.02051216744569494,
       "status": "WAITING"
     },
@@ -58,16 +58,16 @@
       "cash": 1666.6666666666667,
       "position": null,
       "indicator": {
-        "ema20": 2349.396366390753,
-        "ema200": 2475.1110272548435,
-        "atr": 34.38287811147226,
-        "close": 2318.2,
-        "lastBar": 1793030400000,
-        "count": 1049
+        "ema20": 2347.03004578211,
+        "ema200": 2473.612907580666,
+        "atr": 33.56124396065282,
+        "close": 2324.55,
+        "lastBar": 1793044800000,
+        "count": 1050
       },
-      "lastDecisionBar": 1793030400000,
-      "lastQuote": 2308.36,
-      "quoteAt": 1793053908894,
+      "lastDecisionBar": 1793044800000,
+      "lastQuote": 2323.72,
+      "quoteAt": 1793066187733,
       "benchmarkQty": 0.7041481184623545,
       "status": "WAITING"
     },
@@ -75,16 +75,16 @@
       "cash": 1666.6666666666667,
       "position": null,
       "indicator": {
-        "ema20": 740.1452615588751,
-        "ema200": 741.3896176403275,
-        "atr": 8.092672544615613,
-        "close": 743.05,
-        "lastBar": 1793030400000,
-        "count": 1049
+        "ema20": 740.4057128389823,
+        "ema200": 741.4044473155482,
+        "atr": 7.805338791428779,
+        "close": 742.88,
+        "lastBar": 1793044800000,
+        "count": 1050
       },
-      "lastDecisionBar": 1793030400000,
-      "lastQuote": 741.4,
-      "quoteAt": 1793053908894,
+      "lastDecisionBar": 1793044800000,
+      "lastQuote": 744.21,
+      "quoteAt": 1793066187733,
       "benchmarkQty": 2.3395841197390164,
       "status": "WAITING"
     },
@@ -92,16 +92,16 @@
       "cash": 1597.467087737938,
       "position": null,
       "indicator": {
-        "ema20": 1.2978401735913208,
-        "ema200": 1.3652487177881307,
-        "atr": 0.019667763054889924,
-        "close": 1.2937,
-        "lastBar": 1793030400000,
-        "count": 1049
+        "ema20": 1.2989220618207187,
+        "ema200": 1.3646910191036716,
+        "atr": 0.020184351408112068,
+        "close": 1.3092,
+        "lastBar": 1793044800000,
+        "count": 1050
       },
-      "lastDecisionBar": 1793030400000,
-      "lastQuote": 1.2901,
-      "quoteAt": 1793053908894,
+      "lastDecisionBar": 1793044800000,
+      "lastQuote": 1.3042,
+      "quoteAt": 1793066187733,
       "benchmarkQty": 1308.000927620498,
       "status": "WAITING"
     },
@@ -109,16 +109,16 @@
       "cash": 1666.6666666666667,
       "position": null,
       "indicator": {
-        "ema20": 0.20755135751412077,
-        "ema200": 0.22690373181506687,
-        "atr": 0.004258969154091621,
-        "close": 0.2051,
-        "lastBar": 1793030400000,
-        "count": 1049
+        "ema20": 0.20747027584610928,
+        "ema200": 0.226702699657703,
+        "atr": 0.004154757071656507,
+        "close": 0.2067,
+        "lastBar": 1793044800000,
+        "count": 1050
       },
-      "lastDecisionBar": 1793030400000,
-      "lastQuote": 0.2048,
-      "quoteAt": 1793053908894,
+      "lastDecisionBar": 1793044800000,
+      "lastQuote": 0.2054,
+      "quoteAt": 1793066187733,
       "benchmarkQty": 7733.130019570444,
       "status": "WAITING"
     },
@@ -126,16 +126,16 @@
       "cash": 1666.6666666666667,
       "position": null,
       "indicator": {
-        "ema20": 57.13336919730122,
-        "ema200": 60.692751691602474,
-        "atr": 0.9308182618988495,
-        "close": 56.41,
-        "lastBar": 1793030400000,
-        "count": 1049
+        "ema20": 57.10257213089158,
+        "ema200": 60.6541173464124,
+        "atr": 0.9079026717632174,
+        "close": 56.81,
+        "lastBar": 1793044800000,
+        "count": 1050
       },
-      "lastDecisionBar": 1793030400000,
-      "lastQuote": 56.4,
-      "quoteAt": 1793053908894,
+      "lastDecisionBar": 1793044800000,
+      "lastQuote": 56.65,
+      "quoteAt": 1793066187733,
       "benchmarkQty": 28.73717113126506,
       "status": "WAITING"
     }
@@ -173,10 +173,10 @@
   "fees": 3.264067818893495,
   "peak": 10000,
   "maxObservedDrawdown": 0.00691995789287303,
-  "samples": 47,
+  "samples": 48,
   "missedH4Decisions": 36,
   "equity": 9930.80042107127,
-  "benchmarkEquity": 9876.843924786432,
+  "benchmarkEquity": 9927.911642804222,
   "status": "COLLECTING",
   "engineHash": "0a9c224420ff068aa13410993cc96ed1ec67b37a69112b935a1efe369c27fe24",
   "source": "Public Binance data via bounded MTF relay; indicative last prices, not executable bid/ask or real fills"
