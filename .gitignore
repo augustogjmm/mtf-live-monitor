@@ -4,3 +4,16 @@ playwright-report/
 test-results/
 .env
 .env.local
+
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+*.key
+.vercel/
+.wrangler/
+.npm-cache/
+.cache/
+*.log
+.DS_Store
