@@ -1,3 +1,18 @@
+# MTF Live Monitor — Cloud Architecture & Operational Resilience
+
+> **Proyecto personal de ingeniería:** integración de APIs financieras, operación cloud, persistencia, controles de frescura de información, validación de estrategias y pruebas automatizadas. Se presenta como caso técnico de diseño de servicios, no como evidencia de rentabilidad ni disponibilidad garantizada.
+
+**[Portfolio ejecutivo](https://github.com/augustogjmm/Radar/blob/main/PORTFOLIO.md)** · **[Demostración](https://mtf-monitor.vercel.app)** · **[Decisiones de migración Cloudflare](docs/CLOUDFLARE_MIGRATION.md)**
+
+### Decisiones técnicas que documenta
+
+- Separación de interfaz y API desplegadas en Vercel respecto del backend basado en Cloudflare Workers y Durable Objects con SQLite.
+- Migración documentada para controlar consumo, persistencia, continuidad y cuotas de servicios.
+- Pruebas de consistencia, manejo de datos vencidos, protección ante señales retrospectivas y validación con evidencia reproducible.
+- Descripción explícita de funcionalidades disponibles y limitaciones operativas.
+
+---
+
 > **Backend gratuito:** Cloudflare Workers + SQLite Durable Objects conserva los datos del monitor. Supabase está desconectado y sus nueve cron apagados. Ver [guía de migración y operación](docs/CLOUDFLARE_MIGRATION.md); el panel de salud informa la disponibilidad real de cada mercado.
 
 # MTF Live Monitor
@@ -36,18 +51,17 @@ motores ni los cron de Supabase. La comprobación local
 `MTF-MONITOR-FORWARD-SAFETY`. Ese endpoint comprueba la aplicación, no la
 conectividad al backend.
 
-La API consulta por defecto el proyecto Supabase público existente. Para
-usar un proyecto de pruebas, definir juntas `MTF_SUPABASE_URL` y
-`MTF_SUPABASE_PUBLISHABLE_KEY` en el servidor (por ejemplo, en Vercel).
-Usar el origen HTTPS y una clave pública; nunca una service-role key.
-Si falta una de las dos variables, la consulta falla sin volver a producción.
-La interfaz consulta el backend exclusivamente a través de esta API.
-Los motores necesitan SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el entorno
-seguro de Supabase. Nunca poner una service-role key en el navegador.
-TELEGRAM_BOT_TOKEN es opcional para alertas. No es necesario para las pruebas
-locales. Este repositorio no incluye un bootstrap completo de base de datos ni
-una configuración local de Supabase: las migraciones y los SQL históricos
-dependen de objetos y cohortes existentes.
+**Backend vigente:** la documentación del repositorio describe Cloudflare
+Workers y Durable Objects con SQLite. El proyecto Supabase se mantiene como
+antecedente de la arquitectura anterior, con sus cron desactivados. Los
+nombres de variables `MTF_SUPABASE_*` y los SQL históricos pueden seguir
+apareciendo en componentes heredados o pruebas de compatibilidad; no deben
+interpretarse como instrucciones para activar Supabase en producción.
+La interfaz accede al backend a través de la API de la aplicación.
+Revisar [migración y operación](docs/CLOUDFLARE_MIGRATION.md) y las
+configuraciones reales del despliegue antes de cambiar proveedores.
+Nunca incorporar claves administrativas o tokens de alertas al navegador
+ni al repositorio.
 
 ## Reglas y confiabilidad
 
