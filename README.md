@@ -17,7 +17,7 @@
 
 > **Backend gratuito:** Cloudflare Workers + SQLite Durable Objects conserva los datos del monitor. Supabase está desconectado y sus nueve cron apagados. Ver [guía de migración y operación](docs/CLOUDFLARE_MIGRATION.md); el panel de salud informa la disponibilidad real de cada mercado.
 
-# MTF Live Monitor
+## Alcance funcional
 
 Monitor de señales para operar **manualmente** en cripto, CEDEAR y ADR.
 La interfaz y las reglas implementadas no constituyen una validación de
